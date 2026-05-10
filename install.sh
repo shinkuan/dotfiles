@@ -310,6 +310,9 @@ sudo systemctl enable --now tailscaled.service
 info "Adding $USER to docker, libvirt, wheel groups..."
 sudo usermod -aG docker,libvirt,wheel "$USER" || true
 
+# Go back to repo root
+cd "$(dirname "$(realpath "$0")")"
+
 # Copy Wallpapers
 info "Copying wallpapers to ~/Pictures/Wallpapers..."
 mkdir -p ~/Pictures
