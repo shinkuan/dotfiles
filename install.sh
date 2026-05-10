@@ -78,7 +78,6 @@ PACKAGES=(
     swappy
     wtype
     cliphist
-    wl-screenrec
     gpu-screen-recorder
 
     # ----- File manager / GUI utilities -----
@@ -110,7 +109,7 @@ PACKAGES=(
     ttf-noto-nerd
     ttf-ibm-plex
     ttf-material-symbols-variable-git
-    ttf-ms-win11-auto
+    # ttf-ms-win11-auto
 
     # ----- Wallpaper / color generation -----
     hellwal
@@ -207,12 +206,9 @@ PACKAGES=(
     man-db
 
     # ----- Programming languages & toolchains -----
-    python312
-    python313
+    uv
     python-pip
     python-virtualenv
-    python-hatch
-    python-hatch-vcs
     go
     rustup
     cargo-tauri
