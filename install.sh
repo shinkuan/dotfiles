@@ -47,6 +47,7 @@ else
     cd ~
     rm -rf yay-bin
     success "yay installed and yay-bin cleanup done."
+    yay -Y --gendb
 fi
 
 # ---------- Step 3: Package list ----------
@@ -306,8 +307,13 @@ sudo systemctl enable --now libvirtd.service
 sudo systemctl enable --now tailscaled.service
 
 # Add current user to common groups
-info "Adding $USER to docker, libvirt groups..."
-sudo usermod -aG docker,libvirt "$USER" || true
+info "Adding $USER to docker, libvirt, wheel groups..."
+sudo usermod -aG docker,libvirt,wheel "$USER" || true
+
+# Copy Wallpapers
+info "Copying wallpapers to ~/Pictures/Wallpapers..."
+mkdir -p ~/Pictures
+cp -r Wallpapers ~/Pictures/Wallpapers
 
 success "Installation finished."
 warn  "You may need to log out / reboot for group changes and graphical services to take effect."
