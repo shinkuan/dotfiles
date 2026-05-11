@@ -333,6 +333,8 @@ caelestia wallpaper -f "$HOME/Pictures/Wallpapers/wlop_1.jpg"
 mkdir -p ~/.config/quickshell
 git clone https://github.com/shinkuan/quickshell-overview ~/.config/quickshell/overview -b hyprkool
 
+# bashrc
+cp .bashrc ~/.bashrc
+
 success "Installation finished."
 warn  "You may need to log out / reboot for group changes and graphical services to take effect."
-warn  "Next: copy the .config folder from this repo into ~/.config (do this in a separate step)."
