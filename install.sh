@@ -52,6 +52,9 @@ fi
 
 # ---------- Step 3: Package list ----------
 # Organized by category for readability. yay handles both official repos and AUR.
+yay -S --needed --noconfirm rustup
+rustup default stable
+
 PACKAGES=(
     # ----- Hyprland & Wayland desktop -----
     hyprland
@@ -98,7 +101,6 @@ PACKAGES=(
     qt5ct
     qt6ct
     qt6-tools
-    xcursor-viewer-git
 
     # ----- Fonts -----
     noto-fonts
@@ -159,7 +161,6 @@ PACKAGES=(
     clash-verge-rev-bin
     vopono-bin
     proxychains-ng
-    tailscale
     openssh
     openssl
     putty
@@ -210,7 +211,6 @@ PACKAGES=(
     python-pip
     python-virtualenv
     go
-    rustup
     cargo-tauri
     clang
     gdb
@@ -300,7 +300,7 @@ sudo systemctl enable --now NetworkManager.service
 sudo systemctl enable --now bluetooth.service
 sudo systemctl enable --now docker.service
 sudo systemctl enable --now libvirtd.service
-sudo systemctl enable --now tailscaled.service
+sudo systemctl enable --now sshd.service
 
 # Add current user to common groups
 info "Adding $USER to docker, libvirt, wheel groups..."
@@ -323,6 +323,7 @@ cp -r .config/* ~/.config/
 cargo install --git https://github.com/shinkuan/hyprkool
 
 # Generate Hellwal sequences
+mkdir -p ~/.cache/hellwal/cache
 hellwal -i "$HOME/Pictures/Wallpapers/wlop_1.jpg" --check-contrast
 
 # default wallpaper
