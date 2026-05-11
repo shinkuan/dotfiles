@@ -166,7 +166,8 @@ hl.define_submap("global", function()
     -- Center / resize-to-percent
     bind("CTRL + SUPER + Backslash", dsp.window.center())
     bind("CTRL + SUPER + ALT + Backslash", function()
-        hl.dispatch(dsp.exec_cmd("hyprctl dispatch resizeactive exact 55% 70%"))
+        -- 0.55: use the native Lua dispatcher instead of shelling out to hyprctl
+        hl.dispatch(dsp.window.resize({ x = "55%", y = "70%" }))
         hl.dispatch(dsp.window.center())
     end)
 
@@ -183,8 +184,9 @@ hl.define_submap("global", function()
     bind("CTRL + SUPER + SHIFT + M",dsp.exit())
 
     -- Zoom (hold-to-zoom)
-    bind("SUPER + Z", dsp.exec_cmd("hyprctl keyword cursor:zoom_factor 3.0"))
-    bind("SUPER + Z", dsp.exec_cmd("hyprctl keyword cursor:zoom_factor 1.0"), { release = true })
+    -- 0.55: `hyprctl keyword` is gone; mutate config directly via hl.config().
+    bind("SUPER + Z", function() hl.config({ cursor = { zoom_factor = 3.0 } }) end)
+    bind("SUPER + Z", function() hl.config({ cursor = { zoom_factor = 1.0 } }) end, { release = true })
 
     -- ============================ --
     -- Apps
@@ -218,7 +220,7 @@ hl.define_submap("global", function()
     bind("SUPER + L",                   dsp.exec_cmd("hyprlock"))
     bind("SUPER + SHIFT + L",           dsp.exec_cmd("hyprlock"))
     bind("CTRL + SUPER + SHIFT + L",
-         dsp.exec_cmd("sleep 1 && hyprlock & sleep 2 && hyprctl dispatch dpms off"))
+         dsp.exec_cmd("sleep 1 && hyprlock & sleep 2 && hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })'"))
 
     -- ============================ --
     -- Clipboard
@@ -229,8 +231,11 @@ hl.define_submap("global", function()
     -- Misc utilities
     -- ============================ --
     -- Toggle keybind grabbing (for apps that want to grab shortcuts)
-    bind("CTRL + ALT + Z",
-         dsp.exec_cmd("hyprctl keyword binds:disable_keybind_grabbing $(hyprctl getoption binds:disable_keybind_grabbing -j | jq -r '.int == 0')"))
+    -- 0.55: shell out to read the current value, then mutate via hl.config()
+    -- inside `hyprctl eval`. Note: `getoption` paths use dots now (section.option).
+    bind("CTRL + ALT + Z", function()
+        hl.exec_cmd([[hyprctl eval "hl.config({ binds = { disable_keybind_grabbing = $(hyprctl getoption binds.disable_keybind_grabbing -j | jq -r '.int == 0') } })"]])
+    end)
 
     -- Game Mode
     bind("SUPER + ALT + G", dsp.exec_cmd(V.gamemode_toggle))

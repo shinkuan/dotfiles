@@ -51,5 +51,6 @@ hyprctl_socat() {
 }
 
 remote_display_on() {
-    hyprctl_socat "dispatch dpms on"
+    # Hyprland 0.55+ dispatch takes a Lua expression instead of dispatcher-name args
+    hyprctl_socat 'dispatch hl.dsp.dpms({ action = "enable" })'
 }
