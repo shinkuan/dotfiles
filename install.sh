@@ -320,7 +320,7 @@ mkdir -p ~/.config
 cp -r .config/* ~/.config/
 
 # Install Hyprkool
-cargo install --git https://github.com/shinkuan/hyprkool
+cargo install --git https://github.com/shinkuan/hyprkool --branch hypr-v0.55
 
 # Generate Hellwal sequences
 mkdir -p ~/.cache/hellwal/cache
@@ -331,7 +331,7 @@ caelestia wallpaper -f "$HOME/Pictures/Wallpapers/wlop_1.jpg"
 
 # quickshell overview
 mkdir -p ~/.config/quickshell
-git clone https://github.com/shinkuan/quickshell-overview ~/.config/quickshell/overview -b hyprkool
+git clone https://github.com/shinkuan/quickshell-overview ~/.config/quickshell/overview -b hypr-v0.55
 
 # bashrc
 cp .bashrc ~/.bashrc
