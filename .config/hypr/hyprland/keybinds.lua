@@ -7,14 +7,18 @@ local V    = require("hyprland.var")
 local dsp  = hl.dsp
 local bind = hl.bind
 
--- Activate the "global" submap on startup AND on every config reload.
--- caelestia binds rely on this submap being active. This mirrors the old
--- config's `exec = hyprctl dispatch submap global` (which fires per-reload).
-local function activate_global_submap()
+-- Activate the "global" submap on startup. caelestia binds rely on this
+-- submap being active.
+--
+-- NOTE: We deliberately do NOT hook this on `config.reloaded` — calling
+-- hl.dispatch(dsp.submap(...)) from inside the reload event handler causes
+-- Hyprland to crash with a recursive event-dispatch loop. Reload preserves
+-- the current submap anyway, so this is fine in practice. If you ever get
+-- stuck out of the "global" submap after a reload, run:
+--     hyprctl dispatch 'hl.dsp.submap("global")'
+hl.on("hyprland.start", function()
     hl.dispatch(dsp.submap("global"))
-end
-hl.on("hyprland.start",   activate_global_submap)
-hl.on("config.reloaded",  activate_global_submap)
+end)
 
 hl.define_submap("global", function()
 
@@ -22,7 +26,13 @@ hl.define_submap("global", function()
     -- Shell (caelestia)
     -- ============================ --
     bind("SUPER + Super_L",   dsp.global("caelestia:launcher"),          { ignore_mods = true, release = true })
-    bind("SUPER + catchall",  dsp.global("caelestia:launcherInterrupt"), { ignore_mods = true, non_consuming = true })
+    -- NOTE: Hyprland 0.55 Lua API rejects "catchall" when combined with a
+    -- modifier (`Unknown keysym: "catchall"`). In the new API `catchall` only
+    -- works as a standalone keysym inside a submap. The mouse-button binds
+    -- below still cover dismissal via clicks. If you need keyboard dismissal,
+    -- consider wrapping the launcher in a dedicated submap that contains a
+    -- bare `bind("catchall", ...)`.
+    -- bind("SUPER + catchall",  dsp.global("caelestia:launcherInterrupt"), { ignore_mods = true, non_consuming = true })
     bind("SUPER + mouse:272", dsp.global("caelestia:launcherInterrupt"), { ignore_mods = true, non_consuming = true })
     bind("SUPER + mouse:273", dsp.global("caelestia:launcherInterrupt"), { ignore_mods = true, non_consuming = true })
     bind("SUPER + mouse:274", dsp.global("caelestia:launcherInterrupt"), { ignore_mods = true, non_consuming = true })
@@ -144,9 +154,9 @@ hl.define_submap("global", function()
     bind("SUPER + SHIFT + up",    dsp.window.move({ direction = "up" }))
     bind("SUPER + SHIFT + down",  dsp.window.move({ direction = "down" }))
 
-    -- Split ratio (dwindle)
-    bind("SUPER + minus", dsp.exec_cmd("hyprctl dispatch splitratio -0.1"), { repeating = true })
-    bind("SUPER + equal", dsp.exec_cmd("hyprctl dispatch splitratio 0.1"),  { repeating = true })
+    -- Split ratio (dwindle) — native Lua layout message in 0.55
+    bind("SUPER + minus", dsp.layout("splitratio -0.1"), { repeating = true })
+    bind("SUPER + equal", dsp.layout("splitratio +0.1"), { repeating = true })
 
     -- Mouse drag / resize
     bind("SUPER + mouse:272", dsp.window.drag(),   { mouse = true })

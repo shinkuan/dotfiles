@@ -70,9 +70,10 @@ hl.config({
     -- -------------------------------- --
     -- Layouts
     -- -------------------------------- --
+    -- Note: `pseudotile = true` was removed in 0.55 — pseudotile is now only
+    -- a dispatcher (`hl.dsp.window.pseudo()`), no longer a config flag.
     dwindle = {
-        pseudotile      = true,
-        preserve_split  = true,
+        preserve_split = true,
     },
 
     master = {
