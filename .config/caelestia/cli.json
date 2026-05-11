@@ -1,0 +1,11 @@
+{
+    "theme": {
+        "enableTerm": false,
+        "iconTheme": "Adwaita",
+        "iconThemeLight": "Adwaita",
+        "iconThemeDark": "Adwaita"
+    },
+    "wallpaper": {
+        "postHook": "~/.config/hellwal/scripts/gen_sequences.sh"
+    }
+}

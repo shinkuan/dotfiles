@@ -310,9 +310,27 @@ sudo usermod -aG docker,libvirt,wheel "$USER" || true
 cd "$(dirname "$(realpath "$0")")"
 
 # Copy Wallpapers
-info "Copying wallpapers to ~/Pictures/Wallpapers..."
+info "Copying Pictures to ~/Pictures..."
 mkdir -p ~/Pictures
-cp -r Wallpapers ~/Pictures/Wallpapers
+cp -r Pictures/* ~/Pictures/
+
+# Copy .config files
+info "Copying .config files to ~/.config..."
+mkdir -p ~/.config
+cp -r .config/* ~/.config/
+
+# Install Hyprkool
+cargo install --git https://github.com/shinkuan/hyprkool
+
+# Generate Hellwal sequences
+hellwal -i "$HOME/Pictures/Wallpapers/wlop_1.jpg" --check-contrast
+
+# default wallpaper
+caelestia wallpaper -f "$HOME/Pictures/Wallpapers/wlop_1.jpg"
+
+# quickshell overview
+mkdir -p ~/.config/quickshell
+git clone https://github.com/shinkuan/quickshell-overview ~/.config/quickshell/overview -b hyprkool
 
 success "Installation finished."
 warn  "You may need to log out / reboot for group changes and graphical services to take effect."

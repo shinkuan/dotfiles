@@ -1,0 +1,20 @@
+{
+    "idle": {
+      "lockBeforeSleep": false,
+      "inhibitWhenAudio": true,
+      "timeouts": [
+        {
+          "idleAction": "exec hyprlock",
+          "timeout": 300
+        },
+        {
+          "idleAction": "dpms off",
+          "timeout": 600
+        },
+        {
+          "idleAction": "exec systemctl suspend",
+          "timeout": 3600
+        }
+      ]
+    }
+}
