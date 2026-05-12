@@ -4,6 +4,8 @@
 
 set -euo pipefail
 
+REPO_ROOT="$(dirname "$(realpath "$0")")"
+
 # ---------- Pretty printing ----------
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -48,6 +50,8 @@ else
     rm -rf yay-bin
     success "yay installed and yay-bin cleanup done."
     yay -Y --gendb
+
+    cd "$REPO_ROOT"
 fi
 
 # ---------- Step 3: Package list ----------
@@ -307,7 +311,7 @@ info "Adding $USER to docker, libvirt, wheel groups..."
 sudo usermod -aG docker,libvirt,wheel "$USER" || true
 
 # Go back to repo root
-cd "$(dirname "$(realpath "$0")")"
+cd "$REPO_ROOT"
 
 # Copy Wallpapers
 info "Copying Pictures to ~/Pictures..."
