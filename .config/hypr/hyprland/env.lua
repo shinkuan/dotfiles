@@ -23,6 +23,7 @@ hl.env("NVD_BACKEND",                  "direct")
 
 -- Qt
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
+hl.env("QSG_RENDER_LOOP", "threaded")
 
 -- fcitx5 input method
 -- hl.env("GTK_IM_MODULE", "fcitx")
