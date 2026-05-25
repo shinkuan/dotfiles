@@ -2,7 +2,7 @@
     "appearance": {
         "anim": {
             "durations": {
-                "scale": 0.7553186133486767
+                "scale": 0.8
             }
         },
         "deformScale": 0,
@@ -229,11 +229,11 @@
             "lockBeforeSleep": false,
             "timeouts": [
                 {
-                    "idleAction": "exec hyprlock",
+                    "idleAction": "'hl.dsp.exec_cmd(\"hyprlock\")'",
                     "timeout": 900
                 },
                 {
-                    "idleAction": "dpms off",
+                    "idleAction": "'hl.dsp.dpms({ action = \"off\" })'",
                     "timeout": 1800
                 }
             ]
@@ -406,6 +406,17 @@
         "enableDangerousActions": false,
         "enabled": true,
         "favouriteApps": [
+            "microsoft-edge",
+            "code",
+            "spotify-launcher",
+            "steam",
+            "com.obsproject.Studio",
+            "virt-manager",
+            "org.gnome.DiskUtility",
+            "qdirstat",
+            "dev.lizardbyte.app.Sunshine",
+            "filezilla",
+            "org.gnome.Nautilus"
         ],
         "hiddenApps": [
         ],

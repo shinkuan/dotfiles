@@ -4,11 +4,11 @@
       "inhibitWhenAudio": true,
       "timeouts": [
         {
-          "idleAction": "exec hyprlock",
+          "idleAction": "'hl.dsp.exec_cmd(\"hyprlock\")'",
           "timeout": 300
         },
         {
-          "idleAction": "dpms off",
+          "idleAction": "'hl.dsp.dpms({ action = \"off\" })'", 
           "timeout": 600
         },
         {
