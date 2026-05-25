@@ -31,8 +31,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("nm-applet")
     hl.exec_cmd("arch-update --tray")
 
-    -- hyprkool watchdog
-    hl.exec_cmd(os.getenv("HOME") .. "/.config/hypr/scripts/hyprkool_watchdog.sh")
+    -- 2D workspace is now handled in-config by kgrid.lua — no hyprkool daemon.
 
     -- Optional / disabled in original config:
     -- hl.exec_cmd("swaync")

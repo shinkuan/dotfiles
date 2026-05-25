@@ -11,6 +11,7 @@ require("hyprland.cursor")
 require("hyprland.monitors")
 require("hyprland.general")
 require("hyprland.rules")
+require("hyprland.kgrid")    -- 2D workspace engine (defines _G.KGrid); must load before keybinds
 require("hyprland.keybinds")
 require("hyprland.execs")
 require("hyprland.rpm")

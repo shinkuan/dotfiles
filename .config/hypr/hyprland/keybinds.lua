@@ -57,48 +57,52 @@ bind("ALT + XF86AudioPlay", dsp.exec_cmd(V.audio_menu))
 bind("CTRL + SUPER + ALT + R", dsp.exec_cmd("hyprctl reload"), { release = true })
 
 -- ============================ --
--- hyprkool — switch activity
+-- KGrid — 2D workspace (Lua engine, replaces hyprkool; see kgrid.lua)
 -- ============================ --
-bind("CTRL + SUPER + Space", dsp.exec_cmd("hyprkool switch-to-activity -n default"))
-bind("CTRL + SUPER + Z",     dsp.exec_cmd("hyprkool switch-to-activity -n Z"))
-bind("CTRL + SUPER + X",     dsp.exec_cmd("hyprkool switch-to-activity -n X"))
-bind("CTRL + SUPER + C",     dsp.exec_cmd("hyprkool switch-to-activity -n C"))
-bind("CTRL + SUPER + A",     dsp.exec_cmd("hyprkool switch-to-activity -n A"))
-bind("CTRL + SUPER + S",     dsp.exec_cmd("hyprkool switch-to-activity -n S"))
-bind("CTRL + SUPER + D",     dsp.exec_cmd("hyprkool switch-to-activity -n D"))
-bind("CTRL + SUPER + Q",     dsp.exec_cmd("hyprkool switch-to-activity -n Q"))
-bind("CTRL + SUPER + W",     dsp.exec_cmd("hyprkool switch-to-activity -n W"))
-bind("CTRL + SUPER + E",     dsp.exec_cmd("hyprkool switch-to-activity -n E"))
+-- Switch activity (lands on that activity's remembered cell)
+bind("CTRL + SUPER + Space", function() KGrid.switch_activity("default") end)
+bind("CTRL + SUPER + Z",     function() KGrid.switch_activity("Z") end)
+bind("CTRL + SUPER + X",     function() KGrid.switch_activity("X") end)
+bind("CTRL + SUPER + C",     function() KGrid.switch_activity("C") end)
+bind("CTRL + SUPER + A",     function() KGrid.switch_activity("A") end)
+bind("CTRL + SUPER + S",     function() KGrid.switch_activity("S") end)
+bind("CTRL + SUPER + D",     function() KGrid.switch_activity("D") end)
+bind("CTRL + SUPER + Q",     function() KGrid.switch_activity("Q") end)
+bind("CTRL + SUPER + W",     function() KGrid.switch_activity("W") end)
+bind("CTRL + SUPER + E",     function() KGrid.switch_activity("E") end)
 
--- hyprkool — switch activity, taking the active window with you
-bind("CTRL + SUPER + SHIFT + Space", dsp.exec_cmd("hyprkool switch-to-activity -w -n default"))
-bind("CTRL + SUPER + SHIFT + Z",     dsp.exec_cmd("hyprkool switch-to-activity -w -n Z"))
-bind("CTRL + SUPER + SHIFT + X",     dsp.exec_cmd("hyprkool switch-to-activity -w -n X"))
-bind("CTRL + SUPER + SHIFT + C",     dsp.exec_cmd("hyprkool switch-to-activity -w -n C"))
-bind("CTRL + SUPER + SHIFT + A",     dsp.exec_cmd("hyprkool switch-to-activity -w -n A"))
-bind("CTRL + SUPER + SHIFT + S",     dsp.exec_cmd("hyprkool switch-to-activity -w -n S"))
-bind("CTRL + SUPER + SHIFT + D",     dsp.exec_cmd("hyprkool switch-to-activity -w -n D"))
-bind("CTRL + SUPER + SHIFT + Q",     dsp.exec_cmd("hyprkool switch-to-activity -w -n Q"))
-bind("CTRL + SUPER + SHIFT + W",     dsp.exec_cmd("hyprkool switch-to-activity -w -n W"))
-bind("CTRL + SUPER + SHIFT + E",     dsp.exec_cmd("hyprkool switch-to-activity -w -n E"))
+-- Switch activity, taking the active window with you
+bind("CTRL + SUPER + SHIFT + Space", function() KGrid.switch_activity("default", true) end)
+bind("CTRL + SUPER + SHIFT + Z",     function() KGrid.switch_activity("Z", true) end)
+bind("CTRL + SUPER + SHIFT + X",     function() KGrid.switch_activity("X", true) end)
+bind("CTRL + SUPER + SHIFT + C",     function() KGrid.switch_activity("C", true) end)
+bind("CTRL + SUPER + SHIFT + A",     function() KGrid.switch_activity("A", true) end)
+bind("CTRL + SUPER + SHIFT + S",     function() KGrid.switch_activity("S", true) end)
+bind("CTRL + SUPER + SHIFT + D",     function() KGrid.switch_activity("D", true) end)
+bind("CTRL + SUPER + SHIFT + Q",     function() KGrid.switch_activity("Q", true) end)
+bind("CTRL + SUPER + SHIFT + W",     function() KGrid.switch_activity("W", true) end)
+bind("CTRL + SUPER + SHIFT + E",     function() KGrid.switch_activity("E", true) end)
 
--- hyprkool — overview & voice
+-- Overview & voice
 bind("SUPER + Tab", dsp.exec_cmd("qs ipc -c overview call overview toggle"))
 bind("SUPER + S",   dsp.exec_cmd("qs ipc -c quickvoice call quickvoice start"))
 
--- hyprkool — workspace movement
-bind("CTRL + SUPER + left",  dsp.exec_cmd("hyprkool move-left"))
-bind("CTRL + SUPER + right", dsp.exec_cmd("hyprkool move-right"))
-bind("CTRL + SUPER + up",    dsp.exec_cmd("hyprkool move-up"))
-bind("CTRL + SUPER + down",  dsp.exec_cmd("hyprkool move-down"))
+-- Workspace movement within the current activity grid
+bind("CTRL + SUPER + left",  function() KGrid.go(-1,  0) end)
+bind("CTRL + SUPER + right", function() KGrid.go( 1,  0) end)
+bind("CTRL + SUPER + up",    function() KGrid.go( 0, -1) end)
+bind("CTRL + SUPER + down",  function() KGrid.go( 0,  1) end)
 
-bind("CTRL + SUPER + SHIFT + left",  dsp.exec_cmd("hyprkool move-left -w"))
-bind("CTRL + SUPER + SHIFT + right", dsp.exec_cmd("hyprkool move-right -w"))
-bind("CTRL + SUPER + SHIFT + up",    dsp.exec_cmd("hyprkool move-up -w"))
-bind("CTRL + SUPER + SHIFT + down",  dsp.exec_cmd("hyprkool move-down -w"))
+bind("CTRL + SUPER + SHIFT + left",  function() KGrid.go(-1,  0, true) end)
+bind("CTRL + SUPER + SHIFT + right", function() KGrid.go( 1,  0, true) end)
+bind("CTRL + SUPER + SHIFT + up",    function() KGrid.go( 0, -1, true) end)
+bind("CTRL + SUPER + SHIFT + down",  function() KGrid.go( 0,  1, true) end)
 
-bind("CTRL + SUPER + ALT + left",  dsp.exec_cmd("hyprkool next-monitor -c -w"))
-bind("CTRL + SUPER + ALT + right", dsp.exec_cmd("hyprkool prev-monitor -c -w"))
+-- Multi-monitor move (hyprkool next/prev-monitor): single-monitor setup right
+-- now, so these are disabled. Re-add a native dsp implementation if a second
+-- monitor is enabled in monitors.lua.
+-- bind("CTRL + SUPER + ALT + left",  ...)
+-- bind("CTRL + SUPER + ALT + right", ...)
 
 -- ============================ --
 -- Window cycling
