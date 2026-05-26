@@ -82,7 +82,7 @@ bind("CTRL + SUPER + SHIFT + D",     function() KGrid.switch_activity("D", true)
 bind("CTRL + SUPER + SHIFT + Q",     function() KGrid.switch_activity("Q", true) end)
 bind("CTRL + SUPER + SHIFT + W",     function() KGrid.switch_activity("W", true) end)
 bind("CTRL + SUPER + SHIFT + E",     function() KGrid.switch_activity("E", true) end)
-
+    
 -- Overview & voice
 bind("SUPER + Tab", dsp.exec_cmd("qs ipc -c overview call overview toggle"))
 bind("SUPER + S",   dsp.exec_cmd("qs ipc -c quickvoice call quickvoice start"))
