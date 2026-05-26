@@ -139,31 +139,6 @@ hl.window_rule({
 })
 
 -- ================================ --
--- Hyprkool / Hypr-DarkWindow plugin examples (disabled)
--- ================================ --
--- These were `plugin:darkwindow:shader[...]` blocks in hyprlang. In the Lua
--- API plugin options are typically configured via `hl.config({ plugin = ... })`
--- (see your plugin's docs). Left here as reference:
---
--- hl.config({
---     plugin = {
---         darkwindow = {
---             ["shader[custom_chromakey_nautilus]"] = {
---                 from = "chromakey",
---                 args = "bkg=[0.08203125 0.07421875 0.0703125] similarity=0.01 amount=1 targetOpacity=0.85",
---             },
---             ["shader[custom_chromakey_vscode]"] = {
---                 path                  = "~/.config/hypr/shaders/multi_chromakey.frag",
---                 introduces_transparency = true,
---                 args = "count=2 bkg[0]=[0.1484375 0.1484375 0.1484375] similarity[0]=0.03 amount[0]=1 targetOpacity[0]=0.75 bkg[1]=[0.1171875 0.1171875 0.1171875] similarity[1]=0.03 amount[1]=1 targetOpacity[1]=0.75",
---             },
---         },
---     },
--- })
--- hl.window_rule({ name = "windowrule-15", match = { class = "^(org.gnome.Nautilus)$" }, ["darkwindow:shade"] = "custom_chromakey_nautilus" })
--- hl.window_rule({ name = "windowrule-16", match = { class = "^(code)$" },              ["darkwindow:shade"] = "custom_chromakey_vscode" })
-
--- ================================ --
 -- Layer Rules
 -- ================================ --
 hl.layer_rule({
