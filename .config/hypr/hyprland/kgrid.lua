@@ -105,6 +105,21 @@ function M.switch_name(target, carry)
     go_to(index[a], x, y, carry)
 end
 
+-- Move a window (by address) into the cell named "activity:(x y)", resolving to
+-- the deterministic numeric id. The overview must NOT move by `name:`: an empty
+-- target cell has no workspace yet, so Hyprland would mint a fresh workspace
+-- with an arbitrary id that steals the "activity:(x y)" name. KGrid would then
+-- focus the *numeric-id* cell (still empty) on navigation, leaving the moved
+-- window unreachable even though the overview keeps listing it by name.
+-- Resolving to id_of pins the window to the exact workspace KGrid later focuses.
+function M.move_window_to_name(target, address, follow)
+    local a, x, y = target:match("^(.-):%((%d+) (%d+)%)$")
+    if not a or not index[a] then return end
+    x, y = tonumber(x), tonumber(y)
+    local id = id_of(index[a], x, y)
+    hl.dispatch(hl.dsp.window.move({ workspace = id, window = "address:" .. address, follow = follow or false }))
+end
+
 -- Declare a default_name rule for every cell so it self-names on creation.
 for ai = 0, #M.activities - 1 do
     for y = 1, M.H do
