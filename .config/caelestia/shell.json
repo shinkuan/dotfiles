@@ -6,17 +6,6 @@
             }
         },
         "deformScale": 0,
-        "font": {
-            "family": {
-                "clock": "Rubik",
-                "material": "Material Symbols Rounded",
-                "mono": "CaskaydiaCove NF",
-                "sans": "Rubik"
-            },
-            "size": {
-                "scale": 1
-            }
-        },
         "padding": {
             "scale": 1
         },
@@ -229,11 +218,11 @@
             "lockBeforeSleep": false,
             "timeouts": [
                 {
-                    "idleAction": "'hl.dsp.exec_cmd(\"hyprlock\")'",
+                    "idleAction": "hl.dsp.exec_cmd(\"hyprlock\")",
                     "timeout": 900
                 },
                 {
-                    "idleAction": "'hl.dsp.dpms({ action = \"off\" })'",
+                    "idleAction": "hl.dsp.dpms({ action = \"disable\" })",
                     "timeout": 1800
                 }
             ]
@@ -471,7 +460,6 @@
                 "to": "YT Music"
             }
         ],
-        "showLyrics": true,
         "smartScheme": true,
         "useFahrenheit": false,
         "useFahrenheitPerformance": false,
