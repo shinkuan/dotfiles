@@ -31,6 +31,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("nm-applet")
     hl.exec_cmd("arch-update --tray")
 
+    -- lan-mouse (LAN mouse) daemon
+    hl.exec_cmd("lan-mouse daemon")
+
     -- 2D workspace is now handled in-config by kgrid.lua — no hyprkool daemon.
 
     -- Optional / disabled in original config:
