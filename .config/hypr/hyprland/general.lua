@@ -43,8 +43,8 @@ hl.config({
         dim_special = 0.6,
 
         shadow = {
-            enabled      = true,
-            range        = 20,
+            enabled      = false,
+            range        = 5,
             render_power = 3,
             color        = rgba(C.onPrimary, "aa"),
         },
