@@ -323,8 +323,16 @@ info "Copying .config files to ~/.config..."
 mkdir -p ~/.config
 cp -r .config/* ~/.config/
 
+# Install G502 HiRes Scroll Patch
+sudo mkdir -p /etc/libinput
+sudo tee /etc/libinput/local-overrides.quirks >/dev/null <<'EOF'
+[Logitech G502]
+MatchName=*Logitech G502*
+AttrEventCode=-REL_WHEEL_HI_RES;-REL_HWHEEL_HI_RES;
+EOF
+
 # Install Hyprkool
-cargo install --git https://github.com/shinkuan/hyprkool --branch hypr-v0.55
+# cargo install --git https://github.com/shinkuan/hyprkool --branch hypr-v0.55
 
 # Generate Hellwal sequences
 mkdir -p ~/.cache/hellwal/cache
