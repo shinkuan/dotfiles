@@ -56,15 +56,50 @@ local function set_anim(style)
     hl.animation({ leaf = "workspaces", enabled = true, speed = 5, bezier = "standard", style = style })
 end
 
--- Focus (or carry the active window to) a grid cell. Creates it on demand;
--- the default_name rule gives it its "activity:(x y)" name.
+-- Focus (or carry the active window to) a grid cell, always landing on the
+-- monitor the user is operating from. Creates the cell on demand; the
+-- default_name rule gives it its "activity:(x y)" name.
+--
+-- The problem this solves: Hyprland binds every workspace to the monitor it was
+-- created on, and `focusworkspace` *follows* the target to its owning monitor.
+-- So focusing a cell owned by the other monitor yanks focus across screens —
+-- exactly what we don't want. We branch on where the target currently lives:
+--   * on this monitor already, or not created yet -> plain focus. Identical to
+--     the old single-dispatch path, so the grid's slide animation is preserved.
+--   * VISIBLE on the other monitor -> swap the two monitors' active workspaces,
+--     so the target slides here and our current workspace goes there. Focus is
+--     re-anchored to this monitor afterwards (the swap can drag input focus away
+--     with the window that moved out).
+--   * hidden on the other monitor -> pull the workspace onto this monitor, then
+--     focus it here.
 local function go_to(ai, x, y, carry)
-    local id = id_of(ai, x, y)
-    if carry then
-        hl.dispatch(hl.dsp.window.move({ workspace = id, follow = true }))
+    local id  = id_of(ai, x, y)
+    local cur = hl.get_active_monitor()
+    local ws  = cur and hl.get_workspace(id)
+
+    if not cur or not ws or (ws.monitor and ws.monitor.id == cur.id) then
+        -- Same monitor (or brand-new cell): keep the original behaviour.
+        if carry then
+            hl.dispatch(hl.dsp.window.move({ workspace = id, follow = true }))
+        else
+            hl.dispatch(hl.dsp.focus({ workspace = id }))
+        end
     else
-        hl.dispatch(hl.dsp.focus({ workspace = id }))
+        -- Target lives on the OTHER monitor. Carry the window over silently
+        -- first; the branches below bring the *view* to the current monitor.
+        if carry then
+            hl.dispatch(hl.dsp.window.move({ workspace = id, follow = false }))
+        end
+        local om = ws.monitor
+        if om and om.active_workspace and om.active_workspace.id == id then
+            hl.dispatch(hl.dsp.workspace.swap_monitors({ monitor1 = cur.name, monitor2 = om.name }))
+            hl.dispatch(hl.dsp.focus({ monitor = cur.name }))
+        else
+            hl.dispatch(hl.dsp.workspace.move({ workspace = id, monitor = cur.name }))
+            hl.dispatch(hl.dsp.focus({ workspace = id }))
+        end
     end
+
     M.last[M.activities[ai + 1]] = { x = x, y = y }
 end
 
