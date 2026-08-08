@@ -10,13 +10,6 @@
 -- hl.monitor({ output = "DP-1", mode = "2560x1440@170.07Hz", position = "0x0", scale = 1 })
 -- hl.monitor({ output = "HDMI-A-1", mode = "3840x2160@239.99Hz", position = "-2560x0", scale = 1.5, bitdepth = 10 })
 
--- ----- GPU env -----
--- NVIDIA machines:
--- hl.env("LIBVA_DRIVER_NAME",         "nvidia")
--- hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
--- hl.env("NVD_BACKEND",               "direct")
--- Intel machines: usually nothing needed (mesa defaults are correct)
-
 -- ----- Machine-specific autostart -----
 hl.on("hyprland.start", function()
     -- hl.exec_cmd("sunshine")          -- remote streaming host

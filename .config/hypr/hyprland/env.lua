@@ -15,9 +15,11 @@ hl.config({
     },
 })
 
--- GPU-specific env (LIBVA_DRIVER_NAME, __GLX_VENDOR_LIBRARY_NAME, ...)
--- lives in local.lua — NVIDIA values break VA-API/GLX on Intel machines.
+-- NVIDIA
+hl.env("LIBVA_DRIVER_NAME",            "nvidia")
+hl.env("__GLX_VENDOR_LIBRARY_NAME",    "nvidia")
 hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
+hl.env("NVD_BACKEND",                  "direct")
 
 -- Qt
 hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
