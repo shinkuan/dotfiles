@@ -1,2 +1,4 @@
 .config/caelestia/monitors
 .config/hypr/hyprland/local.lua
+.config/hypr/scheme/current.conf
+.config/hypr/scheme/current.lua

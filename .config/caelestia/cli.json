@@ -3,7 +3,8 @@
         "enableTerm": false,
         "iconTheme": "Adwaita",
         "iconThemeLight": "Adwaita",
-        "iconThemeDark": "Adwaita"
+        "iconThemeDark": "Adwaita",
+        "postHook": "~/.config/caelestia/scripts/hypr-scheme-conf.sh"
     },
     "wallpaper": {
         "postHook": "~/.config/hellwal/scripts/gen_sequences.sh"
