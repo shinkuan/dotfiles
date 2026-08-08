@@ -87,6 +87,7 @@ PACKAGES=(
     wtype
     cliphist
     gpu-screen-recorder
+    wl-screenrec
 
     # ----- File manager / GUI utilities -----
     nautilus
@@ -137,7 +138,7 @@ PACKAGES=(
     aubio
 
     # ----- GPU drivers (NVIDIA) -----
-    nvidia-open-dkms
+    nvidia-open
     nvidia-settings
     nvidia-utils
     lib32-nvidia-utils
@@ -179,6 +180,7 @@ PACKAGES=(
     traceroute
     socat
     dnsmasq
+    ethtool
 
     # ----- Input method (Chinese) -----
     fcitx5
@@ -226,7 +228,6 @@ PACKAGES=(
     # ----- AI / LLM CLIs -----
     claude-code
     gemini-cli
-    openai-codex
     opencode
 
     # ----- Containers / VMs -----
@@ -275,6 +276,7 @@ PACKAGES=(
 
     # ----- Misc utilities -----
     transmission-qt
+    ghost-downloader-bin
     qalculate-qt
     libqalculate
     p7zip-gui
@@ -323,6 +325,12 @@ cp -r Pictures/* ~/Pictures/
 info "Copying .config files to ~/.config..."
 mkdir -p ~/.config
 cp -r .config/* ~/.config/
+
+# Copy .local/bin scripts (swappy shim is required by the screenshot flow)
+info "Copying .local/bin scripts to ~/.local/bin..."
+mkdir -p ~/.local/bin
+cp -r .local/bin/* ~/.local/bin/
+chmod +x ~/.local/bin/*
 
 # Install G502 HiRes Scroll Patch
 sudo mkdir -p /etc/libinput

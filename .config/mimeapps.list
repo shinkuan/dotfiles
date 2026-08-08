@@ -25,6 +25,9 @@ application/vnd.rar=7zFM.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/clash=clash-verge.desktop;
 x-scheme-handler/clash-verge=clash-verge.desktop;
+x-scheme-handler/ghostdownloader=io.github.xiaoyouchr.GhostDownloader.desktop
+video/mp4=mpv.desktop
+video/matroska=mpv.desktop
 
 [Added Associations]
 application/x-shellscript=org.gnome.TextEditor.desktop;
@@ -36,3 +39,5 @@ application/vnd.rar=7zFM.desktop;
 application/octet-stream=code.desktop;
 x-scheme-handler/clash=clash-verge.desktop;
 x-scheme-handler/clash-verge=clash-verge.desktop;
+video/mp4=mpv.desktop;
+video/matroska=mpv.desktop;
