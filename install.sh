@@ -297,6 +297,22 @@ PACKAGES=(
     caelestia-shell
 )
 
+# ---------- Step 3.5: LizardByte repo (sunshine prebuilt) ----------
+if ! grep -q '^\[lizardbyte\]' /etc/pacman.conf; then
+    info "Adding lizardbyte pacman repos..."
+    sudo tee -a /etc/pacman.conf >/dev/null <<'EOF'
+
+[lizardbyte]
+SigLevel = Optional
+Server = https://github.com/LizardByte/pacman-repo/releases/latest/download
+
+[lizardbyte-beta]
+SigLevel = Optional
+Server = https://github.com/LizardByte/pacman-repo/releases/download/beta
+EOF
+    sudo pacman -Sy
+fi
+
 # ---------- Step 4: Install packages ----------
 info "Installing ${#PACKAGES[@]} packages via yay..."
 yay -S --needed --noconfirm "${PACKAGES[@]}"

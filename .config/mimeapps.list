@@ -1,10 +1,7 @@
 [Default Applications]
 x-scheme-handler/discord=vesktop.desktop
-x-scheme-handler/discord-1216669957799018608=discord-1216669957799018608.desktop
 x-scheme-handler/hydralauncher=hydralauncher.desktop
 application/x-shellscript=org.gnome.TextEditor.desktop
-x-scheme-handler/discord-460807638964371468=discord-460807638964371468.desktop
-x-scheme-handler/everest=/home/shinkuan/.local/share/applications/Olympus.desktop
 application/pdf=com.microsoft.Edge.desktop
 text/html=com.microsoft.Edge.desktop
 image/png=com.microsoft.Edge.desktop
@@ -22,10 +19,6 @@ x-scheme-handler/https=com.microsoft.Edge.desktop
 x-scheme-handler/google-chrome=com.microsoft.Edge.desktop
 audio/x-tak=vlc.desktop
 application/vnd.rar=7zFM.desktop
-x-scheme-handler/claude-cli=claude-code-url-handler.desktop
-x-scheme-handler/clash=clash-verge.desktop;
-x-scheme-handler/clash-verge=clash-verge.desktop;
-x-scheme-handler/ghostdownloader=io.github.xiaoyouchr.GhostDownloader.desktop
 video/mp4=mpv.desktop
 video/matroska=mpv.desktop
 
@@ -37,7 +30,5 @@ image/png=com.microsoft.Edge.desktop;
 audio/x-tak=vlc.desktop;
 application/vnd.rar=7zFM.desktop;
 application/octet-stream=code.desktop;
-x-scheme-handler/clash=clash-verge.desktop;
-x-scheme-handler/clash-verge=clash-verge.desktop;
 video/mp4=mpv.desktop;
 video/matroska=mpv.desktop;
