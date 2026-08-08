@@ -88,7 +88,6 @@ PACKAGES=(
     wtype
     cliphist
     gpu-screen-recorder
-    wl-screenrec
 
     # ----- File manager / GUI utilities -----
     nautilus
