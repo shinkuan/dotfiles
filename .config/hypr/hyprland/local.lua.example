@@ -1,0 +1,17 @@
+-- ================================ --
+-- Per-machine overrides — TEMPLATE
+-- ================================ --
+-- On a new machine:  cp local.lua.example local.lua  and edit.
+-- local.lua is gitignored; everything machine-specific lives there:
+-- monitor layout, and autostart entries only this machine needs.
+
+-- ----- Monitors -----
+-- Specific rules take precedence over the generic fallback in monitors.lua.
+-- hl.monitor({ output = "DP-1", mode = "2560x1440@170.07Hz", position = "0x0", scale = 1 })
+-- hl.monitor({ output = "HDMI-A-1", mode = "3840x2160@239.99Hz", position = "-2560x0", scale = 1.5, bitdepth = 10 })
+
+-- ----- Machine-specific autostart -----
+hl.on("hyprland.start", function()
+    -- hl.exec_cmd("sunshine")          -- remote streaming host
+    -- hl.exec_cmd("lan-mouse daemon")  -- LAN mouse/keyboard sharing
+end)

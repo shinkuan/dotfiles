@@ -15,3 +15,4 @@ require("hyprland.kgrid")    -- 2D workspace engine (defines _G.KGrid); must loa
 require("hyprland.keybinds")
 require("hyprland.execs")
 require("hyprland.rpm")
+require("hyprland.local")  -- per-machine overrides (gitignored; cp local.lua.example -> local.lua)

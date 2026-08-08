@@ -22,17 +22,15 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("QSG_RENDER_LOOP=threaded qs -c overview")
     -- hl.exec_cmd("qs -c quickvoice")
 
-    -- Screen lock & remote streaming
+    -- Screen lock
     hl.exec_cmd("hyprlock")
-    hl.exec_cmd("sunshine")
 
     -- Tray applets
     hl.exec_cmd("blueman-applet")
     hl.exec_cmd("nm-applet")
     hl.exec_cmd("arch-update --tray")
 
-    -- lan-mouse (LAN mouse) daemon
-    hl.exec_cmd("lan-mouse daemon")
+    -- Machine-specific daemons (sunshine, lan-mouse, ...) live in local.lua.
 
     -- 2D workspace is now handled in-config by kgrid.lua — no hyprkool daemon.
 

@@ -75,6 +75,7 @@ PACKAGES=(
     polkit-gnome
     gnome-keyring
     wlroots0.19
+    app2unit
 
     # ----- Terminals, launchers, screen tools -----
     foot
