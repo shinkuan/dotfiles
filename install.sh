@@ -83,6 +83,7 @@ PACKAGES=(
     grim
     slurp
     swappy
+    satty
     wtype
     cliphist
     gpu-screen-recorder

@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# A script to clone a public repository to a new private one,
+# automatically creating the private repo using the GitHub CLI ('gh').
+
+# --- Configuration ---
+# The directory where you keep your code projects.
+# The script will clone the final private repository into this directory.
+# Change this to your preferred directory.
+# Example: CODE_DIRECTORY="$HOME/code"
+CODE_DIRECTORY="."
+
+# --- Prerequisite Check ---
+if ! command -v gh &> /dev/null; then
+    echo "❌ Error: The GitHub CLI ('gh') is not installed."
+    echo "Please install it to use this script. See: https://cli.github.com/"
+    exit 1
+fi
+
+# --- Script Logic ---
+
+# Check if the correct number of arguments was provided.
+if [ "$#" -ne 2 ]; then
+    echo "Usage: $0 <public_repo_author/repo_name> <your_github_username/desired_repo_name>"
+    echo "Example: $0 usi-systems/easytrace myuser/easytrace-private"
+    exit 1
+fi
+
+PUBLIC_REPO=$1
+PRIVATE_REPO_FULL=$2
+PUBLIC_REPO_NAME=$(basename "$PUBLIC_REPO")
+TEMP_BARE_REPO="${PUBLIC_REPO_NAME}.git"
+
+# Function to check and create the private repository
+check_and_create_repo() {
+    local repo_to_check=$1
+    echo "🔎 Checking status of private repository '${repo_to_check}' on GitHub..."
+
+    # Use 'gh repo view' to check if the repo exists and if it's empty.
+    # The command exits with an error if the repo doesn't exist.
+    if ! gh repo view "$repo_to_check" >/dev/null 2>&1; then
+        echo "ℹ️  Repository does not exist. Creating it now..."
+        gh repo create "$repo_to_check" --private --description "Private mirror of ${PUBLIC_REPO}" || {
+            echo "❌ Error: Failed to create private repository '${repo_to_check}'."
+            exit 1
+        }
+        echo "✅  Successfully created new private repository: ${repo_to_check}"
+        PRIVATE_REPO_FULL=$repo_to_check # Update the variable in case it was changed
+        return 0 # Success
+    fi
+
+    # If the repo exists, check if it has any commits.
+    # We get the commit count of the default branch.
+    commit_count=$(gh repo view "$repo_to_check" --json "defaultBranchRef.target.history.totalCount" -q ".defaultBranchRef.target.history.totalCount")
+
+    if [ "$commit_count" -eq 0 ]; then
+        echo "✅  Repository exists and is empty. Ready to proceed."
+        PRIVATE_REPO_FULL=$repo_to_check # Update the variable
+        return 0 # Success
+    else
+        echo "⚠️  Warning: Repository '${repo_to_check}' already exists and is not empty."
+        read -p "Please enter a different name for your private repository (e.g., your_user/new-repo-name): " new_repo_name
+        if [ -z "$new_repo_name" ]; then
+            echo "❌ Aborting."
+            exit 1
+        fi
+        # Recursively call the function with the new name
+        check_and_create_repo "$new_repo_name"
+    fi
+}
+
+# --- Main Execution ---
+
+# Initial check for the private repository
+check_and_create_repo "$PRIVATE_REPO_FULL"
+
+PRIVATE_REPO_NAME=$(basename "$PRIVATE_REPO_FULL")
+
+# Construct the full repository URLs
+PUBLIC_URL="git@github.com:${PUBLIC_REPO}.git"
+PRIVATE_URL="git@github.com:${PRIVATE_REPO_FULL}.git"
+
+echo ""
+echo "➡️  Step 1: Creating a temporary bare clone of ${PUBLIC_URL}..."
+git clone --bare "$PUBLIC_URL" || { echo "❌ Error: Failed to clone the public repository."; exit 1; }
+echo "✅  Bare clone created at ${TEMP_BARE_REPO}"
+echo ""
+
+cd "$TEMP_BARE_REPO" || { echo "❌ Error: Could not change directory to ${TEMP_BARE_REPO}."; exit 1; }
+
+echo "➡️  Step 2: Mirror-pushing to your private repository at ${PRIVATE_URL}..."
+git push --mirror "$PRIVATE_URL" || { echo "❌ Error: Failed to push to the private repository."; cd ..; rm -rf "$TEMP_BARE_REPO"; exit 1; }
+echo "✅  Push successful!"
+echo ""
+
+cd ..
+
+echo "➡️  Step 3: Removing the temporary bare clone..."
+rm -rf "$TEMP_BARE_REPO"
+echo "✅  Temporary clone removed."
+echo ""
+
+echo "➡️  Step 4: Cloning your new private repository to ${CODE_DIRECTORY}/${PRIVATE_REPO_NAME}..."
+git clone "$PRIVATE_URL" "${CODE_DIRECTORY}/${PRIVATE_REPO_NAME}" || { echo "❌ Error: Failed to clone your new private repository."; exit 1; }
+echo "✅  Successfully cloned your private repository."
+echo ""
+
+cd "${CODE_DIRECTORY}/${PRIVATE_REPO_NAME}" || { echo "❌ Error: Could not change to your new project directory."; exit 1; }
+
+echo "➡️  Step 5: Adding the original public repository as the 'upstream' remote..."
+git remote add upstream "$PUBLIC_URL"
+git remote set-url --push upstream DISABLE
+echo "✅  'upstream' remote configured."
+echo ""
+
+echo "🎉 All done! Your new private repository is ready in '${CODE_DIRECTORY}/${PRIVATE_REPO_NAME}'."
+echo "Here are your configured remotes:"
+git remote -v
+echo ""
+echo "To get future updates from the original repository, use 'git fetch upstream' and 'git rebase upstream/master'."
+
+exit 0
+

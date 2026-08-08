@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Check if an input file path is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <path_to_video>"
+    exit 1
+fi
+
+INPUT_FILE="$1"
+
+# Verify that the input file actually exists
+if [ ! -f "$INPUT_FILE" ]; then
+    echo "Error: File '$INPUT_FILE' not found!"
+    exit 1
+fi
+
+# Ensure ffmpeg is installed on the system
+if ! command -v ffmpeg &> /dev/null; then
+    echo "Error: ffmpeg is not installed. Please install it first."
+    exit 1
+fi
+
+# Extract the filename without the path and extension
+FILENAME=$(basename -- "$INPUT_FILE")
+FILENAME_NO_EXT="${FILENAME%.*}"
+
+# Set the output filename to MP4 format
+OUTPUT_FILE="${FILENAME_NO_EXT}_compressed.mp4"
+
+echo "Starting compression: '$INPUT_FILE' -> '$OUTPUT_FILE'"
+echo "This may take some time depending on the video length and your CPU..."
+
+# Execute ffmpeg with optimized settings for maximum Web/GitHub compatibility
+# -c:v libx264         : Uses H.264 codec for universal browser and device compatibility
+# -crf 24              : Constant Rate Factor (23-28 is good for x264, 24 offers a great balance)
+# -preset slow         : Trades encoding speed for better compression efficiency
+# -pix_fmt yuv420p     : CRITICAL FOR WEB: Ensures standard color space compatibility in HTML5 players
+# -movflags +faststart : CRITICAL FOR WEB: Moves video metadata to the beginning so it buffers and plays immediately
+# -c:a aac             : Encodes audio to AAC format (universally supported)
+# -b:a 128k            : Sets a standard audio bitrate
+ffmpeg -i "$INPUT_FILE" \
+       -c:v libx264 \
+       -crf 24 \
+       -preset slow \
+       -pix_fmt yuv420p \
+       -movflags +faststart \
+       -c:a aac \
+       -b:a 128k \
+       "$OUTPUT_FILE"
+
+# Check if ffmpeg executed successfully
+if [ $? -eq 0 ]; then
+    echo "Compression complete! Output saved as: $OUTPUT_FILE"
+else
+    echo "Error: Compression failed."
+    exit 1
+fi
