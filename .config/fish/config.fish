@@ -15,8 +15,13 @@ end
 # Custom Aliases and Functions
 alias ll='ls -alh --color=auto'
 alias vi=vim
-# alias sunshine=~/.local/bin/sunshine.sh
 
 set -gx QT_QPA_PLATFORMTHEME qt6ct
+# cat ~/.local/state/caelestia/sequences.txt
+
+# CUDA
+# set -x CUDA_PATH "/opt/cuda"
+# set -x LD_LIBRARY_PATH "$LD_LIBRARY_PATH /opt/cuda/lib64"
+# set -x NVCC_CCBIN "/usr/bin/g++-14"
 
 starship init fish | source

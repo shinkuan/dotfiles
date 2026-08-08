@@ -338,10 +338,34 @@ info "Copying Pictures to ~/Pictures..."
 mkdir -p ~/Pictures
 cp -r Pictures/* ~/Pictures/
 
-# Copy .config files
-info "Copying .config files to ~/.config..."
+# Symlink .config entries (repo is the live config; edits apply immediately)
+info "Symlinking .config entries into ~/.config..."
 mkdir -p ~/.config
-cp -r .config/* ~/.config/
+for src in "$REPO_ROOT"/.config/*; do
+    name="$(basename "$src")"
+    dst="$HOME/.config/$name"
+
+    # glib rewrites mimeapps.list via atomic rename, which would replace a
+    # symlink with a plain file — keep it as a copy instead.
+    if [[ "$name" == "mimeapps.list" ]]; then
+        [[ -e "$dst" ]] || cp "$src" "$dst"
+        continue
+    fi
+
+    # Already linked to the repo — nothing to do
+    if [[ -L "$dst" && "$(readlink -f "$dst")" == "$(readlink -f "$src")" ]]; then
+        continue
+    fi
+
+    # Back up whatever is there (real dir/file or stale link)
+    if [[ -e "$dst" || -L "$dst" ]]; then
+        warn "Backing up existing $dst -> $dst.bak"
+        rm -rf "$dst.bak"
+        mv "$dst" "$dst.bak"
+    fi
+
+    ln -s "$src" "$dst"
+done
 
 # Copy .local/bin scripts (swappy shim is required by the screenshot flow)
 info "Copying .local/bin scripts to ~/.local/bin..."

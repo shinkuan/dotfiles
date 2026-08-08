@@ -2,3 +2,15 @@
 .config/hypr/hyprland/local.lua
 .config/hypr/scheme/current.conf
 .config/hypr/scheme/current.lua
+
+# Runtime files written through the ~/.config symlinks
+.config/fish/fish_variables
+.config/fish/conf.d
+.config/fish/completions
+.config/fish/themes
+.config/gtk-3.0/thunar.css
+.config/fcitx5/conf/cached_layouts
+.config/gtk-3.0/bookmarks
+.config/gtk-3.0/gtk.css
+.config/qt6ct/colors
+.config/qt6ct/qss
