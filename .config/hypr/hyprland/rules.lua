@@ -125,6 +125,15 @@ hl.window_rule({
     center = true,
 })
 
+-- Satty (screenshot annotation) — float + centered
+hl.window_rule({
+    name   = "windowrule-satty",
+    match  = { class = "^(com\\.gabm\\.satty)$" },
+    float  = true,
+    center = true,
+    size   = { "monitor_w*0.8", "monitor_h*0.8" },
+})
+
 -- Blur rules
 hl.window_rule({
     name    = "windowrule-13",

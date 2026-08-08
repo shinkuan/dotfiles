@@ -190,8 +190,8 @@ bind("CTRL + SUPER + Slash",
 -- Screenshots / colour picker
 -- ============================ --
 bind("Print",                  dsp.exec_cmd("caelestia screenshot"), { locked = true })
-bind("SUPER + SHIFT + S",      dsp.global("caelestia:screenshotFreezeClip"))
-bind("SUPER + SHIFT + ALT + S",dsp.global("caelestia:screenshot"))
+bind("SUPER + SHIFT + S",      dsp.global("caelestia:screenshotFreeze"))     -- 凍結選區 → 開 satty
+bind("SUPER + SHIFT + ALT + S",dsp.global("caelestia:screenshotFreezeClip")) -- 凍結選區 → 直接進剪貼簿
 bind("SUPER + SHIFT + C",      dsp.exec_cmd("hyprpicker -a"))
 
 -- ============================ --
