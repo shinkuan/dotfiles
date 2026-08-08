@@ -323,6 +323,18 @@
             },
             {
                 "command": [
+                    "hyprctl",
+                    "eval",
+                    "_G.toggle_darkwindow_shader()"
+                ],
+                "dangerous": false,
+                "description": "Toggle the VS Code transparency shader",
+                "enabled": true,
+                "icon": "blur_on",
+                "name": "VS Code shader"
+            },
+            {
+                "command": [
                     "systemctl",
                     "poweroff"
                 ],
