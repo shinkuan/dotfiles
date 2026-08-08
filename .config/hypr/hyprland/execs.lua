@@ -20,7 +20,6 @@ hl.on("hyprland.start", function()
     -- Quickshell (caelestia)
     hl.exec_cmd("QSG_RENDER_LOOP=threaded caelestia shell")
     hl.exec_cmd("QSG_RENDER_LOOP=threaded qs -c overview")
-    -- hl.exec_cmd("qs -c quickvoice")
 
     -- Screen lock
     hl.exec_cmd("hyprlock")

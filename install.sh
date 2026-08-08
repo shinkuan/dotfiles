@@ -366,6 +366,12 @@ for src in "$REPO_ROOT"/.config/*; do
     ln -s "$src" "$dst"
 done
 
+# Seed per-machine hyprland overrides (gitignored; hyprland.lua requires it)
+if [[ ! -e "$REPO_ROOT/.config/hypr/hyprland/local.lua" ]]; then
+    info "Seeding hypr per-machine config from local.lua.example..."
+    cp "$REPO_ROOT/.config/hypr/hyprland/local.lua.example" "$REPO_ROOT/.config/hypr/hyprland/local.lua"
+fi
+
 # Copy .local/bin scripts (swappy shim is required by the screenshot flow)
 info "Copying .local/bin scripts to ~/.local/bin..."
 mkdir -p ~/.local/bin
@@ -392,10 +398,16 @@ caelestia wallpaper -f "$HOME/Pictures/Wallpapers/wlop_1.jpg"
 
 # quickshell overview
 mkdir -p ~/.config/quickshell
-git clone https://github.com/shinkuan/quickshell-overview ~/.config/quickshell/overview -b hypr-v0.55
+if [[ ! -d ~/.config/quickshell/overview ]]; then
+    git clone https://github.com/shinkuan/quickshell-overview ~/.config/quickshell/overview -b hypr-v0.55
+fi
 
 # bashrc
 cp .bashrc ~/.bashrc
+
+# Install fish plugins listed in fish_plugins
+info "Installing fish plugins (fisher update)..."
+fish -c 'fisher update' || warn "fisher update failed — run it manually later."
 
 success "Installation finished."
 warn  "You may need to log out / reboot for group changes and graphical services to take effect."

@@ -83,9 +83,9 @@ bind("CTRL + SUPER + SHIFT + Q",     function() KGrid.switch_activity("Q", true)
 bind("CTRL + SUPER + SHIFT + W",     function() KGrid.switch_activity("W", true) end)
 bind("CTRL + SUPER + SHIFT + E",     function() KGrid.switch_activity("E", true) end)
     
--- Overview & voice
+-- Overview
 bind("SUPER + Tab", dsp.exec_cmd("qs ipc -c overview call overview toggle"))
-bind("SUPER + S",   dsp.exec_cmd("qs ipc -c quickvoice call quickvoice start"))
+-- quickvoice (SUPER + S) is machine-specific — lives in local.lua
 
 -- Workspace movement within the current activity grid
 bind("CTRL + SUPER + left",  function() KGrid.go(-1,  0) end)
