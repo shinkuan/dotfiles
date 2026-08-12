@@ -113,16 +113,40 @@
             "workspaces": false
         },
         "showOnHover": true,
-        "status": {
-            "showAudio": true,
-            "showBattery": true,
-            "showBluetooth": true,
-            "showKbLayout": false,
-            "showLockStatus": true,
-            "showMicrophone": true,
-            "showNetwork": true,
-            "showWifi": true
-        },
+        "statusIcons": [
+            {
+                "enabled": true,
+                "id": "lockStatus"
+            },
+            {
+                "enabled": true,
+                "id": "audio"
+            },
+            {
+                "enabled": true,
+                "id": "microphone"
+            },
+            {
+                "enabled": false,
+                "id": "kbLayout"
+            },
+            {
+                "enabled": true,
+                "id": "network"
+            },
+            {
+                "enabled": true,
+                "id": "wifi"
+            },
+            {
+                "enabled": true,
+                "id": "bluetooth"
+            },
+            {
+                "enabled": true,
+                "id": "battery"
+            }
+        ],
         "tray": {
             "background": true,
             "compact": true,
@@ -560,7 +584,7 @@
             "vpnChanged": true
         },
         "vpn": {
-            "enabled": true,
+            "enabled": false,
             "provider": [
                 {
                     "displayName": "Wireguard (Your VPN)",
