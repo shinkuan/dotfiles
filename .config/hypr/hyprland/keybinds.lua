@@ -206,10 +206,10 @@ bind("XF86AudioLowerVolume", dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0
 -- Power / lock
 -- ============================ --
 bind("CTRL + SHIFT + ALT + Delete", dsp.exec_cmd("pkill wlogout || wlogout -p layer-shell"))
-bind("SUPER + L",                   dsp.exec_cmd("hyprlock"))
-bind("SUPER + SHIFT + L",           dsp.exec_cmd("hyprlock"))
+bind("SUPER + L",                   dsp.exec_cmd("pidof hyprlock || hyprlock"))
+bind("SUPER + SHIFT + L",           dsp.exec_cmd("pidof hyprlock || hyprlock"))
 bind("CTRL + SUPER + SHIFT + L",
-        dsp.exec_cmd("sleep 1 && hyprlock & sleep 2 && hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })'"))
+        dsp.exec_cmd("sleep 1 && (pidof hyprlock || hyprlock) & sleep 2 && hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })'"))
 
 -- ============================ --
 -- Clipboard

@@ -242,7 +242,7 @@
             "lockBeforeSleep": false,
             "timeouts": [
                 {
-                    "idleAction": "hl.dsp.exec_cmd(\"hyprlock\")",
+                    "idleAction": "hl.dsp.exec_cmd(\"pidof hyprlock || hyprlock\")",
                     "timeout": 900
                 },
                 {
