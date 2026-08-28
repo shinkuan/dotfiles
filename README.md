@@ -28,12 +28,12 @@ archinstall --config user_configuration.json
 用剛建立的使用者登入 TTY(Wi-Fi 先用 `nmtui` 連線),然後:
 
 ```sh
-git clone https://github.com/shinkuan/dotfiles.git ~/Documents/dotfiles
+git clone --recurse-submodules https://github.com/shinkuan/dotfiles.git ~/Documents/dotfiles
 cd ~/Documents/dotfiles
 ./install.sh
 ```
 
-腳本會:裝 yay → 裝全部套件(官方 + AUR)→ 啟用服務(NetworkManager、bluetooth、docker、libvirtd、sshd)→ 複製 `.config`、`.local/bin`、桌布、`.bashrc` → 產生 hellwal 色票與預設桌布。
+腳本會:裝 yay → 裝全部套件(官方 + AUR)→ 啟用服務(NetworkManager、bluetooth、docker、libvirtd、sshd)→ 初始化 submodule(`.config/quickshell/overview`)→ 把 `.config` symlink 進 `~/.config`、複製 `.local/bin`、桌布、`.bashrc` → 產生 hellwal 色票與預設桌布。
 
 ### 3. 再重開機
 

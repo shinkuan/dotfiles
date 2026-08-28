@@ -337,7 +337,30 @@ info "Copying Pictures to ~/Pictures..."
 mkdir -p ~/Pictures
 cp -r Pictures/* ~/Pictures/
 
+# Make sure submodules (quickshell overview) are checked out, in case the
+# repo was cloned without --recurse-submodules
+info "Initialising git submodules..."
+git -C "$REPO_ROOT" submodule update --init --recursive
+
 # Symlink .config entries (repo is the live config; edits apply immediately)
+link_config() {
+    local src="$1" dst="$2"
+
+    # Already linked to the repo — nothing to do
+    if [[ -L "$dst" && "$(readlink -f "$dst")" == "$(readlink -f "$src")" ]]; then
+        return
+    fi
+
+    # Back up whatever is there (real dir/file or stale link)
+    if [[ -e "$dst" || -L "$dst" ]]; then
+        warn "Backing up existing $dst -> $dst.bak"
+        rm -rf "$dst.bak"
+        mv "$dst" "$dst.bak"
+    fi
+
+    ln -s "$src" "$dst"
+}
+
 info "Symlinking .config entries into ~/.config..."
 mkdir -p ~/.config
 for src in "$REPO_ROOT"/.config/*; do
@@ -351,19 +374,18 @@ for src in "$REPO_ROOT"/.config/*; do
         continue
     fi
 
-    # Already linked to the repo — nothing to do
-    if [[ -L "$dst" && "$(readlink -f "$dst")" == "$(readlink -f "$src")" ]]; then
+    # ~/.config/quickshell also hosts quickshell configs that are not part of
+    # this repo, so link its children (the overview submodule) one by one
+    # instead of replacing the whole directory.
+    if [[ "$name" == "quickshell" ]]; then
+        mkdir -p "$dst"
+        for sub in "$src"/*; do
+            link_config "$sub" "$dst/$(basename "$sub")"
+        done
         continue
     fi
 
-    # Back up whatever is there (real dir/file or stale link)
-    if [[ -e "$dst" || -L "$dst" ]]; then
-        warn "Backing up existing $dst -> $dst.bak"
-        rm -rf "$dst.bak"
-        mv "$dst" "$dst.bak"
-    fi
-
-    ln -s "$src" "$dst"
+    link_config "$src" "$dst"
 done
 
 # Seed per-machine hyprland overrides (gitignored; hyprland.lua requires it)
@@ -395,12 +417,6 @@ hellwal -i "$HOME/Pictures/Wallpapers/wlop_1.jpg" --check-contrast
 
 # default wallpaper
 caelestia wallpaper -f "$HOME/Pictures/Wallpapers/wlop_1.jpg"
-
-# quickshell overview
-mkdir -p ~/.config/quickshell
-if [[ ! -d ~/.config/quickshell/overview ]]; then
-    git clone https://github.com/shinkuan/quickshell-overview ~/.config/quickshell/overview -b hypr-v0.55
-fi
 
 # bashrc
 cp .bashrc ~/.bashrc
