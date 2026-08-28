@@ -98,11 +98,34 @@ bind("CTRL + SUPER + SHIFT + right", function() KGrid.go( 1,  0, true) end)
 bind("CTRL + SUPER + SHIFT + up",    function() KGrid.go( 0, -1, true) end)
 bind("CTRL + SUPER + SHIFT + down",  function() KGrid.go( 0,  1, true) end)
 
--- Multi-monitor move (hyprkool next/prev-monitor): single-monitor setup right
--- now, so these are disabled. Re-add a native dsp implementation if a second
--- monitor is enabled in monitors.lua.
--- bind("CTRL + SUPER + ALT + left",  ...)
--- bind("CTRL + SUPER + ALT + right", ...)
+-- Multi-monitor window move (replaces hyprkool next/prev-monitor).
+local function move_to_monitor(dir)
+    return function()
+        local target = hl.get_monitor(dir)
+        if target then hl.dispatch(dsp.window.move({ monitor = target })) end
+    end
+end
+local monitor_move_binds = {
+    bind("CTRL + SUPER + ALT + left",  move_to_monitor("l")),
+    bind("CTRL + SUPER + ALT + right", move_to_monitor("r")),
+}
+
+-- `monitor.removed` may fire before hl.get_monitors() drops the monitor (the
+-- state tracker is just another listener), so exclude the departing one.
+local function sync_monitor_move_binds(removed)
+    local n = 0
+    for _, m in ipairs(hl.get_monitors()) do
+        if not m.is_mirror and not (removed and m.id == removed.id) then
+            n = n + 1
+        end
+    end
+    for _, kb in ipairs(monitor_move_binds) do kb:set_enabled(n > 1) end
+end
+
+sync_monitor_move_binds()  -- on reload the monitors already exist
+hl.on("monitor.added",          function()  sync_monitor_move_binds()  end) -- startup + hotplug
+hl.on("monitor.removed",        function(m) sync_monitor_move_binds(m) end)
+hl.on("monitor.layout_changed", function()  sync_monitor_move_binds()  end) -- mirror changes
 
 -- ============================ --
 -- Window cycling
