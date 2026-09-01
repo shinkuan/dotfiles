@@ -17,6 +17,11 @@ hl.on("hyprland.start", function()
     -- Forward bluetooth media commands to MPRIS
     hl.exec_cmd("mpris-proxy")
 
+    -- Clipboard history (text + images) — consumed by the launcher's
+    -- clipboard view
+    hl.exec_cmd("wl-paste --type text --watch cliphist store")
+    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+
     -- Quickshell (caelestia)
     hl.exec_cmd("QSG_RENDER_LOOP=threaded caelestia shell")
     hl.exec_cmd("QSG_RENDER_LOOP=threaded qs -c overview")
@@ -36,7 +41,6 @@ hl.on("hyprland.start", function()
     -- Optional / disabled in original config:
     -- hl.exec_cmd("swaync")
     -- hl.exec_cmd("systemctl --user start hyprpolkitagent")
-    -- hl.exec_cmd("wl-paste --watch cliphist store")
     -- hl.exec_cmd("hyprpaper")
     -- hl.exec_cmd("waybar")
     -- hl.exec_cmd("trash-empty 30")

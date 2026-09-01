@@ -205,17 +205,23 @@ bind("SUPER + Z", function() hl.config({ cursor = { zoom_factor = 1.0 } }) end, 
 -- ============================ --
 bind("SUPER + T",       dsp.exec_cmd("app2unit -- foot"))
 bind("SUPER + E",       dsp.exec_cmd("nautilus --new-window"))
-bind("SUPER + ALT + E", dsp.exec_cmd("app2unit -- nemo"))
 bind("CTRL + SUPER + Slash",
         dsp.exec_cmd("pkill fuzzel || fuzzel --launch-prefix='app2unit --fuzzel-compat -- '"))
 
 -- ============================ --
 -- Screenshots / colour picker
 -- ============================ --
-bind("Print",                  dsp.exec_cmd("caelestia screenshot"), { locked = true })
-bind("SUPER + SHIFT + S",      dsp.global("caelestia:screenshotFreeze"))     -- 凍結選區 → 開 satty
-bind("SUPER + SHIFT + ALT + S",dsp.global("caelestia:screenshotFreezeClip")) -- 凍結選區 → 直接進剪貼簿
-bind("SUPER + SHIFT + C",      dsp.exec_cmd("hyprpicker -a"))
+-- Direct grim/slurp/satty pipeline. The frozen-region picker (screencopy
+-- overlay with window snapping) upgrades the region binds in Phase 3.
+local screenshot_dir = os.getenv("HOME") .. "/Pictures/Screenshots"
+local region_to_satty = 'mkdir -p "' .. screenshot_dir .. '" && '
+    .. 'grim -g "$(slurp)" - | satty -f - -o "' .. screenshot_dir
+    .. '/%Y%m%d-%H%M%S.png" --copy-command wl-copy --early-exit all'
+bind("Print",                   dsp.exec_cmd(region_to_satty), { locked = true })
+bind("SUPER + SHIFT + S",       dsp.exec_cmd(region_to_satty))                    -- region -> satty
+bind("SUPER + Print",           dsp.exec_cmd("hyprshot -m window"))               -- window capture
+bind("SUPER + SHIFT + ALT + S", dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))   -- region -> clipboard
+bind("SUPER + SHIFT + C",       dsp.exec_cmd("hyprpicker -a"))
 
 -- ============================ --
 -- Volume
@@ -228,7 +234,9 @@ bind("XF86AudioLowerVolume", dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0
 -- ============================ --
 -- Power / lock
 -- ============================ --
-bind("CTRL + SHIFT + ALT + Delete", dsp.exec_cmd("pkill wlogout || wlogout -p layer-shell"))
+-- wlogout is not installed; reuse the session menu for now.
+-- TODO(Phase 2): point at the new shell's session menu once it exists.
+bind("CTRL + SHIFT + ALT + Delete", dsp.global("caelestia:session"))
 bind("SUPER + L",                   dsp.exec_cmd("pidof hyprlock || hyprlock"))
 bind("SUPER + SHIFT + L",           dsp.exec_cmd("pidof hyprlock || hyprlock"))
 bind("CTRL + SUPER + SHIFT + L",
@@ -252,15 +260,8 @@ end)
 -- Game Mode
 bind("SUPER + ALT + G", dsp.exec_cmd(V.gamemode_toggle))
 
--- Waifuland
-bind("SUPER + ALT + W",        dsp.exec_cmd("killall -s SIGUSR1 waifuland"))
-bind("CTRL + SUPER + ALT + W", dsp.exec_cmd("killall -s SIGUSR2 waifuland"))
-
 -- Sunshine
 bind("SUPER + ALT + S", dsp.exec_cmd("pkill sunshine || " .. os.getenv("HOME") .. "/.local/bin/sunshine.sh"))
-
--- Toggle third monitor
-bind("SUPER + ALT + T", dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/custom_scripts/toggle_third_monitor.sh"))
 
 -- Test notification
 bind("SUPER + ALT + F12",
