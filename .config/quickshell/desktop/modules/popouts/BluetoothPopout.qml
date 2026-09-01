@@ -62,13 +62,13 @@ ColumnLayout {
     StyledText {
         visible: root.adapter === null
         text: "No Bluetooth adapter"
-        color: Colours.onSurfaceVariant
+        color: Colours.surfaceVariantText
     }
 
     StyledText {
         visible: root.adapter !== null && root.devices.length === 0
         text: root.adapter?.enabled ? (root.adapter.discovering ? "Scanning…" : "No paired devices") : "Bluetooth is off"
-        color: Colours.onSurfaceVariant
+        color: Colours.surfaceVariantText
     }
 
     ListView {
@@ -116,7 +116,7 @@ ColumnLayout {
                     return level === 6 ? "battery_full" : level === 0 ? "battery_alert" : `battery_${level}_bar`;
                 }
                 font.pixelSize: Config.iconSize - 4
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
             }
 
             IconButton {

@@ -8,11 +8,12 @@ import "services"
 import "modules/background"
 import "modules/frame"
 import "modules/shell"
+import "modules/areapicker"
 
 ShellRoot {
     // singletons with side effects (IPC handlers, shortcuts, inhibitor
     // surface, pollers) must be touched once to be instantiated
-    Component.onCompleted: [Requests, Idle, Vpn, Brightness, ShellState, Audio]
+    Component.onCompleted: [Requests, Idle, Vpn, Brightness, ShellState, Audio, Picker]
 
     Variants {
         model: Quickshell.screens
@@ -31,6 +32,10 @@ ShellRoot {
             }
 
             ShellSurface {
+                screen: scope.modelData
+            }
+
+            AreaPicker {
                 screen: scope.modelData
             }
         }

@@ -3,7 +3,7 @@ import "../config"
 import "../services"
 
 Text {
-    color: Colours.onSurface
+    color: Colours.surfaceText
     font.family: Config.fontFamily
     font.pixelSize: Config.fontSize
     elide: Text.ElideRight

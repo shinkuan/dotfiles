@@ -87,7 +87,7 @@ ColumnLayout {
             MaterialIcon {
                 text: "download"
                 font.pixelSize: Config.iconSize - 3
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
             }
 
             StyledText {
@@ -102,7 +102,7 @@ ColumnLayout {
             MaterialIcon {
                 text: "upload"
                 font.pixelSize: Config.iconSize - 3
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
             }
 
             StyledText {

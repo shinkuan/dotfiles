@@ -16,6 +16,7 @@ BarItem {
         precision: SystemClock.Minutes
     }
 
+
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "HH")
@@ -33,14 +34,14 @@ BarItem {
         anchors.horizontalCenter: parent.horizontalCenter
         topPadding: 4
         text: Qt.formatDateTime(clock.date, "ddd")
-        color: Colours.onSurfaceVariant
+        color: Colours.surfaceVariantText
         font.pixelSize: Config.fontSize - 3
     }
 
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "d/M")
-        color: Colours.onSurfaceVariant
+        color: Colours.surfaceVariantText
         font.pixelSize: Config.fontSize - 3
     }
 }

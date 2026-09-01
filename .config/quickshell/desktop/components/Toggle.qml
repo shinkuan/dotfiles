@@ -32,7 +32,7 @@ Item {
         width: root.checked ? 18 : 14
         height: width
         radius: width / 2
-        color: root.checked ? Colours.onPrimary : Colours.outline
+        color: root.checked ? Colours.primaryText : Colours.outline
 
         Behavior on x {
             NumberAnimation {

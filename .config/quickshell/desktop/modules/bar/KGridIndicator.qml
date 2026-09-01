@@ -40,7 +40,7 @@ BarItem {
                 width: 4
                 height: 4
                 radius: 2
-                color: here ? Colours.primary : Colours.alpha(Colours.onSurfaceVariant, 0.35)
+                color: here ? Colours.primary : Colours.alpha(Colours.surfaceVariantText, 0.35)
             }
         }
     }

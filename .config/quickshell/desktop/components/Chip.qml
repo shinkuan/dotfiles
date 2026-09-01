@@ -10,14 +10,14 @@ Clickable {
     property string text: ""
     property bool checked: false
     property color accent: Colours.primary
-    property color onAccent: Colours.onPrimary
+    property color accentText: Colours.primaryText
 
     implicitHeight: 30
     implicitWidth: row.implicitWidth + 24
     radius: height / 2
     baseColor: checked ? accent : Colours.surfaceContainerHighest
-    hoverColor: checked ? Colours.mix(accent, onAccent, 0.12) : Colours.mix(Colours.surfaceContainerHighest, Colours.onSurface, 0.08)
-    pressColor: checked ? Colours.mix(accent, onAccent, 0.24) : Colours.mix(Colours.surfaceContainerHighest, Colours.onSurface, 0.14)
+    hoverColor: checked ? Colours.mix(accent, accentText, 0.12) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.08)
+    pressColor: checked ? Colours.mix(accent, accentText, 0.24) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.14)
 
     Row {
         id: row
@@ -29,14 +29,14 @@ Clickable {
             visible: root.icon !== ""
             text: root.icon
             font.pixelSize: Config.iconSize - 4
-            color: root.checked ? root.onAccent : Colours.onSurfaceVariant
+            color: root.checked ? root.accentText : Colours.surfaceVariantText
             anchors.verticalCenter: parent.verticalCenter
         }
 
         StyledText {
             visible: root.text !== ""
             text: root.text
-            color: root.checked ? root.onAccent : Colours.onSurface
+            color: root.checked ? root.accentText : Colours.surfaceText
             font.pixelSize: Config.fontSize - 1
             anchors.verticalCenter: parent.verticalCenter
         }

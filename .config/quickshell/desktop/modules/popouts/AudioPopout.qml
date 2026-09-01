@@ -23,7 +23,7 @@ ColumnLayout {
 
         IconButton {
             icon: vrow.icon
-            iconColor: vrow.node?.audio?.muted ? Colours.outline : Colours.onSurface
+            iconColor: vrow.node?.audio?.muted ? Colours.outline : Colours.surfaceText
             onClicked: Audio.toggleMute(vrow.node)
         }
 
@@ -36,7 +36,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 text: vrow.label
                 font.pixelSize: Config.fontSize - 1
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
             }
 
             Slider {
@@ -53,7 +53,7 @@ ColumnLayout {
             text: Math.round((vrow.node?.audio?.volume ?? 0) * 100) + "%"
             font.family: Config.fontFamilyMono
             font.pixelSize: Config.fontSize - 1
-            color: Colours.onSurfaceVariant
+            color: Colours.surfaceVariantText
         }
     }
 

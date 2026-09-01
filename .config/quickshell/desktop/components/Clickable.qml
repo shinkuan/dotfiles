@@ -11,8 +11,8 @@ Rectangle {
     readonly property alias pressed: mouse.pressed
     property bool disabled: false
     property color baseColor: "transparent"
-    property color hoverColor: Colours.alpha(Colours.onSurface, 0.08)
-    property color pressColor: Colours.alpha(Colours.onSurface, 0.14)
+    property color hoverColor: Colours.alpha(Colours.surfaceText, 0.08)
+    property color pressColor: Colours.alpha(Colours.surfaceText, 0.14)
     property int acceptedButtons: Qt.LeftButton
 
     signal clicked(var mouse)

@@ -6,6 +6,7 @@ import "../../config"
 import "../../services"
 import "../bar"
 import "../popouts"
+import "../osd"
 
 // Full-screen top layer that never reserves space. Input only lands on the
 // border ring, the bar and whatever is currently expanded; everything else
@@ -156,6 +157,15 @@ PanelWindow {
 
         monitor: root.monitor
         barEdge: bar.exposedWidth
+    }
+
+    Osd {
+        monitor: root.monitor
+        screenName: root.screen.name
+    }
+
+    KGridOsd {
+        monitor: root.monitor
     }
 
     // shortcut-opened popouts stay until a click lands outside the shell

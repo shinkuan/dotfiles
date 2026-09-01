@@ -6,7 +6,7 @@ Text {
     property bool fill: false
     property int weight: 400
 
-    color: Colours.onSurface
+    color: Colours.surfaceText
     font.family: Config.iconFont
     font.pixelSize: Config.iconSize
     font.variableAxes: ({ "FILL": fill ? 1 : 0, "wght": weight })

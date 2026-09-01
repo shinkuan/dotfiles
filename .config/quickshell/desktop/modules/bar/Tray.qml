@@ -22,7 +22,7 @@ Column {
             width: Config.barWidth - 8
             height: 30
             radius: Config.radius
-            color: hover.hovered ? Colours.alpha(Colours.onSurface, 0.08) : "transparent"
+            color: hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
 
             IconImage {
                 anchors.centerIn: parent

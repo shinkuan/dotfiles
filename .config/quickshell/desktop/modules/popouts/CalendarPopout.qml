@@ -63,7 +63,7 @@ ColumnLayout {
 
             StyledText {
                 text: Qt.formatDate(root.today, "dddd, d MMMM")
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
                 font.pixelSize: Config.fontSize - 1
             }
         }
@@ -102,7 +102,7 @@ ColumnLayout {
                 width: 38
                 horizontalAlignment: Text.AlignHCenter
                 text: Qt.locale().dayName((root.firstDow + index) % 7, Locale.ShortFormat)
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
                 font.pixelSize: Config.fontSize - 2
                 font.weight: Font.DemiBold
             }
@@ -125,7 +125,7 @@ ColumnLayout {
                 StyledText {
                     anchors.centerIn: parent
                     text: parent.modelData.getDate()
-                    color: parent.isToday ? Colours.onPrimary : !parent.inMonth ? Colours.alpha(Colours.onSurfaceVariant, 0.35) : parent.weekend ? Colours.tertiary : Colours.onSurface
+                    color: parent.isToday ? Colours.primaryText : !parent.inMonth ? Colours.alpha(Colours.surfaceVariantText, 0.35) : parent.weekend ? Colours.tertiary : Colours.surfaceText
                     font.weight: parent.isToday ? Font.Bold : Font.Normal
                 }
             }

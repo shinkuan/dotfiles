@@ -51,7 +51,7 @@ ColumnLayout {
     StyledText {
         visible: Net.wifi === null
         text: "No Wi-Fi adapter"
-        color: Colours.onSurfaceVariant
+        color: Colours.surfaceVariantText
     }
 
     ListView {
@@ -91,7 +91,7 @@ ColumnLayout {
                     visible: Net.secured(entry.modelData)
                     text: "lock"
                     font.pixelSize: Config.iconSize - 6
-                    color: Colours.onSurfaceVariant
+                    color: Colours.surfaceVariantText
                 }
 
                 IconButton {
@@ -120,7 +120,7 @@ ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: 8
                         verticalAlignment: TextInput.AlignVCenter
-                        color: Colours.onSurface
+                        color: Colours.surfaceText
                         font.family: Config.fontFamily
                         font.pixelSize: Config.fontSize
                         echoMode: TextInput.Password

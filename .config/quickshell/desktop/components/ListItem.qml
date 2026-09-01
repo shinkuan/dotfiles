@@ -31,7 +31,7 @@ Clickable {
             visible: root.icon !== ""
             text: root.icon
             fill: root.iconFill
-            color: root.active ? root.accent : Colours.onSurfaceVariant
+            color: root.active ? root.accent : Colours.surfaceVariantText
         }
 
         ColumnLayout {
@@ -41,7 +41,7 @@ Clickable {
             StyledText {
                 Layout.fillWidth: true
                 text: root.title
-                color: root.active ? root.accent : Colours.onSurface
+                color: root.active ? root.accent : Colours.surfaceText
                 font.weight: root.active ? Font.DemiBold : Font.Normal
             }
 
@@ -49,7 +49,7 @@ Clickable {
                 Layout.fillWidth: true
                 visible: root.subtitle !== ""
                 text: root.subtitle
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
                 font.pixelSize: Config.fontSize - 2
             }
         }

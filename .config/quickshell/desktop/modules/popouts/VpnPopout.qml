@@ -28,7 +28,7 @@ ColumnLayout {
     StyledText {
         visible: Vpn.connections.length === 0
         text: Vpn.available ? "No VPN connections configured" : "nmcli not available"
-        color: Colours.onSurfaceVariant
+        color: Colours.surfaceVariantText
     }
 
     Rectangle {
@@ -47,14 +47,14 @@ ColumnLayout {
             MaterialIcon {
                 text: "search"
                 font.pixelSize: Config.iconSize - 4
-                color: Colours.onSurfaceVariant
+                color: Colours.surfaceVariantText
             }
 
             TextInput {
                 id: input
 
                 Layout.fillWidth: true
-                color: Colours.onSurface
+                color: Colours.surfaceText
                 font.family: Config.fontFamily
                 font.pixelSize: Config.fontSize
                 focus: true

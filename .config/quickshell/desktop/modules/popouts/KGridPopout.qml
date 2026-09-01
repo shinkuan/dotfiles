@@ -38,7 +38,7 @@ ColumnLayout {
                 text: modelData.label
                 checked: root.selected === modelData.id
                 accent: root.cell?.activity === modelData.id ? Colours.primary : Colours.secondaryContainer
-                onAccent: root.cell?.activity === modelData.id ? Colours.onPrimary : Colours.onSecondaryContainer
+                accentText: root.cell?.activity === modelData.id ? Colours.primaryText : Colours.secondaryContainerText
                 onClicked: {
                     if (root.selected === modelData.id)
                         KGrid.switchActivity(modelData.id);
@@ -68,13 +68,13 @@ ColumnLayout {
                 height: 40
                 radius: Config.radius
                 baseColor: here ? Colours.primary : windows > 0 ? Colours.surfaceContainerHighest : Colours.alpha(Colours.surfaceContainerHighest, 0.4)
-                hoverColor: here ? Colours.mix(Colours.primary, Colours.onPrimary, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.onSurface, 0.1)
+                hoverColor: here ? Colours.mix(Colours.primary, Colours.primaryText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.1)
                 onClicked: KGrid.switchTo(root.selected, cx, cy)
 
                 StyledText {
                     anchors.centerIn: parent
                     text: parent.windows > 0 ? parent.windows : ""
-                    color: parent.here ? Colours.onPrimary : Colours.onSurfaceVariant
+                    color: parent.here ? Colours.primaryText : Colours.surfaceVariantText
                     font.pixelSize: Config.fontSize - 1
                     font.weight: Font.DemiBold
                 }
@@ -85,7 +85,7 @@ ColumnLayout {
                     width: 6
                     height: 6
                     radius: 3
-                    color: parent.here ? Colours.onPrimary : Colours.alpha(Colours.onSurfaceVariant, 0.4)
+                    color: parent.here ? Colours.primaryText : Colours.alpha(Colours.surfaceVariantText, 0.4)
                 }
             }
         }
@@ -94,7 +94,7 @@ ColumnLayout {
     StyledText {
         Layout.alignment: Qt.AlignHCenter
         text: root.cell ? `${KGrid.labelFor(root.cell.activity)} · ${root.cell.x},${root.cell.y}` : "Not on a grid cell"
-        color: Colours.onSurfaceVariant
+        color: Colours.surfaceVariantText
         font.pixelSize: Config.fontSize - 1
     }
 }

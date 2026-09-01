@@ -29,4 +29,8 @@ PanelWindow {
         smooth: true
         sourceSize: Qt.size(root.screen.width, root.screen.height)
     }
+
+    DesktopClock {
+        visible: ShellState.desktopClock
+    }
 }

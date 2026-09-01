@@ -41,8 +41,8 @@ ColumnLayout {
         implicitHeight: 56
         radius: Config.radius + 2
         baseColor: checked ? Colours.primary : Colours.surfaceContainerHighest
-        hoverColor: checked ? Colours.mix(Colours.primary, Colours.onPrimary, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.onSurface, 0.08)
-        pressColor: checked ? Colours.mix(Colours.primary, Colours.onPrimary, 0.2) : Colours.mix(Colours.surfaceContainerHighest, Colours.onSurface, 0.14)
+        hoverColor: checked ? Colours.mix(Colours.primary, Colours.primaryText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.08)
+        pressColor: checked ? Colours.mix(Colours.primary, Colours.primaryText, 0.2) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.14)
 
         RowLayout {
             anchors.fill: parent
@@ -52,7 +52,7 @@ ColumnLayout {
             MaterialIcon {
                 text: tile.icon
                 fill: tile.checked
-                color: tile.checked ? Colours.onPrimary : Colours.onSurfaceVariant
+                color: tile.checked ? Colours.primaryText : Colours.surfaceVariantText
             }
 
             ColumnLayout {
@@ -62,14 +62,14 @@ ColumnLayout {
                 StyledText {
                     Layout.fillWidth: true
                     text: tile.label
-                    color: tile.checked ? Colours.onPrimary : Colours.onSurface
+                    color: tile.checked ? Colours.primaryText : Colours.surfaceText
                     font.weight: Font.DemiBold
                 }
 
                 StyledText {
                     Layout.fillWidth: true
                     text: tile.detail
-                    color: tile.checked ? Colours.alpha(Colours.onPrimary, 0.8) : Colours.onSurfaceVariant
+                    color: tile.checked ? Colours.alpha(Colours.primaryText, 0.8) : Colours.surfaceVariantText
                     font.pixelSize: Config.fontSize - 2
                 }
             }
@@ -88,8 +88,8 @@ ColumnLayout {
         implicitHeight: 62
         radius: Config.radius + 2
         baseColor: isArmed ? Colours.error : Colours.surfaceContainerHighest
-        hoverColor: isArmed ? Colours.mix(Colours.error, Colours.onError, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.onSurface, 0.08)
-        pressColor: isArmed ? Colours.mix(Colours.error, Colours.onError, 0.2) : Colours.mix(Colours.surfaceContainerHighest, Colours.onSurface, 0.14)
+        hoverColor: isArmed ? Colours.mix(Colours.error, Colours.errorText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.08)
+        pressColor: isArmed ? Colours.mix(Colours.error, Colours.errorText, 0.2) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.14)
 
         signal activated()
 
@@ -110,13 +110,13 @@ ColumnLayout {
             MaterialIcon {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: sbtn.isArmed ? "check" : sbtn.icon
-                color: sbtn.isArmed ? Colours.onError : sbtn.danger ? Colours.error : Colours.onSurface
+                color: sbtn.isArmed ? Colours.errorText : sbtn.danger ? Colours.error : Colours.surfaceText
             }
 
             StyledText {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: sbtn.isArmed ? "Sure?" : sbtn.label
-                color: sbtn.isArmed ? Colours.onError : Colours.onSurfaceVariant
+                color: sbtn.isArmed ? Colours.errorText : Colours.surfaceVariantText
                 font.pixelSize: Config.fontSize - 2
             }
         }

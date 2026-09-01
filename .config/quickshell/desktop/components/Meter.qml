@@ -24,7 +24,7 @@ ColumnLayout {
             visible: root.icon !== ""
             text: root.icon
             font.pixelSize: Config.iconSize - 3
-            color: Colours.onSurfaceVariant
+            color: Colours.surfaceVariantText
         }
 
         StyledText {
@@ -34,7 +34,7 @@ ColumnLayout {
 
         StyledText {
             text: root.value
-            color: Colours.onSurfaceVariant
+            color: Colours.surfaceVariantText
             font.family: Config.fontFamilyMono
             font.pixelSize: Config.fontSize - 1
         }

@@ -15,7 +15,6 @@ Singleton {
     signal launcher(bool toggleOnly)
     signal session()
     signal notifications()
-    signal screenshot(string mode)
 
     GlobalShortcut {
         appid: "desktop"
@@ -90,11 +89,35 @@ Singleton {
         target: "screenshot"
 
         function region(): void {
-            root.screenshot("region");
+            Picker.start("save");
         }
 
         function regionCopy(): void {
-            root.screenshot("copy");
+            Picker.start("copy");
         }
+
+        function cancel(): void {
+            Picker.cancel();
+        }
+
+        // global logical coordinates; mode "save" or "copy"
+        function capture(mode: string, x: int, y: int, w: int, h: int): void {
+            Picker.mode = mode === "copy" ? "copy" : "save";
+            Picker.confirm(x, y, w, h);
+        }
+    }
+
+    GlobalShortcut {
+        appid: "desktop"
+        name: "screenshot"
+        description: "Region screenshot (satty)"
+        onPressed: Picker.start("save")
+    }
+
+    GlobalShortcut {
+        appid: "desktop"
+        name: "screenshotCopy"
+        description: "Region screenshot to clipboard"
+        onPressed: Picker.start("copy")
     }
 }

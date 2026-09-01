@@ -10,3 +10,4 @@ singleton Session 1.0 Session.qml
 singleton KGrid 1.0 KGrid.qml
 singleton Idle 1.0 Idle.qml
 singleton Requests 1.0 Requests.qml
+singleton Picker 1.0 Picker.qml

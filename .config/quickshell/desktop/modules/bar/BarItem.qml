@@ -24,7 +24,7 @@ Rectangle {
     implicitWidth: Config.barWidth - 8
     implicitHeight: column.implicitHeight + 10
     radius: Config.radius
-    color: active ? Colours.alpha(Colours.primary, 0.18) : hover.hovered ? Colours.alpha(Colours.onSurface, 0.08) : "transparent"
+    color: active ? Colours.alpha(Colours.primary, 0.18) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
 
     Behavior on color {
         ColorAnimation {

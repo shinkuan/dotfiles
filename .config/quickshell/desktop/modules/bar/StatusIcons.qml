@@ -18,7 +18,7 @@ Column {
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Audio.muted ? "volume_off" : Audio.volume > 0.5 ? "volume_up" : Audio.volume > 0 ? "volume_down" : "volume_mute"
-            color: Audio.muted ? Colours.outline : Colours.onSurface
+            color: Audio.muted ? Colours.outline : Colours.surfaceText
         }
 
         WheelHandler {
@@ -37,7 +37,7 @@ Column {
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Audio.sourceMuted ? "mic_off" : "mic"
-            color: Audio.sourceMuted ? Colours.outline : Colours.onSurface
+            color: Audio.sourceMuted ? Colours.outline : Colours.surfaceText
         }
 
         onClicked: m => {
@@ -52,7 +52,7 @@ Column {
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Net.wiredConnected ? "lan" : Net.activeWifi ? Net.signalIcon(Net.activeWifi.signalStrength) : Net.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off"
-            color: Net.connected ? Colours.onSurface : Colours.outline
+            color: Net.connected ? Colours.surfaceText : Colours.outline
         }
     }
 
@@ -74,7 +74,7 @@ Column {
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.bluetoothConnected.length > 0 ? "bluetooth_connected" : "bluetooth"
-            color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? Colours.outline : root.bluetoothConnected.length > 0 ? Colours.primary : Colours.onSurface
+            color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? Colours.outline : root.bluetoothConnected.length > 0 ? Colours.primary : Colours.surfaceText
         }
     }
 
@@ -92,13 +92,13 @@ Column {
                 const level = Math.min(6, Math.round(p * 6));
                 return level === 6 ? "battery_full" : level === 0 ? "battery_alert" : `battery_${level}_bar`;
             }
-            color: (UPower.displayDevice?.percentage ?? 1) < 0.15 && UPower.onBattery ? Colours.error : Colours.onSurface
+            color: (UPower.displayDevice?.percentage ?? 1) < 0.15 && UPower.onBattery ? Colours.error : Colours.surfaceText
         }
 
         StyledText {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Math.round((UPower.displayDevice?.percentage ?? 0) * 100) + "%"
-            color: Colours.onSurfaceVariant
+            color: Colours.surfaceVariantText
             font.pixelSize: Config.fontSize - 4
         }
     }
