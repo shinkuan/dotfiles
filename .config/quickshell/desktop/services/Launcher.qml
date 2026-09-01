@@ -25,6 +25,8 @@ Singleton {
     readonly property string cacheDir: `${Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache"}/desktop-shell/clip`
     readonly property string wallpaperDir: `${Quickshell.env("HOME")}/Pictures/Wallpapers`
     readonly property list<var> actions: Config.launcher.actions.filter(a => a.enabled !== false && (!a.dangerous || Config.launcher.showDangerous))
+    readonly property string stateDir: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/desktop-shell`
+    property var usage: ({})
 
     function show(): void {
         query = "";
@@ -155,7 +157,11 @@ Singleton {
 
     function appRows(q: string): list<var> {
         const apps = DesktopEntries.applications.values.filter(a => !a.noDisplay);
-        const list = q === "" ? apps.slice().sort((a, b) => a.name.localeCompare(b.name)) : ranked(apps, a => Math.max(score(q, a.name), score(q, a.genericName) * 0.8, score(q, a.comment) * 0.5, ...a.keywords.map(k => score(q, k) * 0.7)));
+        const used = a => Math.min(usage[a.id] ?? 0, 20);
+        const list = q === "" ? apps.slice().sort((a, b) => (used(b) - used(a)) || a.name.localeCompare(b.name)) : ranked(apps, a => {
+            const s = Math.max(score(q, a.name), score(q, a.genericName) * 0.8, score(q, a.comment) * 0.5, ...a.keywords.map(k => score(q, k) * 0.7));
+            return s > 0 ? s + used(a) * 2 : 0;
+        });
         return list.map(a => ({
             kind: "app",
             title: a.name,
@@ -167,6 +173,10 @@ Singleton {
     }
 
     function launchApp(entry): void {
+        const copy = Object.assign({}, usage);
+        copy[entry.id] = (copy[entry.id] ?? 0) + 1;
+        usage = copy;
+        usageFile.setText(JSON.stringify(usage));
         if (hasApp2unit)
             Quickshell.execDetached(["app2unit", "--", entry.id + ".desktop"]);
         else
@@ -381,13 +391,27 @@ Singleton {
         }
     }
 
+    FileView {
+        id: usageFile
+
+        path: root.stateDir + "/launcher-usage.json"
+        printErrors: false
+        onLoaded: {
+            try {
+                root.usage = JSON.parse(text());
+            } catch (e) {
+                root.usage = {};
+            }
+        }
+    }
+
     Process {
         running: true
         command: ["sh", "-c", "command -v app2unit"]
         onExited: code => root.hasApp2unit = code === 0
     }
 
-    Component.onCompleted: Quickshell.execDetached(["mkdir", "-p", cacheDir])
+    Component.onCompleted: Quickshell.execDetached(["mkdir", "-p", cacheDir, stateDir])
 
     IpcHandler {
         target: "launcher"

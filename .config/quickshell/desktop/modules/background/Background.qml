@@ -75,5 +75,6 @@ PanelWindow {
 
     DesktopClock {
         visible: ShellState.desktopClock
+        z: 2
     }
 }

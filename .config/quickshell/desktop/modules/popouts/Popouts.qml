@@ -70,7 +70,8 @@ Item {
         resources: resourcesComp,
         power: powerComp,
         kgrid: kgridComp,
-        notifications: notificationsComp
+        notifications: notificationsComp,
+        media: mediaComp
     })
 
     Component { id: audioComp; AudioPopout {} }
@@ -82,6 +83,7 @@ Item {
     Component { id: powerComp; PowerPopout {} }
     Component { id: kgridComp; KGridPopout { monitor: root.monitor } }
     Component { id: notificationsComp; NotificationsPopout {} }
+    Component { id: mediaComp; MediaPopout {} }
 
     RectangularShadow {
         anchors.fill: panel

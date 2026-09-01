@@ -84,6 +84,10 @@ Item {
             Layout.fillHeight: true
         }
 
+        MediaModule {
+            Layout.alignment: Qt.AlignHCenter
+        }
+
         ResourcesModule {
             Layout.alignment: Qt.AlignHCenter
             visible: Config.bar.showResources
