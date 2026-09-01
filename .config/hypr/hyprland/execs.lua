@@ -21,12 +21,18 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 
-    -- Quickshell (caelestia)
-    hl.exec_cmd("QSG_RENDER_LOOP=threaded caelestia shell")
-    hl.exec_cmd("QSG_RENDER_LOOP=threaded qs -c overview")
+    -- Quickshell (caelestia); skipped in nested sessions, where the shell
+    -- under test is started manually
+    if not os.getenv("WAYLAND_DISPLAY") then
+        hl.exec_cmd("QSG_RENDER_LOOP=threaded caelestia shell")
+        hl.exec_cmd("QSG_RENDER_LOOP=threaded qs -c overview")
+    end
 
-    -- Screen lock
-    hl.exec_cmd("hyprlock")
+    -- Lock at session start; skip in nested sessions (WAYLAND_DISPLAY is
+    -- only inherited when running inside another compositor)
+    if not os.getenv("WAYLAND_DISPLAY") then
+        hl.exec_cmd("hyprlock")
+    end
 
     -- Tray applets
     hl.exec_cmd("blueman-applet")

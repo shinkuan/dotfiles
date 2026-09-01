@@ -44,6 +44,23 @@ them (the gitignored seeds survive). To fix restained outer terminals,
 re-apply the live palette:
 `for pt in /dev/pts/[0-9]*; do printf '%b' "$(cat ~/.cache/hellwal/sequences.txt)" > "$pt"; done`
 
+### Testing the desktop shell inside a nested session
+
+The nested execs skip both the old shell and the session-start lock (they
+check for an inherited `WAYLAND_DISPLAY`), so start the shell under test
+manually with the nested session's environment:
+
+```sh
+env WAYLAND_DISPLAY=<nested socket> HYPRLAND_INSTANCE_SIGNATURE=<nested sig> \
+    XDG_CONFIG_HOME=<worktree>/.config \
+    XDG_STATE_HOME=/tmp/$USER-<worktree name>-state \
+    XDG_CACHE_HOME=/tmp/$USER-<worktree name>-cache \
+    qs -c desktop
+```
+
+The same env prefix works for `qs -c desktop ipc call ...` and for
+`grim` (screenshots of the nested output for visual checks).
+
 ## verify-scheme.sh
 
 Acceptance / regression test for `.local/bin/scheme`: renders
