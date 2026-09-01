@@ -29,7 +29,7 @@ agent and idle inhibitor. Run with `qs -c desktop` (normally via
   the border ring (and the bar when pinned).
 - `modules/shell/ShellSurface.qml` — full-screen top-layer window per
   monitor: bar, popouts, OSDs and notification popups. Its input mask is the
-  border ring plus whatever is expanded; everything else clicks through.
+  left edge band plus whatever is expanded; everything else clicks through.
 - `modules/bar/` — bar entries (`BarItem` marks hoverable entries with a
   `popout` id).
 - `modules/popouts/` — `Popouts` container plus one file per popout.

@@ -10,8 +10,8 @@ import "../osd"
 import "../notifications"
 
 // Full-screen top layer that never reserves space. Input only lands on the
-// border ring, the bar and whatever is currently expanded; everything else
-// clicks through to the windows below. All hover decisions are made here,
+// left edge band, the bar and whatever is currently expanded; everything
+// else clicks through to the windows below. All hover decisions are made here,
 // from one HoverHandler, by geometry. (A hover-enabled MouseArea cannot be
 // used for this: any HoverHandler above it steals its hover.)
 PanelWindow {
@@ -68,9 +68,9 @@ PanelWindow {
 
         Region {
             x: root.interactiveLeft
-            y: Config.borderThickness
-            width: root.width - x - Config.borderThickness
-            height: root.height - Config.borderThickness * 2
+            y: 0
+            width: root.width - x
+            height: root.height
             intersection: Intersection.Xor
         }
 
