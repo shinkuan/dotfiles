@@ -133,6 +133,17 @@ PanelWindow {
         onTriggered: Overview.refresh()
     }
 
+    // window geometry / workspace changes do not signal; poll while open
+    Timer {
+        running: root.active
+        interval: 700
+        repeat: true
+        onTriggered: {
+            Overview.refresh();
+            root.rebuild();
+        }
+    }
+
     MouseArea {
         anchors.fill: parent
         onClicked: Overview.hide()

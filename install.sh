@@ -6,6 +6,8 @@
 #   ./install.sh            interactive (asks about optional package groups)
 #   ./install.sh --all      install every optional group without asking
 #   ./install.sh --minimal  skip every optional group
+#   ./install.sh --link     only (re)link configs, units and scripts; no packages,
+#                           services or system provisioning
 
 set -euo pipefail
 
@@ -36,9 +38,11 @@ if ! command -v pacman &>/dev/null; then
 fi
 
 MODE="ask"
+LINK_ONLY=0
 case "${1:-}" in
     --all) MODE="all" ;;
     --minimal) MODE="none" ;;
+    --link) LINK_ONLY=1 ;;
     "") ;;
     *) error "unknown option: $1"; exit 1 ;;
 esac
@@ -53,6 +57,8 @@ ask() {
     read -rp "$1 [y/N] " reply
     [[ $reply =~ ^[Yy] ]]
 }
+
+if [[ $LINK_ONLY -eq 0 ]]; then
 
 # ---------- Step 1: Sync system & install build prerequisites ----------
 info "Syncing pacman databases and updating system..."
@@ -401,13 +407,15 @@ else
     warn "no /dev/i2c-* nodes found; external monitor brightness will be unavailable"
 fi
 
+fi  # LINK_ONLY
+
 # Go back to repo root
 cd "$REPO_ROOT"
 
 # ---------- Step 7: Files ----------
 info "Copying Pictures to ~/Pictures..."
 mkdir -p ~/Pictures
-cp -r Pictures/* ~/Pictures/
+cp -rn Pictures/* ~/Pictures/
 
 # Symlink .config entries (repo is the live config; edits apply immediately)
 link_config() {
@@ -491,6 +499,11 @@ sudo tee /etc/libinput/local-overrides.quirks >/dev/null <<'EOT'
 MatchName=*Logitech G502*
 AttrEventCode=-REL_WHEEL_HI_RES;-REL_HWHEEL_HI_RES;
 EOT
+
+if [[ $LINK_ONLY -eq 1 ]]; then
+    success "Configs, units and scripts linked."
+    exit 0
+fi
 
 # Default wallpaper + full colour pipeline (scheme + hellwal + templates)
 info "Generating the initial colour scheme..."
