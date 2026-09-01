@@ -104,10 +104,12 @@ Singleton {
             stat.reload();
             meminfo.reload();
             netdev.reload();
-            if (!temp.running)
-                temp.running = true;
-            if (root.watchers > 0 && !gpuProc.running && root.gpu !== undefined)
-                gpuProc.running = true;
+            if (root.watchers > 0) {
+                if (!temp.running)
+                    temp.running = true;
+                if (!gpuProc.running && root.gpu !== undefined)
+                    gpuProc.running = true;
+            }
         }
     }
 
@@ -119,8 +121,12 @@ Singleton {
         onTriggered: {
             if (!df.running)
                 df.running = true;
-            if (root.watchers === 0 && !gpuProc.running && root.gpu !== undefined)
-                gpuProc.running = true;
+            if (root.watchers === 0) {
+                if (!temp.running)
+                    temp.running = true;
+                if (!gpuProc.running && root.gpu !== undefined)
+                    gpuProc.running = true;
+            }
         }
     }
 
