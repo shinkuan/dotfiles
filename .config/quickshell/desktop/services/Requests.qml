@@ -75,6 +75,13 @@ Singleton {
         onPressed: root.popout("kgrid")
     }
 
+    GlobalShortcut {
+        appid: "desktop"
+        name: "overview"
+        description: "Toggle the workspace overview"
+        onPressed: Overview.toggle()
+    }
+
     IpcHandler {
         target: "popout"
 

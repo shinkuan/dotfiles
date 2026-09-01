@@ -1,4 +1,0 @@
-[submodule ".config/quickshell/overview"]
-	path = .config/quickshell/overview
-	url = https://github.com/shinkuan/quickshell-overview.git
-	branch = hypr-v0.55
