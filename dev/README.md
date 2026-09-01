@@ -48,9 +48,11 @@ env WAYLAND_DISPLAY=<nested socket> HYPRLAND_INSTANCE_SIGNATURE=<nested sig> \
     qs -c desktop
 ```
 
-The same env prefix works for `qs -c desktop ipc call ...` and for `grim`
-(screenshots of the nested output for visual checks — remember the prefix,
-otherwise grim captures the live session).
+`dev/nested-shell.sh` builds exactly that environment for the newest nested
+instance: no arguments starts the shell, `ipc call bar toggle` talks to it,
+and `-- grim shot.png` runs any command inside it (screenshots of the nested
+output for visual checks — without the prefix grim captures the live
+session).
 
 - **Hover without a mouse**: `hyprctl -i <sig> dispatch 'hl.dsp.cursor.move({ x = 5, y = 600 })'`
   warps the nested cursor. A warp only produces a pointer enter/leave, not
@@ -70,6 +72,10 @@ Until the live session runs the new shell, its `hyprlock` is the outer
 session's business: a nested `hyprlock` that gets killed leaves Hyprland's
 "lockscreen died" guard up, cleared with
 `hyprctl -i <sig> eval 'hl.clear_crashed_lockscreen()'`.
+
+## nested-shell.sh
+
+See above: environment wrapper for the shell under test.
 
 ## verify-scheme.sh
 
