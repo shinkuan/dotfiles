@@ -1,6 +1,7 @@
 # dotfiles
 
 Arch Linux + Hyprland(NVIDIA)日常環境,目標:一台全新電腦 → 完整可用的 daily driver。
+桌面 shell 是自己用 quickshell 寫的(`.config/quickshell/desktop`),沒有第三方 shell 相依。
 
 ## 新機器安裝流程
 
@@ -28,18 +29,67 @@ archinstall --config user_configuration.json
 用剛建立的使用者登入 TTY(Wi-Fi 先用 `nmtui` 連線),然後:
 
 ```sh
-git clone --recurse-submodules https://github.com/shinkuan/dotfiles.git ~/Documents/dotfiles
+git clone https://github.com/shinkuan/dotfiles.git ~/Documents/dotfiles
 cd ~/Documents/dotfiles
-./install.sh
+./install.sh            # 互動詢問選配群組;--all 全裝、--minimal 全跳過
 ```
 
-腳本會:裝 yay → 裝全部套件(官方 + AUR)→ 啟用服務(NetworkManager、bluetooth、docker、libvirtd、sshd)→ 初始化 submodule(`.config/quickshell/overview`)→ 把 `.config` symlink 進 `~/.config`、複製 `.local/bin`、桌布、`.bashrc` → 產生 hellwal 色票與預設桌布。
+腳本會:裝 yay → 裝全部套件(官方 + AUR)→ 詢問選配群組(音樂 / 遊戲 / 容器 / 虛擬化,
+服務與群組只在有選時才啟用)→ 啟用服務(NetworkManager、bluetooth、sshd、power-profiles-daemon)
+→ 佈建裝置權限並驗證(手把 udev uaccess 規則、ddcutil 的 i2c-dev)→ 把 `.config` symlink 進
+`~/.config`(systemd user 單元逐檔連結)、複製 `.local/bin`、桌布、`.bashrc` → 種出 `local.lua`
+與 `qt6ct.conf` → 跑 `wallpaper -f` 產生整套色票。
 
 ### 3. 再重開機
 
-讓群組(docker/libvirt)生效。之後在 tty1 登入會自動啟動 Hyprland + caelestia shell。
+讓群組與 udev 規則生效。之後在 tty1 登入會自動啟動 Hyprland,`execs.lua` 再透過
+systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 
 > 注意:NTFS 磁區直接用核心內建的 `ntfs3` 掛載即可,不需要 ntfs-3g;fstab 裡型別寫 `ntfs3`。
+> 排程備份(backintime 等)不在腳本內,需要的話自行加 crontab。
+
+## Desktop shell
+
+`qs -c desktop`,由 `desktop-shell.service` 管理(`Restart=on-failure`,
+`journalctl --user -u desktop-shell` 看 log,`systemctl --user restart desktop-shell` 重啟)。
+
+- **隱藏式 bar**(左側):滑鼠碰到螢幕邊緣就滑出,離開就收;從邊緣往內拖 20px 釘住、
+  反向拖收回;`qs -c desktop ipc call bar toggle` 亦可。全螢幕視窗時整個 bar 停用,只剩 OSD。
+- **Hover popouts**:滑到 bar 上的模組就展開,點一下完成 —— KGrid 格子、資源、音訊
+  (切換輸出/輸入裝置、各 app 音量)、網路(Wi-Fi 連線 / 密碼)、VPN(nmcli:OpenVPN + WireGuard)、
+  藍牙、通知中心、月曆、電源(快速開關 + session 按鈕,危險動作要點兩下)。
+- **OSD**:音量 / 麥克風 / 亮度(內建面板走 brightnessctl,外接螢幕走 ddcutil);
+  切換 KGrid 格子時彈出 activity + 5×5 點陣。
+- **通知**:自帶 notification daemon;popup 可中鍵 / 右滑關閉、支援 action 與 inline reply;
+  歷史持久化在 `$XDG_STATE_HOME/desktop-shell/`;勿擾模式。
+- **Launcher**(`Super` 單擊 / `Super+Space`):app 搜尋、`>` 動作(色票 / variant / 桌布 /
+  明暗 / 電源…,定義在 `config.json`)、`=` 計算(qalc)、`;` 剪貼簿歷史(cliphist,含圖片縮圖)。
+  數學式子直接輸入也會算。
+- **Overview**(`Super+Tab`):目前 activity 的 5×5 格子 + 即時視窗預覽;點格子切換、
+  點視窗聚焦、中鍵關閉、拖曳視窗到別的格子;方向鍵 / Enter / Tab / 字母鍵切 activity。
+- **區域截圖**(`Print`、`Super+Shift+S`;`Super+Shift+Alt+S` 直接進剪貼簿):凍結畫面後拖選,
+  滑到視窗上會自動吸附,Space 切換 satty / 剪貼簿,Esc 取消。
+- **桌面時鐘**:桌布上的時鐘,電源 popout 或 `qs -c desktop ipc call desktopClock toggle` 開關。
+- **Keep awake**:電源 popout 的開關(`ipc call idle toggle`);播放音訊時自動抑制 idle;
+  手把有輸入時也會抑制(`joystick-idle-watch`)。
+- **Polkit 代理**在 shell 內;shell 掛掉時手動跑 `polkit-fallback`。
+
+設定檔:`.config/quickshell/desktop/config.json`,存檔即時生效。
+色票由 `scheme` / `wallpaper` 產生,shell 熱載入 `$XDG_STATE_HOME/scheme/colours.json`。
+
+### 常用快捷鍵
+
+| 鍵 | 動作 |
+|---|---|
+| `Super`(單擊)/ `Super+Space` / `Super+B` | Launcher |
+| `Super+V` | 剪貼簿歷史 |
+| `Super+Tab` | Overview |
+| `Ctrl+Alt+Delete` / `Super+Esc` | 電源 / session 選單 |
+| `Ctrl+Alt+N` | 通知中心;`Ctrl+Alt+C` 清空通知 |
+| `Ctrl+Super+{Z,X,C,A,S,D,Q,W,E,Space}` | 切換 KGrid activity(`Space` = main) |
+| `Ctrl+Super+方向鍵` | 在 5×5 格子內移動(加 `Shift` 帶著視窗) |
+| `Print` / `Super+Shift+S` | 區域截圖(satty);`Super+Shift+Alt+S` 進剪貼簿;`Super+Print` 抓視窗 |
+| `Alt+XF86AudioPlay` | 音訊 popout(切換輸出裝置) |
 
 ## Theming
 
@@ -50,3 +100,10 @@ terminal palette. `wallpaper -f <image>` (or `-r` for random) sets the
 wallpaper and re-runs the whole pipeline, including hellwal for terminal
 colours. See `.local/bin/README.md` for details and how to add preset
 schemes.
+
+## Development
+
+Never switch branches in this checkout: `~/.config` is symlinked into it, so
+the checked-out tree *is* the running desktop. Work on diverging branches in a
+separate `git worktree` and test in a nested Hyprland session
+(`dev/README.md`).

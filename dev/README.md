@@ -32,34 +32,44 @@ toggle it again after leaving. The nested config itself needs no escape key.
 Multi-monitor hotplug can be tested from inside the nested session with
 `hyprctl output create headless`.
 
-Until the autostart switches to the new shell, a nested session still runs
-the current shell. Its theming is NOT display-scoped: with no
-`caelestia/cli.json` it falls back to defaults and applies themes globally,
-including OSC colour sequences pushed to every `/dev/pts` — which restains
-the outer session's already-open terminals. The launch script therefore
-seeds a gitignored `.config/caelestia/cli.json` with every theme output
-disabled. If stray theme dirs (btop, spicetify, discord clients, ...) do
-appear in the worktree after a nested run, `git clean -fd .config` removes
-them (the gitignored seeds survive). To fix restained outer terminals,
-re-apply the live palette:
-`for pt in /dev/pts/[0-9]*; do printf '%b' "$(cat ~/.cache/hellwal/sequences.txt)" > "$pt"; done`
-
 ### Testing the desktop shell inside a nested session
 
-The nested execs skip both the old shell and the session-start lock (they
-check for an inherited `WAYLAND_DISPLAY`), so start the shell under test
-manually with the nested session's environment:
+The nested execs skip the systemd-managed shell and the session-start lock
+(they check for an inherited `WAYLAND_DISPLAY`), so start the shell under
+test manually with the nested session's environment. `.local/bin` of the
+worktree must be on `PATH` for the `scheme` / `wallpaper` tools:
 
 ```sh
 env WAYLAND_DISPLAY=<nested socket> HYPRLAND_INSTANCE_SIGNATURE=<nested sig> \
     XDG_CONFIG_HOME=<worktree>/.config \
     XDG_STATE_HOME=/tmp/$USER-<worktree name>-state \
     XDG_CACHE_HOME=/tmp/$USER-<worktree name>-cache \
+    PATH=<worktree>/.local/bin:$PATH \
     qs -c desktop
 ```
 
-The same env prefix works for `qs -c desktop ipc call ...` and for
-`grim` (screenshots of the nested output for visual checks).
+The same env prefix works for `qs -c desktop ipc call ...` and for `grim`
+(screenshots of the nested output for visual checks — remember the prefix,
+otherwise grim captures the live session).
+
+- **Hover without a mouse**: `hyprctl -i <sig> dispatch 'hl.dsp.cursor.move({ x = 5, y = 600 })'`
+  warps the nested cursor. A warp only produces a pointer enter/leave, not
+  motion, so to "hover" a bar item warp out of the surface first, then onto
+  the item at the screen's left edge (x ≤ border thickness).
+- **Notifications and the tray** live on the D-Bus session bus, which the
+  live shell already owns. To test the notification server start the shell
+  on a private bus: `eval "$(dbus-launch --sh-syntax)"` in the same env,
+  then `notify-send` from that environment. The tray is empty there.
+- **Overview / area picker** need windows: spawn some with
+  `hyprctl -i <sig> dispatch 'hl.dsp.exec_cmd("foot")'`.
+- Everything the shell writes goes to the throwaway state/cache dirs; apps
+  started inside the nested session may still drop config dirs into the
+  worktree's `.config` (they are gitignored).
+
+Until the live session runs the new shell, its `hyprlock` is the outer
+session's business: a nested `hyprlock` that gets killed leaves Hyprland's
+"lockscreen died" guard up, cleared with
+`hyprctl -i <sig> eval 'hl.clear_crashed_lockscreen()'`.
 
 ## verify-scheme.sh
 

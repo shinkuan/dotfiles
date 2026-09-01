@@ -23,7 +23,8 @@ renders every consumer template:
 
 Usage: `scheme set [--name N] [--flavour F] [--mode dark|light]
 [--variant V] [--random]`, `scheme sync`, `scheme get`, `scheme list`.
-Defaults: `dynamic / default / dark / content`.
+Defaults: `dynamic / default / dark / content`. The desktop shell's launcher
+(`>scheme`, `>variant`) calls these.
 
 The terminal palette source is a switch in
 `$XDG_CONFIG_HOME/scheme/config.json` (`{"terminal": {"source": ...}}`):
@@ -43,12 +44,29 @@ generation pipeline.
 Wallpaper switcher + theming pipeline: records
 `$XDG_STATE_HOME/wallpaper/{path.txt,current,thumbnail.jpg}`, runs
 `scheme sync`, generates the terminal palette (hellwal by default), reloads
-Hyprland, and notifies the desktop shell. `wallpaper -f <image>`,
-`wallpaper -r [dir]` (random), `wallpaper -g` (print current).
+Hyprland, and notifies the desktop shell (which also watches `path.txt`).
+`wallpaper -f <image>`, `wallpaper -r [dir]` (random), `wallpaper -g`
+(print current). The launcher's `>wallpaper` picker calls `wallpaper -f`.
 
-Note: hellwal is invoked here on purpose — it used to run from a
-caelestia-cli hook, and without this call terminal colours silently stop
-following the wallpaper.
+Note: hellwal is invoked here on purpose — nothing else regenerates
+terminal colours, and without this call they silently stop following the
+wallpaper.
+
+## joystick-idle-watch
+
+Runs as `joystick-idle-watch.service` (user unit, started by the Hyprland
+autostart). Watches `/dev/input/by-id/*-event-joystick` (hotplug-aware) and
+pings the shell (`qs -c desktop ipc call idle activity`) while a controller
+is being used, because controller input never resets the compositor's idle
+timer. Unreadable device nodes are reported with a notification and on
+stderr instead of failing silently; `install.sh` installs the udev
+`uaccess` rule that normally makes them readable.
+
+## polkit-fallback
+
+polkit allows one authentication agent per session and the desktop shell
+registers its own. If the shell is down, run this to start polkit-gnome
+manually; it refuses to start while the shell is running.
 
 ## Others
 

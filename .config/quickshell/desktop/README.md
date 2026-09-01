@@ -1,40 +1,81 @@
 # desktop shell
 
-Self-built quickshell desktop: hidden bar with hover reveal, wallpaper
-background layer, and (coming) popouts, OSDs, notifications and launcher.
-Run with `qs -c desktop`.
+Self-built quickshell desktop: hidden bar with hover popouts, OSDs,
+notification daemon, launcher, KGrid overview, region screenshot, polkit
+agent and idle inhibitor. Run with `qs -c desktop` (normally via
+`desktop-shell.service`).
 
 ## Layout
 
 - `shell.qml` — root; one `Variants` over `Quickshell.screens`, so every
-  window must live under it to appear on all monitors and follow hotplug.
-- `config/Config.qml` — appearance/behaviour constants.
+  window lives under it and follows monitor hotplug. Singletons with side
+  effects are touched once in `Component.onCompleted` so they instantiate.
+- `config/Config.qml` — appearance constants plus `config.json`, hot-loaded
+  through a `JsonAdapter` (any key may be omitted; defaults live on the
+  adapter).
+- `components/` — shared widgets: `StyledText`, `MaterialIcon`, `Clickable`,
+  `IconButton`, `Toggle`, `Slider`, `ListItem`, `SectionLabel`, `Meter`,
+  `Chip`.
 - `services/` — singletons: `Colours` (hot-loads
-  `$XDG_STATE_HOME/scheme/colours.json`), `Wallpaper` (follows
-  `$XDG_STATE_HOME/wallpaper/path.txt`), `BarState` (pin state, persists
-  across config reloads, IPC target `bar`: `toggle`/`pin`/`unpin`/`isPinned`).
-- `modules/background/` — per-screen wallpaper layer.
-- `modules/frame/` — four 1×1 edge windows whose exclusive zones reserve the
-  border ring (and the bar when pinned); the main surface reserves nothing.
-- `modules/shell/ShellSurface.qml` — full-screen top-layer window. Its input
-  mask is the screen interior Xor'd away, leaving the border ring (plus the
-  bar strip) interactive and everything else click-through. Hovering the
-  left band reveals the bar; dragging inward pins it; a fullscreen window on
-  the workspace disables the whole surface.
-- `modules/bar/` — bar content: KGrid indicator, tray (menus via
-  `QsMenuAnchor`), status icons, clock.
+  `$XDG_STATE_HOME/scheme/colours.json`), `Wallpaper`, `ShellState`
+  (persisted toggles: bar pin, DND, keep awake, desktop clock), `Audio`
+  (Pipewire), `Net` (Quickshell.Networking), `Vpn` (nmcli), `Brightness`
+  (brightnessctl + ddcutil), `Resources`, `Session`, `KGrid` (reads the
+  per-instance `kgrid.json` written by `kgrid.lua`), `Idle` (inhibitor on
+  its own invisible surface), `Notifs`, `Launcher`, `Picker`, `Overview`,
+  `Players` (Mpris), `Polkit`, `Requests` (global shortcuts + IPC).
+- `modules/background/` — wallpaper layer + `DesktopClock`.
+- `modules/frame/` — four 1×1 edge windows whose exclusive zones reserve
+  the border ring (and the bar when pinned).
+- `modules/shell/ShellSurface.qml` — full-screen top-layer window per
+  monitor: bar, popouts, OSDs and notification popups. Its input mask is the
+  border ring plus whatever is expanded; everything else clicks through.
+- `modules/bar/` — bar entries (`BarItem` marks hoverable entries with a
+  `popout` id).
+- `modules/popouts/` — `Popouts` container plus one file per popout.
+- `modules/osd/`, `modules/notifications/`, `modules/launcher/`,
+  `modules/areapicker/`, `modules/overview/`, `modules/polkit/` — the
+  remaining windows.
+
+## Hover model (read before touching input)
+
+All hover decisions are made in `ShellSurface` by one `HoverHandler` and
+geometry (`Bar.popoutAt`). Do **not** put a hover-enabled `MouseArea` under
+anything that has a `HoverHandler`: in Qt 6 the handler steals the hover
+and the `MouseArea` reports `exited`. Use `HoverHandler` for hover state and
+plain `MouseArea` (no `hoverEnabled`) for clicks everywhere in the surface.
+
+## Naming gotchas
+
+- Colour roles `on*` are exposed as `*Text` (`Colours.surfaceText`): a
+  property named `onFoo` is resolved as a signal-handler lookup inside JS
+  expressions and reads as black.
+- Singleton names must not collide with QML types (`State`, `Network`,
+  `Settings` are all taken) — hence `ShellState`, `Net`.
+- IPC function names must not collide with `qs ipc` subcommands (`show`,
+  `call`, ...); use `open`/`close`/`pin`.
+- `ColumnLayout.implicitWidth` is owned by the layout engine; popout roots
+  set `width` explicitly.
 
 ## Adding a bar module
 
-Create `modules/bar/Foo.qml`, register it in `modules/bar/qmldir`, and add it
-to the `ColumnLayout` in `Bar.qml`.
+Create `modules/bar/Foo.qml` as a `BarItem { popout: "foo" }`, register it
+in `modules/bar/qmldir`, add it to the `ColumnLayout` in `Bar.qml`.
 
-## Adding a service
+## Adding a popout
 
-Create `services/Foo.qml` with `pragma Singleton` + a `Singleton` root and
-register it in `services/qmldir`.
+Create `modules/popouts/FooPopout.qml` (a `ColumnLayout` with an explicit
+`width`; set `readonly property bool needsKeyboard: true` while a text
+field is focused), register it in `qmldir`, and add it to the `registry`
+map plus a `Component` in `Popouts.qml`. Shortcut access: add a
+`GlobalShortcut` in `services/Requests.qml` that emits `popout("foo")`.
 
-## IPC naming
+## IPC targets
 
-Avoid IPC function names that collide with `qs ipc` subcommands (`show`,
-`call`, ...) — they get swallowed by the CLI before reaching the handler.
+`bar` (toggle/pin/unpin/isPinned), `desktopClock`, `audio`, `brightness`,
+`idle` (toggle/enable/disable/isEnabled/isInhibited/activity), `notifs`
+(clear/toggleDnd/dnd), `launcher` (toggle/open/close/search/clipboard),
+`overview` (toggle/open/close), `popout` (open <id>/close), `screenshot`
+(region/regionCopy/cancel/capture), `session` (lock/suspend/logout),
+`media` (playPause/next/previous/stop), `wallpaper` (set/get).
+Call with `qs -c desktop ipc call <target> <function> [args]`.

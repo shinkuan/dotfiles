@@ -26,20 +26,6 @@ if [[ ! -f "$REPO_ROOT/.config/hypr/hyprland/local.lua" ]]; then
     echo "      see local.lua.example." >&2
 fi
 
-# A configless caelestia shell applies themes globally (its terminal
-# sequences hit every /dev/pts, outer session included) — seed a cli.json
-# with all theme outputs disabled.
-if [[ ! -f "$REPO_ROOT/.config/caelestia/cli.json" ]]; then
-    echo "seeding .config/caelestia/cli.json (all theme outputs disabled)" >&2
-    mkdir -p "$REPO_ROOT/.config/caelestia"
-    printf '{\n    "theme": {\n' > "$REPO_ROOT/.config/caelestia/cli.json"
-    for key in Term Hypr Discord Spicetify Pandora Fuzzel Btop Nvtop Htop \
-               Gtk Qt Warp Chromium Zed Cava; do
-        printf '        "enable%s": false,\n' "$key"
-    done | sed '$ s/,$//' >> "$REPO_ROOT/.config/caelestia/cli.json"
-    printf '    }\n}\n' >> "$REPO_ROOT/.config/caelestia/cli.json"
-fi
-
 export XDG_CONFIG_HOME="$REPO_ROOT/.config"
 export XDG_STATE_HOME="/tmp/$USER-$NAME-state"
 export XDG_CACHE_HOME="/tmp/$USER-$NAME-cache"

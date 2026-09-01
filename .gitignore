@@ -16,4 +16,7 @@
 .config/qt6ct/qt6ct.conf
 .config/gtk-4.0/
 .config/scheme/
-.config/caelestia/
+
+# Written by apps run inside nested test sessions
+.config/cava/
+.config/qalculate/
