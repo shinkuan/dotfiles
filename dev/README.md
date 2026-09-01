@@ -33,10 +33,16 @@ Multi-monitor hotplug can be tested from inside the nested session with
 `hyprctl output create headless`.
 
 Until the autostart switches to the new shell, a nested session still runs
-the current shell, which writes its generated themes (btop, spicetify,
-discord clients, ...) through `XDG_CONFIG_HOME` — i.e. into this worktree.
-That is the isolation working as intended; after a nested run,
-`git clean -fd .config` removes the junk (the gitignored seeds survive).
+the current shell. Its theming is NOT display-scoped: with no
+`caelestia/cli.json` it falls back to defaults and applies themes globally,
+including OSC colour sequences pushed to every `/dev/pts` — which restains
+the outer session's already-open terminals. The launch script therefore
+seeds a gitignored `.config/caelestia/cli.json` with every theme output
+disabled. If stray theme dirs (btop, spicetify, discord clients, ...) do
+appear in the worktree after a nested run, `git clean -fd .config` removes
+them (the gitignored seeds survive). To fix restained outer terminals,
+re-apply the live palette:
+`for pt in /dev/pts/[0-9]*; do printf '%b' "$(cat ~/.cache/hellwal/sequences.txt)" > "$pt"; done`
 
 ## verify-scheme.sh
 
