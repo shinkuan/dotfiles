@@ -57,7 +57,7 @@ ColumnLayout {
             width: list.width
             entry: modelData
             compact: true
-            onDismissed: Notifs.remove(entry.id)
+            onDismissed: Notifs.remove(entry.key)
         }
     }
 }

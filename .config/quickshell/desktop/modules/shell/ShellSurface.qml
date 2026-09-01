@@ -25,7 +25,9 @@ PanelWindow {
     WlrLayershell.namespace: "desktop-shell"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.keyboardFocus: popouts.shortcutActive ? WlrKeyboardFocus.Exclusive : (popouts.needsKeyboard && popouts.shown) || (notifPopups.visible && notifPopups.needsKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    // keyboard-opened popouts own the keyboard (Esc closes them); clicked or
+    // hovered ones only take it on demand for their text fields
+    WlrLayershell.keyboardFocus: popouts.keyboardOpened ? WlrKeyboardFocus.Exclusive : popouts.shortcutActive || (popouts.needsKeyboard && popouts.shown) || (notifPopups.visible && notifPopups.needsKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true
@@ -168,7 +170,7 @@ PanelWindow {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         onDragged: dx => root.handleDrag(0, dx)
-        onItemClicked: (id, y) => popouts.openShortcut(id, y)
+        onItemClicked: (id, y) => popouts.openShortcut(id, y, false)
     }
 
     Popouts {
@@ -181,6 +183,7 @@ PanelWindow {
     Osd {
         monitor: root.monitor
         screenName: root.screen.name
+        suppressed: popouts.shown
     }
 
     KGridOsd {
@@ -194,9 +197,10 @@ PanelWindow {
     }
 
     // shortcut-opened popouts stay until Esc or a click outside the shell
-    Item {
-        focus: popouts.shortcutActive
-        Keys.onEscapePressed: popouts.close()
+    Shortcut {
+        sequences: ["Escape"]
+        enabled: popouts.shortcutActive
+        onActivated: popouts.close()
     }
 
     // the grab is armed a moment after the layer takes keyboard focus;
@@ -233,13 +237,13 @@ PanelWindow {
         target: Requests
 
         function onPopout(id: string): void {
-            if (root.monitor?.focused)
-                popouts.openShortcut(id, bar.anchorFor(id));
+            if (root.monitor?.focused && !root.hasFullscreen)
+                popouts.openShortcut(id, bar.anchorFor(id), true);
         }
 
         function onSession(): void {
-            if (root.monitor?.focused)
-                popouts.openShortcut("power", bar.anchorFor("power"));
+            if (root.monitor?.focused && !root.hasFullscreen)
+                popouts.openShortcut("power", bar.anchorFor("power"), true);
         }
 
         function onClosePopouts(): void {

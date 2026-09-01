@@ -445,7 +445,7 @@ for src in "$REPO_ROOT"/.config/*; do
 
     # generated / per-machine dirs that happen to exist in the checkout are
     # not config: let their consumers create real dirs in $CONFIG_HOME
-    if git -C "$REPO_ROOT" check-ignore -q ".config/$name"; then
+    if git -C "$REPO_ROOT" check-ignore -q ".config/$name" 2>/dev/null; then
         continue
     fi
 

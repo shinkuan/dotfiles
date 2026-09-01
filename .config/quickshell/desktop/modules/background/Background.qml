@@ -31,7 +31,7 @@ PanelWindow {
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
         smooth: true
-        sourceSize: Qt.size(root.screen.width, root.screen.height)
+        sourceSize: Qt.size(root.screen.width * root.screen.devicePixelRatio, root.screen.height * root.screen.devicePixelRatio)
         opacity: current && status === Image.Ready ? 1 : 0
         z: current ? 1 : 0
 

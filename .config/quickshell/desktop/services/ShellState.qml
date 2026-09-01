@@ -14,10 +14,27 @@ Singleton {
     readonly property bool keepAwake: adapter.keepAwake ?? false
     readonly property bool desktopClock: adapter.desktopClock ?? true
     property bool ready: false
+    property var queued: ({})
 
     function set(key: string, value): void {
         adapter[key] = value;
-        if (ready)
+        if (ready) {
+            file.writeAdapter();
+        } else {
+            // the file load would overwrite it; re-apply once loaded
+            const q = Object.assign({}, queued);
+            q[key] = value;
+            queued = q;
+        }
+    }
+
+    function flushQueued(): void {
+        ready = true;
+        const keys = Object.keys(queued);
+        for (const k of keys)
+            adapter[k] = queued[k];
+        queued = {};
+        if (keys.length > 0)
             file.writeAdapter();
     }
 
@@ -32,8 +49,8 @@ Singleton {
 
         path: root.dir + "/state.json"
         printErrors: false
-        onLoaded: root.ready = true
-        onLoadFailed: root.ready = true
+        onLoaded: root.flushQueued()
+        onLoadFailed: root.flushQueued()
 
         adapter: JsonAdapter {
             id: adapter

@@ -89,11 +89,10 @@ Singleton {
                 root.busy = false;
             }
         }
-        onExited: (code, status) => {
-            if (code !== 0 && status !== 0) {
-                root.nmcliFound = false;
-                root.busy = false;
-            }
+        onExited: code => {
+            root.busy = false;
+            if (code !== 0)
+                root.connections = [];
         }
     }
 
@@ -122,6 +121,12 @@ Singleton {
             root.busy = false;
             root.refresh();
         }
+    }
+
+    Process {
+        running: true
+        command: ["sh", "-c", "command -v nmcli"]
+        onExited: code => root.nmcliFound = code === 0
     }
 
     Component.onCompleted: refresh()

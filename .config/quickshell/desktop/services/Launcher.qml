@@ -369,6 +369,9 @@ Singleton {
                 root.calcResult = "";
                 return;
             }
+            if (qalc.running)
+                qalc.running = false;
+            qalc.expr = expr;
             qalc.command = ["qalc", "-t", expr];
             qalc.running = true;
         }
@@ -377,8 +380,12 @@ Singleton {
     Process {
         id: qalc
 
+        property string expr: ""
+
         stdout: StdioCollector {
             onStreamFinished: {
+                if (qalc.expr !== calc.expr)
+                    return;
                 root.calcResult = text.trim();
                 root.compute();
             }

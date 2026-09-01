@@ -28,6 +28,9 @@ Item {
     property real dragX: 0
     property real dragY: 0
 
+    // lift the whole cell so the ghost is not painted under later cells
+    onDraggingChanged: parent.z = dragging ? 10 : 0
+
     Rectangle {
         anchors.fill: parent
         radius: 4

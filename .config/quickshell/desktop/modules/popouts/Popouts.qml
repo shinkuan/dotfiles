@@ -15,6 +15,7 @@ Item {
     property string loaded: ""
     property real anchorY: 0
     property bool shortcutActive: false
+    property bool keyboardOpened: false
     property real barEdge: 0
     readonly property bool shown: current !== ""
     readonly property bool needsKeyboard: loader.item?.needsKeyboard ?? false
@@ -43,18 +44,20 @@ Item {
         current = id;
     }
 
-    function openShortcut(id: string, y: real): void {
+    function openShortcut(id: string, y: real, keyboard: bool): void {
         if (current === id && shortcutActive) {
             close();
             return;
         }
         open(id, y);
         shortcutActive = true;
+        keyboardOpened = keyboard;
     }
 
     function close(): void {
         current = "";
         shortcutActive = false;
+        keyboardOpened = false;
     }
 
     function contains(px: real, py: real): bool {

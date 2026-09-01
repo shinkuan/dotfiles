@@ -40,7 +40,7 @@ Rectangle {
 
     HoverHandler {
         enabled: !root.compact
-        onHoveredChanged: Notifs.setHovered(root.entry.id, hovered)
+        onHoveredChanged: Notifs.setHovered(root.entry.key, hovered)
     }
 
     MouseArea {
@@ -61,7 +61,7 @@ Rectangle {
             } else {
                 root.x = 0;
                 if (m.button === Qt.LeftButton && root.live && root.entry.actions.some(a => a.id === "default"))
-                    Notifs.invoke(root.entry.id, "default");
+                    Notifs.invoke(root.entry.key, "default");
             }
             pressX = -1;
         }
@@ -180,7 +180,7 @@ Rectangle {
                     required property var modelData
 
                     text: modelData.text
-                    onClicked: Notifs.invoke(root.entry.id, modelData.id)
+                    onClicked: Notifs.invoke(root.entry.key, modelData.id)
                 }
             }
         }
@@ -207,7 +207,7 @@ Rectangle {
                     font.pixelSize: Config.fontSize
                     onAccepted: {
                         if (text)
-                            Notifs.reply(root.entry.id, text);
+                            Notifs.reply(root.entry.key, text);
                     }
 
                     StyledText {
@@ -225,7 +225,7 @@ Rectangle {
                 checked: replyField.text !== ""
                 onClicked: {
                     if (replyField.text)
-                        Notifs.reply(root.entry.id, replyField.text);
+                        Notifs.reply(root.entry.key, replyField.text);
                 }
             }
         }

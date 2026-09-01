@@ -17,11 +17,12 @@ Item {
     property bool muted: false
     property bool shown: false
     property bool ready: false
+    property bool suppressed: false   // a popout with its own sliders is open
 
     readonly property bool focused: monitor?.focused ?? false
 
     function show(icon: string, value: real, muted: bool): void {
-        if (!ready)
+        if (!ready || suppressed)
             return;
         root.icon = icon;
         root.value = value;

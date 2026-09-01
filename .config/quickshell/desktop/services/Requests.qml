@@ -14,7 +14,6 @@ Singleton {
     signal popout(string id)
     signal closePopouts()
     signal session()
-    signal notifications()
 
     GlobalShortcut {
         appid: "desktop"
