@@ -32,6 +32,12 @@ toggle it again after leaving. The nested config itself needs no escape key.
 Multi-monitor hotplug can be tested from inside the nested session with
 `hyprctl output create headless`.
 
+Until the autostart switches to the new shell, a nested session still runs
+the current shell, which writes its generated themes (btop, spicetify,
+discord clients, ...) through `XDG_CONFIG_HOME` — i.e. into this worktree.
+That is the isolation working as intended; after a nested run,
+`git clean -fd .config` removes the junk (the gitignored seeds survive).
+
 ## verify-scheme.sh
 
 Acceptance / regression test for `.local/bin/scheme`: renders
