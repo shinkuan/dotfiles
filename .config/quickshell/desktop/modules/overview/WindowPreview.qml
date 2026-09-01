@@ -88,7 +88,7 @@ Item {
                 const p = mapToItem(root.overview.content, m.x, m.y);
                 root.overview.dropWindow(root.win, p.x, p.y);
             } else if (m.button === Qt.MiddleButton) {
-                Hyprland.dispatch(`hl.dsp.window.close("address:${root.win.address}")`);
+                Hyprland.dispatch(`hl.dsp.window.close({ window = "address:${root.win.address}" })`);
             } else {
                 root.overview.focusWindow(root.win);
             }
