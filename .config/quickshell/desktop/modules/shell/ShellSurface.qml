@@ -25,7 +25,7 @@ PanelWindow {
     WlrLayershell.namespace: "desktop-shell"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.keyboardFocus: (popouts.needsKeyboard && popouts.shown) || notifPopups.visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: popouts.shortcutActive ? WlrKeyboardFocus.Exclusive : (popouts.needsKeyboard && popouts.shown) || notifPopups.visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true
@@ -35,7 +35,8 @@ PanelWindow {
     }
 
     color: "transparent"
-    mask: hasFullscreen && !notifPopups.visible ? passthrough : interactive
+    // fullscreen: nothing but the notification popups may take input
+    mask: hasFullscreen ? (notifPopups.visible ? popupsOnly : passthrough) : interactive
 
     onHasFullscreenChanged: {
         if (hasFullscreen) {
@@ -46,6 +47,15 @@ PanelWindow {
 
     Region {
         id: passthrough
+    }
+
+    Region {
+        id: popupsOnly
+
+        x: notifPopups.x
+        y: notifPopups.y
+        width: notifPopups.width
+        height: notifPopups.height
     }
 
     Region {
@@ -183,7 +193,12 @@ PanelWindow {
         monitor: root.monitor
     }
 
-    // shortcut-opened popouts stay until a click lands outside the shell
+    // shortcut-opened popouts stay until Esc or a click outside the shell
+    Item {
+        focus: popouts.shortcutActive
+        Keys.onEscapePressed: popouts.close()
+    }
+
     HyprlandFocusGrab {
         active: popouts.shortcutActive
         windows: [root]
