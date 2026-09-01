@@ -13,3 +13,5 @@ singleton Requests 1.0 Requests.qml
 singleton Picker 1.0 Picker.qml
 singleton Notifs 1.0 Notifs.qml
 singleton Launcher 1.0 Launcher.qml
+singleton Players 1.0 Players.qml
+singleton Polkit 1.0 Polkit.qml

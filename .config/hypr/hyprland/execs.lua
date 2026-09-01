@@ -7,12 +7,8 @@ hl.on("hyprland.start", function()
     -- Input method
     hl.exec_cmd("fcitx5")
 
-    -- Authentication / secrets / polkit
+    -- Secrets (the polkit agent is the shell's own; see polkit-fallback)
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
-
-    -- Vicinae launcher
-    hl.exec_cmd("env QT_SCALE_FACTOR=1.5 vicinae server")
 
     -- Forward bluetooth media commands to MPRIS
     hl.exec_cmd("mpris-proxy")
@@ -21,16 +17,14 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 
-    -- Quickshell (caelestia); skipped in nested sessions, where the shell
-    -- under test is started manually
+    -- Shell, idle daemon and controller watcher run as user services so a
+    -- crash only costs a restart. Skipped in nested sessions (WAYLAND_DISPLAY
+    -- is only inherited inside another compositor), where the shell under
+    -- test is started by hand and the session must not lock.
     if not os.getenv("WAYLAND_DISPLAY") then
-        hl.exec_cmd("QSG_RENDER_LOOP=threaded caelestia shell")
-        hl.exec_cmd("QSG_RENDER_LOOP=threaded qs -c overview")
-    end
-
-    -- Lock at session start; skip in nested sessions (WAYLAND_DISPLAY is
-    -- only inherited when running inside another compositor)
-    if not os.getenv("WAYLAND_DISPLAY") then
+        hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE"
+            .. " XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP XDG_CONFIG_HOME"
+            .. " && systemctl --user restart desktop-shell.service hypridle.service joystick-idle-watch.service")
         hl.exec_cmd("hyprlock")
     end
 
@@ -43,14 +37,5 @@ hl.on("hyprland.start", function()
 
     -- 2D workspace is now handled in-config by kgrid.lua — no hyprkool daemon.
 
-    -- Optional / disabled in original config:
-    -- hl.exec_cmd("swaync")
-    -- hl.exec_cmd("systemctl --user start hyprpolkitagent")
-    -- hl.exec_cmd("hyprpaper")
-    -- hl.exec_cmd("waybar")
-    -- hl.exec_cmd("trash-empty 30")
-    -- hl.exec_cmd("/usr/lib/geoclue-2.0/demos/agent")
-    -- hl.exec_cmd("sleep 1 && gammastep")
-    -- hl.exec_cmd("sway-audio-idle-inhibit --ignore-source-outputs cava")
-    -- hl.exec_cmd("caelestia pip -d")
+    -- hyprpaper stays installed as a fallback; the shell paints the wallpaper.
 end)

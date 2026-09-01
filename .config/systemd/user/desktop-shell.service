@@ -1,0 +1,19 @@
+[Unit]
+Description=Desktop shell (quickshell)
+Documentation=https://quickshell.org/docs/
+PartOf=graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
+Environment=QSG_RENDER_LOOP=threaded
+ExecStart=/usr/bin/qs -c desktop
+Restart=on-failure
+RestartSec=1
+Slice=session.slice
+
+[Install]
+WantedBy=graphical-session.target

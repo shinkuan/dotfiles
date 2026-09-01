@@ -8,50 +8,31 @@ local dsp  = hl.dsp
 local bind = hl.bind
 
 -- ============================ --
--- Shell (caelestia)
+-- Shell (desktop): global shortcuts are handled by the shell itself;
+-- IPC calls fall back to a plain tool when the shell is not running.
 -- ============================ --
-bind("SUPER + Super_L",   dsp.global("caelestia:launcher"),          { release = true })
--- NOTE: Hyprland 0.55 Lua API rejects "catchall" when combined with a
--- modifier (`Unknown keysym: "catchall"`). In the new API `catchall` only
--- works as a standalone keysym inside a submap. The mouse-button binds
--- below still cover dismissal via clicks. If you need keyboard dismissal,
--- consider wrapping the launcher in a dedicated submap that contains a
--- bare `bind("catchall", ...)`.
--- bind("SUPER + catchall",  dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse:272", dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse:273", dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse:274", dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse:275", dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse:276", dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse:277", dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse_up",  dsp.global("caelestia:launcherInterrupt"), { release = true })
-bind("SUPER + mouse_down",dsp.global("caelestia:launcherInterrupt"), { release = true })
+bind("SUPER + Super_L", dsp.global("desktop:launcher"), { release = true })
+bind("SUPER + Space",   dsp.global("desktop:launcher"))
+bind("SUPER + B",       dsp.exec_cmd(V.menu))
+bind("SUPER + V",       dsp.global("desktop:clipboard"))
 
-bind("CTRL + ALT + Delete", dsp.global("caelestia:session"))
-bind("SUPER + Escape",      dsp.global("caelestia:session"))
-bind("CTRL + ALT + C",      dsp.global("caelestia:clearNotifs"))
+bind("CTRL + ALT + Delete", dsp.global("desktop:session"))
+bind("SUPER + Escape",      dsp.global("desktop:session"))
+bind("CTRL + ALT + C",      dsp.exec_cmd("qs -c desktop ipc call notifs clear"))
+bind("CTRL + ALT + N",      dsp.global("desktop:notifications"))
 
 -- ============================ --
--- Launchers
+-- Brightness / Media
 -- ============================ --
--- vicinae
-bind("SUPER + Space", dsp.exec_cmd("vicinae toggle"))
+bind("XF86MonBrightnessUp",   dsp.exec_cmd("qs -c desktop ipc call brightness increment || brightnessctl -q s 5%+"), { locked = true })
+bind("XF86MonBrightnessDown", dsp.exec_cmd("qs -c desktop ipc call brightness decrement || brightnessctl -q s 5%-"), { locked = true })
 
--- rofi
-bind("SUPER + B", dsp.exec_cmd(V.menu_kill .. " || " .. V.menu))
-
--- ============================ --
--- Brightness / Media (caelestia)
--- ============================ --
-bind("XF86MonBrightnessUp",   dsp.global("caelestia:brightnessUp"),   { locked = true })
-bind("XF86MonBrightnessDown", dsp.global("caelestia:brightnessDown"), { locked = true })
-
-bind("XF86AudioPlay",  dsp.global("caelestia:mediaToggle"),   { locked = true })
-bind("XF86AudioPause", dsp.global("caelestia:mediaToggle"),   { locked = true })
-bind("XF86AudioNext",  dsp.global("caelestia:mediaNext"),     { locked = true })
-bind("XF86AudioPrev",  dsp.global("caelestia:mediaPrevious"), { locked = true })
-bind("XF86AudioStop",  dsp.global("caelestia:mediaStop"),     { locked = true })
-bind("ALT + XF86AudioPlay", dsp.exec_cmd(V.audio_menu))
+bind("XF86AudioPlay",  dsp.exec_cmd("qs -c desktop ipc call media playPause"), { locked = true })
+bind("XF86AudioPause", dsp.exec_cmd("qs -c desktop ipc call media playPause"), { locked = true })
+bind("XF86AudioNext",  dsp.exec_cmd("qs -c desktop ipc call media next"),      { locked = true })
+bind("XF86AudioPrev",  dsp.exec_cmd("qs -c desktop ipc call media previous"),  { locked = true })
+bind("XF86AudioStop",  dsp.exec_cmd("qs -c desktop ipc call media stop"),      { locked = true })
+bind("ALT + XF86AudioPlay", dsp.global("desktop:audio"))
 
 -- Reload
 bind("CTRL + SUPER + ALT + R", dsp.exec_cmd("hyprctl reload"), { release = true })
@@ -84,7 +65,7 @@ bind("CTRL + SUPER + SHIFT + W",     function() KGrid.switch_activity("W", true)
 bind("CTRL + SUPER + SHIFT + E",     function() KGrid.switch_activity("E", true) end)
     
 -- Overview
-bind("SUPER + Tab", dsp.exec_cmd("qs ipc -c overview call overview toggle"))
+bind("SUPER + Tab", dsp.global("desktop:overview"))
 -- quickvoice (SUPER + S) is machine-specific — lives in local.lua
 
 -- Workspace movement within the current activity grid
@@ -183,9 +164,6 @@ bind("CTRL + SUPER + ALT + Backslash", function()
     hl.dispatch(dsp.window.center())
 end)
 
--- Picture-in-picture (caelestia)
-bind("SUPER + ALT + P", dsp.exec_cmd("caelestia pip"))
-
 -- Pin / fullscreen / float / kill / exit
 bind("SUPER + P",         dsp.window.pin())
 bind("SUPER + F",         dsp.window.fullscreen({ mode = "fullscreen" }))
@@ -205,20 +183,20 @@ bind("SUPER + Z", function() hl.config({ cursor = { zoom_factor = 1.0 } }) end, 
 -- ============================ --
 bind("SUPER + T",       dsp.exec_cmd("app2unit -- foot"))
 bind("SUPER + E",       dsp.exec_cmd("nautilus --new-window"))
-bind("CTRL + SUPER + Slash",
-        dsp.exec_cmd("pkill fuzzel || fuzzel --launch-prefix='app2unit --fuzzel-compat -- '"))
 
 -- ============================ --
 -- Screenshots / colour picker
 -- ============================ --
+-- The shell's frozen-frame picker is preferred; slurp is the fallback.
 local screenshot_dir = os.getenv("HOME") .. "/Pictures/Screenshots"
-local region_to_satty = 'mkdir -p "' .. screenshot_dir .. '" && '
+local region_to_satty = 'qs -c desktop ipc call screenshot region || (mkdir -p "' .. screenshot_dir .. '" && '
     .. 'grim -g "$(slurp)" - | satty -f - -o "' .. screenshot_dir
-    .. '/%Y%m%d-%H%M%S.png" --copy-command wl-copy --early-exit all'
+    .. '/%Y%m%d-%H%M%S.png" --copy-command wl-copy --early-exit all)'
+local region_to_clipboard = 'qs -c desktop ipc call screenshot regionCopy || (grim -g "$(slurp)" - | wl-copy)'
 bind("Print",                   dsp.exec_cmd(region_to_satty), { locked = true })
 bind("SUPER + SHIFT + S",       dsp.exec_cmd(region_to_satty))                    -- region -> satty
 bind("SUPER + Print",           dsp.exec_cmd("hyprshot -m window"))               -- window capture
-bind("SUPER + SHIFT + ALT + S", dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))   -- region -> clipboard
+bind("SUPER + SHIFT + ALT + S", dsp.exec_cmd(region_to_clipboard))                -- region -> clipboard
 bind("SUPER + SHIFT + C",       dsp.exec_cmd("hyprpicker -a"))
 
 -- ============================ --
@@ -232,16 +210,11 @@ bind("XF86AudioLowerVolume", dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0
 -- ============================ --
 -- Power / lock
 -- ============================ --
-bind("CTRL + SHIFT + ALT + Delete", dsp.global("caelestia:session"))
+bind("CTRL + SHIFT + ALT + Delete", dsp.global("desktop:session"))
 bind("SUPER + L",                   dsp.exec_cmd("pidof hyprlock || hyprlock"))
 bind("SUPER + SHIFT + L",           dsp.exec_cmd("pidof hyprlock || hyprlock"))
 bind("CTRL + SUPER + SHIFT + L",
         dsp.exec_cmd("sleep 1 && (pidof hyprlock || hyprlock) & sleep 2 && hyprctl dispatch 'hl.dsp.dpms({ action = \"disable\" })'"))
-
--- ============================ --
--- Clipboard
--- ============================ --
-bind("SUPER + V", dsp.exec_cmd("vicinae vicinae://launch/clipboard/history"))
 
 -- ============================ --
 -- Misc utilities

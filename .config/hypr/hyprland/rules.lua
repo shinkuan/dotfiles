@@ -150,18 +150,18 @@ hl.window_rule({
 -- ================================ --
 -- Layer Rules
 -- ================================ --
+-- Desktop shell surfaces (namespaces are set in the shell's QML).
 hl.layer_rule({
-    name         = "layerrule-1",
-    match        = { namespace = "quickshell:overview" },
+    name         = "layerrule-desktop-shell",
+    match        = { namespace = "^(desktop-shell|desktop-launcher|desktop-polkit|desktop-overview)$" },
     blur         = true,
-    ignore_alpha = 0,
-    animation    = "fadeLayers",
+    ignore_alpha = 0.5,
 })
 
 hl.layer_rule({
-    name      = "layerrule-waifuland",
-    match     = { namespace = "waifuland" },
-    animation = "fadeLayers",
+    name    = "layerrule-desktop-instant",
+    match   = { namespace = "^(desktop-areapicker|desktop-edge|desktop-idle|desktop-background)$" },
+    no_anim = true,
 })
 
 hl.layer_rule({
@@ -169,15 +169,6 @@ hl.layer_rule({
     match        = { namespace = "quickvoice" },
     blur         = true,
     ignore_alpha = 0,
-})
-
--- vicinae
-hl.layer_rule({
-    name         = "layerrule-2",
-    match        = { namespace = "vicinae" },
-    blur         = true,
-    ignore_alpha = 0,
-    animation    = "slide bottom",
 })
 
 -- ================================ --

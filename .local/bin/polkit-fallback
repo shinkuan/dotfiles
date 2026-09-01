@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Manual fallback when the desktop shell (which registers its own polkit
+# agent) is down: polkit allows one agent per session, so only run this
+# while the shell is not running.
+if pgrep -x qs >/dev/null && qs -c desktop ipc call idle isInhibited >/dev/null 2>&1; then
+    echo "desktop shell is running and owns the polkit agent; not starting the fallback" >&2
+    exit 1
+fi
+exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1

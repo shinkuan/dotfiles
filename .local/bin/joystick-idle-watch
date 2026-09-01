@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Keep the desktop awake while a game controller is in use.
+
+Controller input never reaches the compositor's idle timer (joysticks are
+not seat devices), so this watches /dev/input/by-id/*-event-joystick and
+pings the shell's idle inhibitor while events keep arriving. Devices are
+rescanned for hotplug; unreadable nodes are reported once (notification +
+stderr) instead of failing silently.
+"""
+
+import errno
+import glob
+import os
+import select
+import subprocess
+import sys
+import time
+
+BY_ID = "/dev/input/by-id"
+PING_INTERVAL = float(os.environ.get("JOYSTICK_PING_INTERVAL", "20"))
+RESCAN_INTERVAL = 3.0
+PING = ["qs", "-c", "desktop", "ipc", "call", "idle", "activity"]
+
+
+def log(msg: str) -> None:
+    print(f"joystick-idle-watch: {msg}", file=sys.stderr, flush=True)
+
+
+def notify(title: str, body: str) -> None:
+    try:
+        subprocess.run(["notify-send", "-a", "joystick-idle-watch", "-i", "input-gaming", title, body], check=False)
+    except OSError:
+        pass
+
+
+def rescan(fds: dict, reported: set) -> None:
+    links = sorted(glob.glob(os.path.join(BY_ID, "*-event-joystick")))
+    present = {os.path.realpath(p) for p in links}
+    for node in list(fds):
+        if node not in present:
+            os.close(fds.pop(node))
+            log(f"removed {node}")
+    for link in links:
+        node = os.path.realpath(link)
+        if node in fds:
+            continue
+        try:
+            fds[node] = os.open(node, os.O_RDONLY | os.O_NONBLOCK)
+            reported.discard(node)
+            log(f"watching {os.path.basename(link)} ({node})")
+        except PermissionError:
+            if node not in reported:
+                reported.add(node)
+                log(f"cannot open {node}: permission denied")
+                notify("Controller idle inhibit unavailable",
+                       f"No permission to read {node}. Install the udev uaccess rule "
+                       "(install.sh does this) or add the user to the 'input' group.")
+        except OSError as e:
+            if node not in reported:
+                reported.add(node)
+                log(f"cannot open {node}: {e}")
+
+
+def ping() -> None:
+    try:
+        subprocess.run(PING, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        log(f"shell ping failed: {e}")
+
+
+def main() -> int:
+    fds: dict = {}
+    reported: set = set()
+    last_scan = 0.0
+    last_ping = 0.0
+    while True:
+        now = time.monotonic()
+        if now - last_scan >= RESCAN_INTERVAL:
+            rescan(fds, reported)
+            last_scan = now
+        if not fds:
+            time.sleep(RESCAN_INTERVAL)
+            continue
+        by_fd = {fd: node for node, fd in fds.items()}
+        try:
+            ready, _, _ = select.select(list(by_fd), [], [], RESCAN_INTERVAL)
+        except InterruptedError:
+            continue
+        active = False
+        for fd in ready:
+            try:
+                while os.read(fd, 4096):
+                    active = True
+            except BlockingIOError:
+                active = True
+            except OSError as e:
+                if e.errno in (errno.ENODEV, errno.EIO):
+                    node = by_fd[fd]
+                    os.close(fds.pop(node, fd))
+                    log(f"lost {node}")
+                else:
+                    log(f"read error: {e}")
+        if active and time.monotonic() - last_ping >= PING_INTERVAL:
+            last_ping = time.monotonic()
+            ping()
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(0)

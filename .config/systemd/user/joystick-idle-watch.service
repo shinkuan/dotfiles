@@ -1,0 +1,17 @@
+[Unit]
+Description=Keep the desktop awake while a game controller is in use
+PartOf=graphical-session.target
+After=desktop-shell.service
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
+ExecStart=%h/.local/bin/joystick-idle-watch
+Restart=on-failure
+RestartSec=2
+Slice=background.slice
+
+[Install]
+WantedBy=graphical-session.target

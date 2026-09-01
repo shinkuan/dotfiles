@@ -34,5 +34,5 @@ hl.env("QSG_RENDER_LOOP", "threaded")
 hl.env("QT_IM_MODULE", "fcitx")
 hl.env("XMODIFIERS",   "@im=fcitx")
 
--- Quickshell (caelestia)
+-- Quickshell
 hl.env("QSG_RENDER_LOOP", "threaded")
