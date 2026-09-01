@@ -10,6 +10,9 @@ StartLimitBurst=5
 Type=simple
 Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin
 Environment=QSG_RENDER_LOOP=threaded
+Environment=QT_QPA_PLATFORM=wayland
+Environment=QT_IM_MODULE=fcitx
+Environment=XMODIFIERS=@im=fcitx
 ExecStart=/usr/bin/qs -c desktop
 Restart=on-failure
 RestartSec=1
