@@ -11,3 +11,5 @@ singleton KGrid 1.0 KGrid.qml
 singleton Idle 1.0 Idle.qml
 singleton Requests 1.0 Requests.qml
 singleton Picker 1.0 Picker.qml
+singleton Notifs 1.0 Notifs.qml
+singleton Launcher 1.0 Launcher.qml

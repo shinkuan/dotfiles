@@ -68,7 +68,8 @@ Item {
         calendar: calendarComp,
         resources: resourcesComp,
         power: powerComp,
-        kgrid: kgridComp
+        kgrid: kgridComp,
+        notifications: notificationsComp
     })
 
     Component { id: audioComp; AudioPopout {} }
@@ -79,6 +80,7 @@ Item {
     Component { id: resourcesComp; ResourcesPopout {} }
     Component { id: powerComp; PowerPopout {} }
     Component { id: kgridComp; KGridPopout { monitor: root.monitor } }
+    Component { id: notificationsComp; NotificationsPopout {} }
 
     Rectangle {
         id: panel

@@ -7,6 +7,7 @@ import "../../services"
 import "../bar"
 import "../popouts"
 import "../osd"
+import "../notifications"
 
 // Full-screen top layer that never reserves space. Input only lands on the
 // border ring, the bar and whatever is currently expanded; everything else
@@ -24,7 +25,7 @@ PanelWindow {
     WlrLayershell.namespace: "desktop-shell"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.keyboardFocus: popouts.needsKeyboard && popouts.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: (popouts.needsKeyboard && popouts.shown) || notifPopups.visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true
@@ -34,7 +35,7 @@ PanelWindow {
     }
 
     color: "transparent"
-    mask: hasFullscreen ? passthrough : interactive
+    mask: hasFullscreen && !notifPopups.visible ? passthrough : interactive
 
     onHasFullscreenChanged: {
         if (hasFullscreen) {
@@ -68,6 +69,14 @@ PanelWindow {
             y: popouts.y
             width: popouts.width
             height: popouts.height
+            intersection: Intersection.Combine
+        }
+
+        Region {
+            x: notifPopups.x
+            y: notifPopups.y
+            width: notifPopups.visible ? notifPopups.width : 0
+            height: notifPopups.visible ? notifPopups.height : 0
             intersection: Intersection.Combine
         }
     }
@@ -165,6 +174,12 @@ PanelWindow {
     }
 
     KGridOsd {
+        monitor: root.monitor
+    }
+
+    NotifPopups {
+        id: notifPopups
+
         monitor: root.monitor
     }
 

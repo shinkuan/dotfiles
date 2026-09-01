@@ -1,0 +1,63 @@
+import QtQuick
+import Quickshell.Hyprland
+import "../../config"
+import "../../services"
+
+// Popup stack in the top-right corner of the focused monitor.
+Item {
+    id: root
+
+    required property HyprlandMonitor monitor
+    readonly property bool focused: monitor?.focused ?? false
+    readonly property list<var> entries: focused ? Notifs.popups.slice(0, 5).map(id => Notifs.find(id)).filter(e => e !== null) : []
+    readonly property bool replying: column.children.some(c => c.replying)
+
+    anchors.top: parent.top
+    anchors.right: parent.right
+    anchors.margins: 16
+    width: Config.notifications.width
+    height: column.implicitHeight
+    visible: entries.length > 0
+
+    Column {
+        id: column
+
+        width: parent.width
+        spacing: 8
+        add: Transition {
+            NumberAnimation {
+                properties: "opacity"
+                from: 0
+                to: 1
+                duration: Config.animDuration
+            }
+            NumberAnimation {
+                properties: "x"
+                from: 60
+                to: 0
+                duration: Config.animDuration
+                easing.type: Easing.OutCubic
+            }
+        }
+        move: Transition {
+            NumberAnimation {
+                properties: "y"
+                duration: Config.animDuration
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        Repeater {
+            model: root.entries
+
+            NotifCard {
+                required property var modelData
+
+                width: column.width
+                entry: modelData
+                onDismissed: Notifs.dismiss(entry.id)
+                onSwiped: Notifs.hidePopup(entry.id)
+            }
+        }
+    }
+}

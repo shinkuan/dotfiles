@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import "../config"
 
 // Keyboard / IPC entry points. Per-screen surfaces listen and act only when
 // they sit on the focused monitor.
@@ -12,7 +13,6 @@ Singleton {
 
     signal popout(string id)
     signal closePopouts()
-    signal launcher(bool toggleOnly)
     signal session()
     signal notifications()
 
@@ -20,7 +20,17 @@ Singleton {
         appid: "desktop"
         name: "launcher"
         description: "Toggle the launcher"
-        onPressed: root.launcher(false)
+        onPressed: Launcher.toggle()
+    }
+
+    GlobalShortcut {
+        appid: "desktop"
+        name: "clipboard"
+        description: "Open clipboard history"
+        onPressed: {
+            Launcher.show();
+            Launcher.query = Config.launcher.clipPrefix;
+        }
     }
 
     GlobalShortcut {
@@ -74,14 +84,6 @@ Singleton {
 
         function close(): void {
             root.closePopouts();
-        }
-    }
-
-    IpcHandler {
-        target: "launcher"
-
-        function toggle(): void {
-            root.launcher(false);
         }
     }
 

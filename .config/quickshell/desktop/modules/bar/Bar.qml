@@ -97,6 +97,10 @@ Item {
             Layout.alignment: Qt.AlignHCenter
         }
 
+        NotifIcon {
+            Layout.alignment: Qt.AlignHCenter
+        }
+
         Clock {
             Layout.alignment: Qt.AlignHCenter
         }

@@ -6,3 +6,4 @@ Tray 1.0 Tray.qml
 StatusIcons 1.0 StatusIcons.qml
 ResourcesModule 1.0 ResourcesModule.qml
 PowerButton 1.0 PowerButton.qml
+NotifIcon 1.0 NotifIcon.qml
