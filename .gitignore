@@ -14,3 +14,5 @@
 .config/qt6ct/colors
 .config/qt6ct/qss
 .config/qt6ct/qt6ct.conf
+.config/gtk-4.0/
+.config/scheme/
