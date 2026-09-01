@@ -70,6 +70,25 @@ field is focused), register it in `qmldir`, and add it to the `registry`
 map plus a `Component` in `Popouts.qml`. Shortcut access: add a
 `GlobalShortcut` in `services/Requests.qml` that emits `popout("foo")`.
 
+## config.json
+
+Hot-loaded; every key is optional.
+
+| Key | Meaning |
+|---|---|
+| `animation.scale` | multiplier for all animation durations |
+| `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
+| `bar.width`, `bar.pinThreshold`, `bar.showResources` | bar width; drag distance that pins it; CPU/memory meters entry |
+| `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
+| `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |
+| `desktopClock.position`, `desktopClock.margin` | `top-left` … `bottom-right` / `bottom-center` |
+| `notifications.timeout`, `criticalTimeout`, `maxHistory`, `width` | popup timeouts (0 = never), history size, popup width |
+| `idle.inhibitWhenAudio`, `idle.joystickHold` | inhibit while audio plays; seconds to hold after controller input |
+| `launcher.maxResults`, `actionPrefix`, `calcPrefix`, `clipPrefix`, `emojiPrefix`, `emojiFile`, `fuzzy`, `showDangerous`, `actions` | launcher behaviour and the action list (`name`, `icon`, `description`, `command`, `dangerous`, `enabled`; `@scheme` / `@variant` / `@wallpaper` / `@config` are built-in commands) |
+| `screenshot.directory` | relative to `$HOME` |
+| `resources.interval` | background poll interval in ms |
+| `brightness.external`, `brightness.step` | use ddcutil for external displays; key step in percent |
+
 ## IPC targets
 
 `bar` (toggle/pin/unpin/isPinned), `desktopClock`, `audio`, `brightness`,
