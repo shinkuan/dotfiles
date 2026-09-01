@@ -60,7 +60,7 @@ bind("CTRL + SUPER + ALT + R", dsp.exec_cmd("hyprctl reload"), { release = true 
 -- KGrid — 2D workspace (Lua engine, replaces hyprkool; see kgrid.lua)
 -- ============================ --
 -- Switch activity (lands on that activity's remembered cell)
-bind("CTRL + SUPER + Space", function() KGrid.switch_activity("default") end)
+bind("CTRL + SUPER + Space", function() KGrid.switch_activity("main") end)
 bind("CTRL + SUPER + Z",     function() KGrid.switch_activity("Z") end)
 bind("CTRL + SUPER + X",     function() KGrid.switch_activity("X") end)
 bind("CTRL + SUPER + C",     function() KGrid.switch_activity("C") end)
@@ -72,7 +72,7 @@ bind("CTRL + SUPER + W",     function() KGrid.switch_activity("W") end)
 bind("CTRL + SUPER + E",     function() KGrid.switch_activity("E") end)
 
 -- Switch activity, taking the active window with you
-bind("CTRL + SUPER + SHIFT + Space", function() KGrid.switch_activity("default", true) end)
+bind("CTRL + SUPER + SHIFT + Space", function() KGrid.switch_activity("main", true) end)
 bind("CTRL + SUPER + SHIFT + Z",     function() KGrid.switch_activity("Z", true) end)
 bind("CTRL + SUPER + SHIFT + X",     function() KGrid.switch_activity("X", true) end)
 bind("CTRL + SUPER + SHIFT + C",     function() KGrid.switch_activity("C", true) end)

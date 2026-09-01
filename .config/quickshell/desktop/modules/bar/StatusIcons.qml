@@ -1,79 +1,105 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell.Bluetooth
-import Quickshell.Networking
-import Quickshell.Services.Pipewire
 import Quickshell.Services.UPower
 import "../../config"
 import "../../services"
+import "../../components"
 
-ColumnLayout {
+Column {
     id: root
 
-    readonly property PwNode sink: Pipewire.defaultAudioSink
-    readonly property PwNode source: Pipewire.defaultAudioSource
-    readonly property var wired: Networking.devices.values.find(d => d.type === DeviceType.Wired && d.connected)
-    readonly property var wifi: Networking.devices.values.find(d => d.type === DeviceType.Wifi && d.connected)
-    readonly property var bluetoothConnected: Bluetooth.devices.values.filter(d => d.connected)
+    readonly property list<var> bluetoothConnected: Bluetooth.devices.values.filter(d => d.connected)
 
-    spacing: 6
+    spacing: 0
 
-    PwObjectTracker {
-        objects: [root.sink, root.source].filter(n => n !== null)
-    }
+    BarItem {
+        popout: "audio"
 
-    StatusIcon {
-        icon: {
-            if (!root.sink?.audio || root.sink.audio.muted)
-                return "volume_off";
-            return root.sink.audio.volume > 0.5 ? "volume_up" : "volume_down";
+        MaterialIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Audio.muted ? "volume_off" : Audio.volume > 0.5 ? "volume_up" : Audio.volume > 0 ? "volume_down" : "volume_mute"
+            color: Audio.muted ? Colours.outline : Colours.onSurface
         }
-        dim: !root.sink?.audio || root.sink.audio.muted
+
+        WheelHandler {
+            onWheel: e => Audio.increment(e.angleDelta.y > 0 ? 0.05 : -0.05)
+        }
+
+        onClicked: m => {
+            if (m.button === Qt.MiddleButton)
+                Audio.toggleMute(Audio.sink);
+        }
     }
 
-    StatusIcon {
-        icon: root.source?.audio?.muted ?? true ? "mic_off" : "mic"
-        dim: root.source?.audio?.muted ?? true
+    BarItem {
+        popout: "audio"
+
+        MaterialIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Audio.sourceMuted ? "mic_off" : "mic"
+            color: Audio.sourceMuted ? Colours.outline : Colours.onSurface
+        }
+
+        onClicked: m => {
+            if (m.button === Qt.MiddleButton)
+                Audio.toggleMute(Audio.source);
+        }
     }
 
-    StatusIcon {
-        icon: root.wired ? "lan" : root.wifi ? "wifi" : "signal_wifi_off"
-        dim: !root.wired && !root.wifi
+    BarItem {
+        popout: "network"
+
+        MaterialIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Net.wiredConnected ? "lan" : Net.activeWifi ? Net.signalIcon(Net.activeWifi.signalStrength) : Net.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off"
+            color: Net.connected ? Colours.onSurface : Colours.outline
+        }
     }
 
-    StatusIcon {
-        icon: root.bluetoothConnected.length > 0 ? "bluetooth_connected" : "bluetooth"
-        dim: !(Bluetooth.defaultAdapter?.enabled ?? false)
+    BarItem {
+        popout: "vpn"
+        visible: Vpn.connections.length > 0
+
+        MaterialIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Vpn.active.length > 0 ? "vpn_lock" : "vpn_key_off"
+            color: Vpn.active.length > 0 ? Colours.primary : Colours.outline
+        }
+    }
+
+    BarItem {
+        popout: "bluetooth"
         visible: Bluetooth.defaultAdapter !== null
+
+        MaterialIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: root.bluetoothConnected.length > 0 ? "bluetooth_connected" : "bluetooth"
+            color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? Colours.outline : root.bluetoothConnected.length > 0 ? Colours.primary : Colours.onSurface
+        }
     }
 
-    ColumnLayout {
-        spacing: 0
+    BarItem {
+        popout: "power"
         visible: UPower.displayDevice?.isLaptopBattery ?? false
+        spacing: 0
 
-        StatusIcon {
-            Layout.alignment: Qt.AlignHCenter
-            icon: UPower.onBattery ? "battery_5_bar" : "battery_charging_full"
-            dim: false
+        MaterialIcon {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: {
+                const p = UPower.displayDevice?.percentage ?? 0;
+                if (!UPower.onBattery)
+                    return "battery_charging_full";
+                const level = Math.min(6, Math.round(p * 6));
+                return level === 6 ? "battery_full" : level === 0 ? "battery_alert" : `battery_${level}_bar`;
+            }
+            color: (UPower.displayDevice?.percentage ?? 1) < 0.15 && UPower.onBattery ? Colours.error : Colours.onSurface
         }
 
-        Text {
-            Layout.alignment: Qt.AlignHCenter
+        StyledText {
+            anchors.horizontalCenter: parent.horizontalCenter
             text: Math.round((UPower.displayDevice?.percentage ?? 0) * 100) + "%"
             color: Colours.onSurfaceVariant
-            font.family: Config.fontFamily
             font.pixelSize: Config.fontSize - 4
         }
-    }
-
-    component StatusIcon: Text {
-        property string icon
-        property bool dim: false
-
-        Layout.alignment: Qt.AlignHCenter
-        text: icon
-        color: dim ? Colours.outline : Colours.onSurface
-        font.family: Config.iconFont
-        font.pixelSize: Config.iconSize
     }
 }

@@ -1,0 +1,10 @@
+StyledText 1.0 StyledText.qml
+MaterialIcon 1.0 MaterialIcon.qml
+Clickable 1.0 Clickable.qml
+IconButton 1.0 IconButton.qml
+Toggle 1.0 Toggle.qml
+Slider 1.0 Slider.qml
+ListItem 1.0 ListItem.qml
+SectionLabel 1.0 SectionLabel.qml
+Meter 1.0 Meter.qml
+Chip 1.0 Chip.qml

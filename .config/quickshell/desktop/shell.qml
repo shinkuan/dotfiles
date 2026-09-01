@@ -4,11 +4,16 @@
 
 import QtQuick
 import Quickshell
+import "services"
 import "modules/background"
 import "modules/frame"
 import "modules/shell"
 
 ShellRoot {
+    // singletons with side effects (IPC handlers, shortcuts, inhibitor
+    // surface, pollers) must be touched once to be instantiated
+    Component.onCompleted: [Requests, Idle, Vpn, Brightness, ShellState, Audio]
+
     Variants {
         model: Quickshell.screens
 

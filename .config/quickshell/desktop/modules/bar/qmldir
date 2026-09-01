@@ -1,5 +1,8 @@
 Bar 1.0 Bar.qml
+BarItem 1.0 BarItem.qml
 Clock 1.0 Clock.qml
 KGridIndicator 1.0 KGridIndicator.qml
 Tray 1.0 Tray.qml
 StatusIcons 1.0 StatusIcons.qml
+ResourcesModule 1.0 ResourcesModule.qml
+PowerButton 1.0 PowerButton.qml

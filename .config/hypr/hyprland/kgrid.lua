@@ -22,8 +22,38 @@
 
 local M = {}
 
-M.activities = { "default", "Z", "X", "C", "A", "S", "D", "Q", "W", "E" }
+-- id is the internal name used in workspace names; label is what the shell
+-- shows (text or a Nerd Font glyph).
+M.defs = {
+    { id = "main", label = "main" },
+    { id = "Z", label = "Z" },
+    { id = "X", label = "X" },
+    { id = "C", label = "C" },
+    { id = "A", label = "A" },
+    { id = "S", label = "S" },
+    { id = "D", label = "D" },
+    { id = "Q", label = "Q" },
+    { id = "W", label = "W" },
+    { id = "E", label = "E" },
+}
+M.activities = {}
+for i, d in ipairs(M.defs) do M.activities[i] = d.id end
 M.W, M.H = 5, 5
+
+-- Single source of truth for the shell: $XDG_RUNTIME_DIR/hypr/<sig>/kgrid.json
+local function export_json()
+    local runtime, sig = os.getenv("XDG_RUNTIME_DIR"), os.getenv("HYPRLAND_INSTANCE_SIGNATURE")
+    if not runtime or not sig or not io then return end
+    local f = io.open(runtime .. "/hypr/" .. sig .. "/kgrid.json", "w")
+    if not f then return end
+    local parts = {}
+    for i, d in ipairs(M.defs) do
+        parts[i] = string.format('{"id":%q,"label":%q}', d.id, d.label)
+    end
+    f:write(string.format('{"W":%d,"H":%d,"activities":[%s]}\n', M.W, M.H, table.concat(parts, ",")))
+    f:close()
+end
+export_json()
 
 -- Carry remembered-cell state across reloads via the shared Lua state.
 M.last = (_G.KGrid and _G.KGrid.last) or {}  -- M.last[activity] = { x = , y = }

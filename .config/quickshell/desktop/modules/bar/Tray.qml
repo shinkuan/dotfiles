@@ -1,31 +1,38 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import "../../config"
+import "../../services"
 
-ColumnLayout {
+Column {
     id: root
 
-    spacing: 6
+    spacing: 2
+    visible: SystemTray.items.values.length > 0
 
     Repeater {
         model: SystemTray.items
 
-        Item {
+        Rectangle {
             id: slot
 
             required property SystemTrayItem modelData
 
-            Layout.alignment: Qt.AlignHCenter
-            implicitWidth: Config.iconSize
-            implicitHeight: Config.iconSize
+            width: Config.barWidth - 8
+            height: 30
+            radius: Config.radius
+            color: hover.hovered ? Colours.alpha(Colours.onSurface, 0.08) : "transparent"
 
             IconImage {
-                anchors.fill: parent
+                anchors.centerIn: parent
+                implicitSize: Config.iconSize - 2
                 source: slot.modelData.icon
                 asynchronous: true
+            }
+
+            HoverHandler {
+                id: hover
             }
 
             MouseArea {
@@ -41,6 +48,10 @@ ColumnLayout {
                 }
             }
 
+            WheelHandler {
+                onWheel: e => slot.modelData.scroll(e.angleDelta.y, false)
+            }
+
             QsMenuAnchor {
                 id: menuAnchor
 
@@ -48,6 +59,7 @@ ColumnLayout {
                 anchor.item: slot
                 anchor.edges: Edges.Right
                 anchor.gravity: Edges.Right
+                anchor.margins.left: 8
             }
         }
     }

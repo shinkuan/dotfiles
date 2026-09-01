@@ -1,0 +1,23 @@
+{
+    "animation": { "scale": 0.8 },
+    "border": { "thickness": 10, "rounding": 25 },
+    "bar": { "width": 44, "pinThreshold": 20, "showResources": true },
+    "popouts": { "showOnHover": true, "width": 340, "listHeight": 320 },
+    "osd": { "hideDelay": 2000 },
+    "kgrid": { "osd": true, "hideDelay": 1000 },
+    "desktopClock": { "position": "bottom-right", "margin": 48 },
+    "notifications": { "timeout": 5000, "criticalTimeout": 0, "maxHistory": 200, "width": 380 },
+    "idle": { "inhibitWhenAudio": true, "joystickHold": 60 },
+    "launcher": {
+        "maxResults": 9,
+        "actionPrefix": ">",
+        "calcPrefix": "=",
+        "clipPrefix": ";",
+        "fuzzy": true,
+        "showDangerous": false,
+        "actions": []
+    },
+    "screenshot": { "directory": "Pictures/Screenshots" },
+    "resources": { "interval": 2000 },
+    "brightness": { "external": true, "step": 5 }
+}

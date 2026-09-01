@@ -1,20 +1,115 @@
 pragma Singleton
 
+import QtQuick
 import Quickshell
+import Quickshell.Io
 
+// Appearance constants plus the hot-loaded config.json (any key may be
+// omitted; the defaults declared on the adapter apply).
 Singleton {
-    readonly property int borderThickness: 10
-    readonly property int borderRounding: 25
-
-    readonly property int barWidth: 44
-    readonly property int barPinThreshold: 20
-
-    readonly property real animSpeed: 0.8
-    readonly property int animDuration: 300 * animSpeed
+    id: root
 
     readonly property string fontFamily: "Rubik"
     readonly property string fontFamilyMono: "CaskaydiaCove Nerd Font"
     readonly property string iconFont: "Material Symbols Rounded"
     readonly property int fontSize: 13
     readonly property int iconSize: 21
+
+    readonly property int radius: 12
+    readonly property int radiusLarge: 20
+    readonly property int padding: 12
+
+    readonly property real animSpeed: adapter.animation.scale
+    readonly property int animDurationFast: Math.round(150 * animSpeed)
+    readonly property int animDuration: Math.round(300 * animSpeed)
+    readonly property int animDurationSlow: Math.round(500 * animSpeed)
+
+    readonly property int borderThickness: adapter.border.thickness
+    readonly property int borderRounding: adapter.border.rounding
+    readonly property int barWidth: adapter.bar.width
+    readonly property int barPinThreshold: adapter.bar.pinThreshold
+
+    readonly property alias bar: adapter.bar
+    readonly property alias popouts: adapter.popouts
+    readonly property alias osd: adapter.osd
+    readonly property alias kgrid: adapter.kgrid
+    readonly property alias desktopClock: adapter.desktopClock
+    readonly property alias notifications: adapter.notifications
+    readonly property alias idle: adapter.idle
+    readonly property alias launcher: adapter.launcher
+    readonly property alias screenshot: adapter.screenshot
+    readonly property alias resources: adapter.resources
+    readonly property alias brightness: adapter.brightness
+
+    FileView {
+        path: Quickshell.shellDir + "/config.json"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoadFailed: err => {
+            if (err !== FileViewError.FileNotFound)
+                console.warn("Config: cannot load config.json:", FileViewError.toString(err));
+        }
+
+        adapter: JsonAdapter {
+            id: adapter
+
+            property JsonObject animation: JsonObject {
+                property real scale: 0.8
+            }
+            property JsonObject border: JsonObject {
+                property int thickness: 10
+                property int rounding: 25
+            }
+            property JsonObject bar: JsonObject {
+                property int width: 44
+                property int pinThreshold: 20
+                property bool showResources: true
+            }
+            property JsonObject popouts: JsonObject {
+                property bool showOnHover: true
+                property int width: 340
+                property int listHeight: 320
+            }
+            property JsonObject osd: JsonObject {
+                property int hideDelay: 2000
+            }
+            property JsonObject kgrid: JsonObject {
+                property bool osd: true
+                property int hideDelay: 1000
+            }
+            property JsonObject desktopClock: JsonObject {
+                property string position: "bottom-right"
+                property int margin: 48
+            }
+            property JsonObject notifications: JsonObject {
+                property int timeout: 5000
+                property int criticalTimeout: 0
+                property int maxHistory: 200
+                property int width: 380
+            }
+            property JsonObject idle: JsonObject {
+                property bool inhibitWhenAudio: true
+                property int joystickHold: 60
+            }
+            property JsonObject launcher: JsonObject {
+                property int maxResults: 9
+                property string actionPrefix: ">"
+                property string calcPrefix: "="
+                property string clipPrefix: ";"
+                property bool fuzzy: true
+                property bool showDangerous: false
+                property var actions: []
+            }
+            property JsonObject screenshot: JsonObject {
+                property string directory: "Pictures/Screenshots"
+            }
+            property JsonObject resources: JsonObject {
+                property int interval: 2000
+            }
+            property JsonObject brightness: JsonObject {
+                property bool external: true
+                property int step: 5
+            }
+        }
+    }
 }

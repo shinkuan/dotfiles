@@ -5,21 +5,25 @@ import Quickshell.Hyprland
 import "../../config"
 import "../../services"
 import "../bar"
+import "../popouts"
 
 // Full-screen top layer that never reserves space. Input only lands on the
-// border ring plus whatever is currently expanded (Xor'd interior rect);
-// everything else clicks through to the windows below.
+// border ring, the bar and whatever is currently expanded; everything else
+// clicks through to the windows below. All hover decisions are made here,
+// from one HoverHandler, by geometry. (A hover-enabled MouseArea cannot be
+// used for this: any HoverHandler above it steals its hover.)
 PanelWindow {
     id: root
 
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
     readonly property bool hasFullscreen: monitor?.activeWorkspace?.hasFullscreen ?? false
     property bool barHovered: false
-    readonly property real interactiveLeft: Math.max(bar.exposedWidth, Config.borderThickness)
+    readonly property real interactiveLeft: bar.revealed ? Config.barWidth : Config.borderThickness
 
     WlrLayershell.namespace: "desktop-shell"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.keyboardFocus: popouts.needsKeyboard && popouts.shown ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true
@@ -29,47 +33,109 @@ PanelWindow {
     }
 
     color: "transparent"
-    mask: hasFullscreen ? passthrough : ring
+    mask: hasFullscreen ? passthrough : interactive
 
-    onHasFullscreenChanged: if (hasFullscreen) barHovered = false
+    onHasFullscreenChanged: {
+        if (hasFullscreen) {
+            barHovered = false;
+            popouts.close();
+        }
+    }
 
     Region {
         id: passthrough
     }
 
     Region {
-        id: ring
+        id: interactive
 
-        x: root.interactiveLeft
-        y: Config.borderThickness
-        width: root.width - x - Config.borderThickness
-        height: root.height - Config.borderThickness * 2
-        intersection: Intersection.Xor
+        x: 0
+        y: 0
+        width: root.width
+        height: root.height
+
+        Region {
+            x: root.interactiveLeft
+            y: Config.borderThickness
+            width: root.width - x - Config.borderThickness
+            height: root.height - Config.borderThickness * 2
+            intersection: Intersection.Xor
+        }
+
+        Region {
+            x: popouts.x
+            y: popouts.y
+            width: popouts.width
+            height: popouts.height
+            intersection: Intersection.Combine
+        }
+    }
+
+    function handleDrag(pressX: real, dx: real): void {
+        if (!ShellState.barPinned && pressX <= root.interactiveLeft && dx > Config.barPinThreshold)
+            ShellState.set("barPinned", true);
+        else if (ShellState.barPinned && pressX <= Config.barWidth && dx < -Config.barPinThreshold)
+            ShellState.set("barPinned", false);
+    }
+
+    function handleHover(x: real, y: real): void {
+        if (root.hasFullscreen)
+            return;
+        leaveGrace.stop();
+        const inBar = x <= root.interactiveLeft;
+        root.barHovered = inBar;
+        if (inBar) {
+            const hit = bar.popoutAt(y);
+            if (hit && Config.popouts.showOnHover && !popouts.shortcutActive)
+                popouts.open(hit.id, hit.y);
+            else if (!hit && !popouts.shortcutActive)
+                popouts.close();
+        } else if (!popouts.contains(x, y) && !popouts.shortcutActive) {
+            popouts.close();
+        }
+    }
+
+    HoverHandler {
+        id: tracker
+
+        readonly property point pos: point.position
+
+        enabled: !root.hasFullscreen
+        onPosChanged: {
+            if (hovered)
+                root.handleHover(pos.x, pos.y);
+        }
+        onHoveredChanged: {
+            if (hovered)
+                root.handleHover(pos.x, pos.y);
+            else
+                leaveGrace.restart();
+        }
+    }
+
+    // a leave immediately followed by a re-enter (mask edits, 1px gaps) must
+    // not collapse anything
+    Timer {
+        id: leaveGrace
+
+        interval: 120
+        onTriggered: {
+            root.barHovered = false;
+            if (!popouts.shortcutActive)
+                popouts.close();
+        }
     }
 
     MouseArea {
-        id: tracker
-
         property real pressX: -1
 
         anchors.fill: parent
-        hoverEnabled: true
         acceptedButtons: root.hasFullscreen ? Qt.NoButton : Qt.LeftButton
-
         onPressed: mouse => pressX = mouse.x
         onReleased: pressX = -1
-        onExited: root.barHovered = false
         onPositionChanged: mouse => {
-            if (root.hasFullscreen)
-                return;
-            root.barHovered = mouse.x <= root.interactiveLeft;
-            if (pressX < 0)
-                return;
-            const dx = mouse.x - pressX;
-            if (!BarState.pinned && pressX <= root.interactiveLeft && dx > Config.barPinThreshold)
-                BarState.setPinned(true);
-            else if (BarState.pinned && pressX <= Config.barWidth && dx < -Config.barPinThreshold)
-                BarState.setPinned(false);
+            if (pressX >= 0)
+                root.handleDrag(pressX, mouse.x - pressX);
         }
     }
 
@@ -77,8 +143,43 @@ PanelWindow {
         id: bar
 
         monitor: root.monitor
-        revealed: !root.hasFullscreen && (BarState.pinned || root.barHovered)
+        revealed: !root.hasFullscreen && (ShellState.barPinned || root.barHovered || popouts.shown)
+        activePopout: popouts.current
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        onDragged: dx => root.handleDrag(0, dx)
+        onItemClicked: (id, y) => popouts.openShortcut(id, y)
+    }
+
+    Popouts {
+        id: popouts
+
+        monitor: root.monitor
+        barEdge: bar.exposedWidth
+    }
+
+    // shortcut-opened popouts stay until a click lands outside the shell
+    HyprlandFocusGrab {
+        active: popouts.shortcutActive
+        windows: [root]
+        onCleared: popouts.close()
+    }
+
+    Connections {
+        target: Requests
+
+        function onPopout(id: string): void {
+            if (root.monitor?.focused)
+                popouts.openShortcut(id, bar.anchorFor(id));
+        }
+
+        function onSession(): void {
+            if (root.monitor?.focused)
+                popouts.openShortcut("power", bar.anchorFor("power"));
+        }
+
+        function onClosePopouts(): void {
+            popouts.close();
+        }
     }
 }

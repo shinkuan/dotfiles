@@ -1,12 +1,13 @@
 import QtQuick
-import QtQuick.Layouts
 import Quickshell
 import "../../config"
 import "../../services"
+import "../../components"
 
-ColumnLayout {
+BarItem {
     id: root
 
+    popout: "calendar"
     spacing: 0
 
     SystemClock {
@@ -15,37 +16,31 @@ ColumnLayout {
         precision: SystemClock.Minutes
     }
 
-    Text {
-        Layout.alignment: Qt.AlignHCenter
+    StyledText {
+        anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "HH")
-        color: Colours.onSurface
-        font.family: Config.fontFamily
         font.pixelSize: Config.fontSize + 2
-        font.bold: true
+        font.weight: Font.Bold
     }
 
-    Text {
-        Layout.alignment: Qt.AlignHCenter
+    StyledText {
+        anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "mm")
-        color: Colours.onSurface
-        font.family: Config.fontFamily
         font.pixelSize: Config.fontSize + 2
     }
 
-    Text {
-        Layout.alignment: Qt.AlignHCenter
-        Layout.topMargin: 4
+    StyledText {
+        anchors.horizontalCenter: parent.horizontalCenter
+        topPadding: 4
         text: Qt.formatDateTime(clock.date, "ddd")
         color: Colours.onSurfaceVariant
-        font.family: Config.fontFamily
         font.pixelSize: Config.fontSize - 3
     }
 
-    Text {
-        Layout.alignment: Qt.AlignHCenter
+    StyledText {
+        anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "d/M")
         color: Colours.onSurfaceVariant
-        font.family: Config.fontFamily
         font.pixelSize: Config.fontSize - 3
     }
 }
