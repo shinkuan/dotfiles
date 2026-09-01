@@ -10,7 +10,8 @@ Item {
     required property HyprlandMonitor monitor
     readonly property bool focused: monitor?.focused ?? false
     readonly property list<var> entries: focused ? Notifs.popups.slice(0, 5).map(id => Notifs.find(id)).filter(e => e !== null) : []
-    readonly property bool replying: column.children.some(c => c.replying)
+    // keyboard focus is only worth taking while a reply field can be used
+    readonly property bool needsKeyboard: entries.some(e => e.hasInlineReply && e.notif)
 
     anchors.top: parent.top
     anchors.right: parent.right

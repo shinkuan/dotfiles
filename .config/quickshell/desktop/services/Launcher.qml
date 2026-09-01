@@ -185,7 +185,7 @@ Singleton {
         usage = copy;
         usageFile.setText(JSON.stringify(usage));
         if (hasApp2unit)
-            Quickshell.execDetached(["app2unit", "--", entry.id + ".desktop"]);
+            Quickshell.execDetached(["app2unit", "--", entry.id.endsWith(".desktop") ? entry.id : entry.id + ".desktop"]);
         else
             entry.execute();
     }

@@ -25,7 +25,7 @@ PanelWindow {
     WlrLayershell.namespace: "desktop-shell"
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.keyboardFocus: popouts.shortcutActive ? WlrKeyboardFocus.Exclusive : (popouts.needsKeyboard && popouts.shown) || notifPopups.visible ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: popouts.shortcutActive ? WlrKeyboardFocus.Exclusive : (popouts.needsKeyboard && popouts.shown) || (notifPopups.visible && notifPopups.needsKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true
