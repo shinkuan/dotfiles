@@ -443,6 +443,12 @@ for src in "$REPO_ROOT"/.config/*; do
     name="$(basename "$src")"
     dst="$CONFIG_HOME/$name"
 
+    # generated / per-machine dirs that happen to exist in the checkout are
+    # not config: let their consumers create real dirs in $CONFIG_HOME
+    if git -C "$REPO_ROOT" check-ignore -q ".config/$name"; then
+        continue
+    fi
+
     # glib rewrites mimeapps.list via atomic rename, which would replace a
     # symlink with a plain file - keep it as a copy instead.
     if [[ "$name" == "mimeapps.list" ]]; then
@@ -456,7 +462,7 @@ for src in "$REPO_ROOT"/.config/*; do
         mkdir -p "$dst"
         if [[ "$name" == "systemd" ]]; then
             mkdir -p "$dst/user"
-            for unit in "$src"/user/*; do
+            for unit in "$src"/user/*.service; do
                 link_config "$unit" "$dst/user/$(basename "$unit")"
             done
         else
@@ -493,6 +499,11 @@ for script in "$REPO_ROOT"/.local/bin/*; do
     chmod +x ~/.local/bin/"$(basename "$script")"
 done
 
+if [[ $LINK_ONLY -eq 1 ]]; then
+    success "Configs, units and scripts linked."
+    exit 0
+fi
+
 # Install G502 HiRes Scroll Patch
 sudo mkdir -p /etc/libinput
 sudo tee /etc/libinput/local-overrides.quirks >/dev/null <<'EOT'
@@ -500,11 +511,6 @@ sudo tee /etc/libinput/local-overrides.quirks >/dev/null <<'EOT'
 MatchName=*Logitech G502*
 AttrEventCode=-REL_WHEEL_HI_RES;-REL_HWHEEL_HI_RES;
 EOT
-
-if [[ $LINK_ONLY -eq 1 ]]; then
-    success "Configs, units and scripts linked."
-    exit 0
-fi
 
 # Default wallpaper + full colour pipeline (scheme + hellwal + templates)
 info "Generating the initial colour scheme..."
