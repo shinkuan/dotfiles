@@ -40,3 +40,13 @@ cd ~/Documents/dotfiles
 讓群組(docker/libvirt)生效。之後在 tty1 登入會自動啟動 Hyprland + caelestia shell。
 
 > 注意:NTFS 磁區直接用核心內建的 `ntfs3` 掛載即可,不需要 ntfs-3g;fstab 裡型別寫 `ntfs3`。
+
+## Theming
+
+Colours come from a single generator, `scheme` (Material You, all 9 variants,
+light/dark, preset schemes), which renders every consumer template — hypr,
+hyprlock, Qt (qt6ct), GTK, the desktop shell's `colours.json`, and the
+terminal palette. `wallpaper -f <image>` (or `-r` for random) sets the
+wallpaper and re-runs the whole pipeline, including hellwal for terminal
+colours. See `.local/bin/README.md` for details and how to add preset
+schemes.

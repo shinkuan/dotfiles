@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+# Wallpaper switcher + theming pipeline.
+#
+#   wallpaper -f <image>   set wallpaper
+#   wallpaper -r [dir]     random image from dir (default: ~/Pictures/Wallpapers)
+#   wallpaper -g           print current wallpaper path
+#
+# Pipeline: record wallpaper state -> `scheme sync` (M3 palette + all consumer
+# templates) -> terminal palette (hellwal by default, or the M3 term colours,
+# per the scheme config switch) -> hyprctl reload -> tell the shell.
+#
+# This replaces the caelestia-cli wallpaper flow, including its two hooks:
+# the hypr scheme conf is rendered directly by `scheme`, and hellwal (the old
+# wallpaper.postHook) is invoked right here — without this call, terminal
+# colours silently stop following the wallpaper.
+set -euo pipefail
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+WALL_STATE="$STATE_HOME/wallpaper"
+SCHEME_CACHE="$CACHE_HOME/scheme"
+SCHEME_CONFIG="$CONFIG_HOME/scheme/config.json"
+
+err() { echo "wallpaper: $*" >&2; command -v notify-send >/dev/null && notify-send -u critical "Wallpaper" "$*" || true; }
+
+usage() { sed -n '3,6p' "$0" | sed 's/^# \?//'; exit "${1:-0}"; }
+
+is_image() {
+    case "${1,,}" in
+        *.jpg|*.jpeg|*.png|*.webp|*.tif|*.tiff) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+pick_random() {
+    local dir="${1:-$HOME/Pictures/Wallpapers}"
+    [[ -d $dir ]] || { err "not a directory: $dir"; exit 1; }
+    local current=""
+    [[ -f "$WALL_STATE/path.txt" ]] && current="$(cat "$WALL_STATE/path.txt")"
+    find "$dir" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \
+        -o -iname '*.webp' -o -iname '*.tif' -o -iname '*.tiff' \) \
+        ! -path "$current" | shuf -n1
+}
+
+terminal_source() {
+    python3 - "$SCHEME_CONFIG" <<'EOF' 2>/dev/null || echo hellwal
+import json, sys
+try:
+    print(json.load(open(sys.argv[1]))["terminal"]["source"])
+except Exception:
+    print("hellwal")
+EOF
+}
+
+apply_sequences() {
+    # Push OSC colour sequences to every open pty (non-blocking, best effort)
+    local seq_file="$SCHEME_CACHE/sequences.txt"
+    [[ -f $seq_file ]] || return 0
+    local pt
+    for pt in /dev/pts/[0-9]*; do
+        [[ -w $pt ]] && timeout 0.2 cp "$seq_file" "$pt" 2>/dev/null || true
+    done
+}
+
+set_wallpaper() {
+    local wall
+    wall="$(realpath -e "$1")" || { err "no such file: $1"; exit 1; }
+    is_image "$wall" || { err "not a supported image: $wall"; exit 1; }
+
+    # state: path file + stable symlink; drop the thumbnail so scheme
+    # regenerates it even if the new file's mtime is older
+    mkdir -p "$WALL_STATE"
+    printf '%s' "$wall" > "$WALL_STATE/path.txt"
+    ln -sfn "$wall" "$WALL_STATE/current"
+    rm -f "$WALL_STATE/thumbnail.jpg"
+
+    # palette + all consumer templates (hypr scheme conf included)
+    scheme sync
+
+    # terminal palette
+    case "$(terminal_source)" in
+        hellwal)
+            if command -v hellwal >/dev/null; then
+                mkdir -p "$SCHEME_CACHE"
+                # hellwal concatenates -o naively: the trailing slash is required
+                hellwal -i "$wall" --check-contrast -q \
+                    -f "$CONFIG_HOME/hellwal/templates/" -o "$SCHEME_CACHE/" \
+                    || err "hellwal failed - terminal colours not updated"
+            else
+                err "hellwal not installed - terminal colours not updated"
+            fi
+            ;;
+        m3)
+            apply_sequences
+            ;;
+    esac
+
+    # let the compositor re-read the generated scheme (border colours etc.)
+    if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+        hyprctl reload >/dev/null || true
+    fi
+
+    # tell the desktop shell to redraw its background layer (no-op until the
+    # new shell exists; hyprpaper is the optional fallback)
+    if command -v qs >/dev/null; then
+        qs -c desktop ipc call wallpaper set "$wall" >/dev/null 2>&1 || true
+    fi
+    if pgrep -x hyprpaper >/dev/null; then
+        hyprctl hyprpaper reload ",$wall" >/dev/null 2>&1 || true
+    fi
+
+    echo "wallpaper: $wall"
+}
+
+case "${1:-}" in
+    -f) [[ $# -ge 2 ]] || usage 1; set_wallpaper "$2" ;;
+    -r) set_wallpaper "$(pick_random "${2:-}")" ;;
+    -g) cat "$WALL_STATE/path.txt" 2>/dev/null && echo || { echo "no wallpaper set" >&2; exit 1; } ;;
+    -h|--help) usage ;;
+    *) usage 1 ;;
+esac

@@ -31,3 +31,11 @@ toggle it again after leaving. The nested config itself needs no escape key.
 
 Multi-monitor hotplug can be tested from inside the nested session with
 `hyprctl output create headless`.
+
+## verify-scheme.sh
+
+Acceptance / regression test for `.local/bin/scheme`: renders
+`dynamic/content/dark` for the wallpaper in a throwaway XDG sandbox and
+requires the result to be bit-for-bit identical to
+`fixtures/scheme-baseline.json` (all 120 colour names). Run it after any
+change to the colour generation pipeline.

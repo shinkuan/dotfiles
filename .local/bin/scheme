@@ -1,0 +1,614 @@
+#!/usr/bin/env python3
+"""Colour scheme generator.
+
+Generates a Material You palette (via materialyoucolor, the Python port of
+Google's Material Color Utilities) plus the extended colour names the rest of
+the desktop consumes (term0-15, catppuccin-style aliases, KDE semantic
+colours, overlays, success roles), and renders every consumer template.
+
+Subcommands:
+    scheme set [--name N] [--flavour F] [--mode M] [--variant V] [--random]
+    scheme sync            regenerate colours + templates for current settings
+    scheme get [--json]    show current settings
+    scheme list            show available names / flavours / modes / variants
+
+All paths derive from the XDG base dirs (XDG_CONFIG_HOME / XDG_STATE_HOME /
+XDG_CACHE_HOME with spec fallbacks), so a nested test session that points
+those at a worktree stays fully isolated.
+
+Outputs:
+    $XDG_STATE_HOME/scheme/scheme.json        settings + full colour map
+    $XDG_STATE_HOME/scheme/colours.json       same (shell hot-loads this)
+    $XDG_CONFIG_HOME/hypr/scheme/current.lua  lua module for the hypr config
+    $XDG_CONFIG_HOME/hypr/scheme/current.conf hyprlang vars for hyprlock
+    $XDG_CONFIG_HOME/qt6ct/colors/scheme.colors
+    $XDG_CONFIG_HOME/gtk-3.0/gtk.css, gtk-4.0/gtk.css
+    $XDG_CACHE_HOME/scheme/foot.ini           terminal palette (see below)
+    $XDG_CACHE_HOME/scheme/sequences.txt      OSC colour sequences
+
+The terminal palette source is a config switch
+($XDG_CONFIG_HOME/scheme/config.json, {"terminal": {"source": ...}}):
+"hellwal" (default; the wallpaper script copies hellwal's output into place)
+or "m3" (rendered here from term0-15).
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import random
+import sys
+from pathlib import Path
+
+# ---------------------------------------------------------------- XDG paths
+
+
+def _xdg(var: str, fallback: str) -> Path:
+    value = os.environ.get(var)
+    return Path(value) if value else Path.home() / fallback
+
+
+CONFIG_HOME = _xdg("XDG_CONFIG_HOME", ".config")
+STATE_HOME = _xdg("XDG_STATE_HOME", ".local/state")
+CACHE_HOME = _xdg("XDG_CACHE_HOME", ".cache")
+
+STATE_DIR = STATE_HOME / "scheme"
+CACHE_DIR = CACHE_HOME / "scheme"
+WALL_STATE_DIR = STATE_HOME / "wallpaper"
+SCHEME_JSON = STATE_DIR / "scheme.json"
+COLOURS_JSON = STATE_DIR / "colours.json"
+CONFIG_JSON = CONFIG_HOME / "scheme" / "config.json"
+
+DEFAULTS = {"name": "dynamic", "flavour": "default", "mode": "dark", "variant": "content"}
+
+VARIANTS = ["tonalspot", "vibrant", "expressive", "fidelity", "fruitsalad",
+            "monochrome", "neutral", "rainbow", "content"]
+
+# ------------------------------------------------------------- anchor data
+# Data, not code: terminal anchors are Monokai-style (light) / Gruvbox (dark)
+# palette values, named-colour anchors are the Catppuccin latte/mocha accents,
+# k-colours are KDE Breeze's semantic colours. Each list is harmonised toward
+# the generated palette at render time.
+
+TERM_ANCHORS = {
+    "light": ["FDF9F3", "FF6188", "A9DC76", "FC9867", "FFD866", "F47FD4",
+              "78DCE8", "333034", "121212", "FF6188", "A9DC76", "FC9867",
+              "FFD866", "F47FD4", "78DCE8", "333034"],
+    "dark": ["282828", "CC241D", "98971A", "D79921", "458588", "B16286",
+             "689D6A", "A89984", "928374", "FB4934", "B8BB26", "FABD2F",
+             "83A598", "D3869B", "8EC07C", "EBDBB2"],
+}
+
+ALIAS_NAMES = ["rosewater", "flamingo", "pink", "mauve", "red", "maroon",
+               "peach", "yellow", "green", "teal", "sky", "sapphire", "blue",
+               "lavender"]
+
+ALIAS_ANCHORS = {
+    "light": ["dc8a78", "dd7878", "ea76cb", "8839ef", "d20f39", "e64553",
+              "fe640b", "df8e1d", "40a02b", "179299", "04a5e5", "209fb5",
+              "1e66f5", "7287fd"],
+    "dark": ["f5e0dc", "f2cdcd", "f5c2e7", "cba6f7", "f38ba8", "eba0ac",
+             "fab387", "f9e2af", "a6e3a1", "94e2d5", "89dceb", "74c7ec",
+             "89b4fa", "b4befe"],
+}
+
+K_ANCHORS = {"klink": "2980b9", "kvisited": "9b59b6", "knegative": "da4453",
+             "kneutral": "f67400", "kpositive": "27ae60"}
+
+SUCCESS = {
+    "light": {"success": "4F6354", "onSuccess": "FFFFFF",
+              "successContainer": "D1E8D5", "onSuccessContainer": "0C1F13"},
+    "dark": {"success": "B5CCBA", "onSuccess": "213528",
+             "successContainer": "374B3E", "onSuccessContainer": "D1E9D6"},
+}
+
+# Preset schemes: seed colour per flavour/mode plus literal terminal/alias
+# palettes taken from each upstream. Add new presets here (palette values
+# from the upstream project, never from caelestia's GPL data files).
+# "terms"/"aliases" override the harmonised defaults when given.
+PRESETS = {
+    # https://catppuccin.com/palette (MIT)
+    "catppuccin": {
+        "mocha": {
+            "mode": "dark", "source": "cba6f7",
+            "terms": ["45475a", "f38ba8", "a6e3a1", "f9e2af", "89b4fa",
+                      "f5c2e7", "94e2d5", "bac2de", "585b70", "f38ba8",
+                      "a6e3a1", "f9e2af", "89b4fa", "f5c2e7", "94e2d5",
+                      "a6adc8"],
+            "aliases": ["f5e0dc", "f2cdcd", "f5c2e7", "cba6f7", "f38ba8",
+                        "eba0ac", "fab387", "f9e2af", "a6e3a1", "94e2d5",
+                        "89dceb", "74c7ec", "89b4fa", "b4befe"],
+        },
+        "latte": {
+            "mode": "light", "source": "8839ef",
+            "terms": ["5c5f77", "d20f39", "40a02b", "df8e1d", "1e66f5",
+                      "ea76cb", "179299", "acb0be", "6c6f85", "d20f39",
+                      "40a02b", "df8e1d", "1e66f5", "ea76cb", "179299",
+                      "bcc0cc"],
+            "aliases": ["dc8a78", "dd7878", "ea76cb", "8839ef", "d20f39",
+                        "e64553", "fe640b", "df8e1d", "40a02b", "179299",
+                        "04a5e5", "209fb5", "1e66f5", "7287fd"],
+        },
+    },
+}
+
+# ------------------------------------------------------------ colour maths
+
+
+def _lazy_material():
+    """Import materialyoucolor lazily so `scheme get/list` stay fast."""
+    global Hct, Blend, DislikeAnalyzer, MaterialDynamicColors, ImageQuantizeCelebi
+    global difference_degrees, rotation_direction, sanitize_degrees_double, sanitize_degrees_int
+    global SCHEME_CLASSES
+    from materialyoucolor.blend import Blend
+    from materialyoucolor.dislike.dislike_analyzer import DislikeAnalyzer
+    from materialyoucolor.dynamiccolor.material_dynamic_colors import MaterialDynamicColors
+    from materialyoucolor.hct import Hct
+    from materialyoucolor.quantize import ImageQuantizeCelebi
+    from materialyoucolor.scheme.scheme_content import SchemeContent
+    from materialyoucolor.scheme.scheme_expressive import SchemeExpressive
+    from materialyoucolor.scheme.scheme_fidelity import SchemeFidelity
+    from materialyoucolor.scheme.scheme_fruit_salad import SchemeFruitSalad
+    from materialyoucolor.scheme.scheme_monochrome import SchemeMonochrome
+    from materialyoucolor.scheme.scheme_neutral import SchemeNeutral
+    from materialyoucolor.scheme.scheme_rainbow import SchemeRainbow
+    from materialyoucolor.scheme.scheme_tonal_spot import SchemeTonalSpot
+    from materialyoucolor.scheme.scheme_vibrant import SchemeVibrant
+    from materialyoucolor.utils.math_utils import (
+        difference_degrees, rotation_direction, sanitize_degrees_double, sanitize_degrees_int)
+
+    SCHEME_CLASSES = {
+        "content": SchemeContent, "expressive": SchemeExpressive,
+        "fidelity": SchemeFidelity, "fruitsalad": SchemeFruitSalad,
+        "monochrome": SchemeMonochrome, "neutral": SchemeNeutral,
+        "rainbow": SchemeRainbow, "tonalspot": SchemeTonalSpot,
+        "vibrant": SchemeVibrant,
+    }
+
+
+def hct_of(hexstr: str):
+    return Hct.from_int(int("0xFF" + hexstr, 16))
+
+
+def hex_of(c) -> str:
+    return hex(c.to_int())[4:]
+
+
+def lighten(c, amount: float):
+    diff = (100 - c.tone) * amount
+    return Hct.from_hct(c.hue, c.chroma + diff / 5, c.tone + diff)
+
+
+def darken(c, amount: float):
+    diff = c.tone * amount
+    return Hct.from_hct(c.hue, c.chroma - diff / 5, c.tone - diff)
+
+
+def grayscale(c, light: bool):
+    c = darken(c, 0.35) if light else lighten(c, 0.65)
+    c.chroma = 0
+    return c
+
+
+def mix(a, b, w: float):
+    return Hct.from_int(Blend.cam16_ucs(a.to_int(), b.to_int(), w))
+
+
+def harmonise(from_hct, to_hct, tone_boost: float):
+    """Rotate from_hct's hue up to 80% of the way (capped at 100 deg) toward
+    to_hct, boosting tone by the given factor."""
+    delta = difference_degrees(from_hct.hue, to_hct.hue)
+    rotation = min(delta * 0.8, 100)
+    hue = sanitize_degrees_double(
+        from_hct.hue + rotation * rotation_direction(from_hct.hue, to_hct.hue))
+    return Hct.from_hct(hue, from_hct.chroma, from_hct.tone * (1 + tone_boost))
+
+
+# ------------------------------------------------------- source colour (dynamic)
+
+# Google material score parameters (material-color-utilities)
+_TARGET_CHROMA = 48.0
+_W_PROPORTION = 0.7
+_W_CHROMA_ABOVE = 0.3
+_W_CHROMA_BELOW = 0.1
+
+
+def pick_source(colors_to_population: dict):
+    """Score quantised colours per the Material algorithm and pick a source:
+    highest-scoring colour that is chromatic (chroma > 20) and not too dark
+    (tone > 60), relaxing both requirements gradually if nothing qualifies;
+    disliked colours are fixed up."""
+    hcts = []
+    hue_population = [0] * 360
+    total = 0
+    for argb, population in colors_to_population.items():
+        c = Hct.from_int(argb)
+        hcts.append(c)
+        hue_population[int(c.hue)] += population
+        total += population
+
+    excited = [0.0] * 360
+    for hue in range(360):
+        proportion = hue_population[hue] / total
+        for j in range(hue - 14, hue + 16):
+            excited[int(sanitize_degrees_int(j))] += proportion
+
+    scored = []
+    for c in hcts:
+        proportion = excited[int(sanitize_degrees_int(round(c.hue)))]
+        chroma_w = _W_CHROMA_BELOW if c.chroma < _TARGET_CHROMA else _W_CHROMA_ABOVE
+        scored.append((proportion * 100.0 * _W_PROPORTION
+                       + (c.chroma - _TARGET_CHROMA) * chroma_w, c))
+    scored.sort(key=lambda t: t[0], reverse=True)
+
+    for cutoff in range(20, -1, -1):
+        for _, c in scored:
+            if c.chroma > cutoff and c.tone > cutoff * 3:
+                return DislikeAnalyzer.fix_if_disliked(c)
+    return scored[0][1]
+
+
+def wallpaper_thumbnail() -> Path:
+    """Return (creating if needed) a small thumbnail of the current wallpaper.
+    Scoring runs on this 128x128 NEAREST thumbnail."""
+    path_file = WALL_STATE_DIR / "path.txt"
+    if not path_file.is_file():
+        sys.exit("scheme: no wallpaper set (missing "
+                 f"{path_file}); run `wallpaper -f <image>` first")
+    wall = Path(path_file.read_text().strip())
+    if not wall.is_file():
+        sys.exit(f"scheme: wallpaper file not found: {wall}")
+
+    thumb = WALL_STATE_DIR / "thumbnail.jpg"
+    if not thumb.is_file() or thumb.stat().st_mtime < wall.stat().st_mtime:
+        from PIL import Image
+        with Image.open(wall) as img:
+            img = img.convert("RGB")
+            img.thumbnail((128, 128), Image.Resampling.NEAREST)
+            thumb.parent.mkdir(parents=True, exist_ok=True)
+            img.save(thumb, "JPEG")
+    return thumb
+
+
+def dynamic_source():
+    """Source colour for the current wallpaper, cached per thumbnail hash."""
+    thumb = wallpaper_thumbnail()
+    digest = hashlib.sha256(thumb.read_bytes()).hexdigest()[:16]
+    cache = CACHE_DIR / f"score-{digest}.txt"
+    if cache.is_file():
+        try:
+            return Hct.from_int(int(cache.read_text()))
+        except ValueError:
+            pass
+    source = pick_source(ImageQuantizeCelebi(str(thumb), 1, 128))
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text(str(source.to_int()))
+    return source
+
+
+# ---------------------------------------------------------- palette build
+
+
+def build_colours(settings: dict) -> dict[str, str]:
+    _lazy_material()
+    name, flavour = settings["name"], settings["flavour"]
+    mode, variant = settings["mode"], settings["variant"]
+    is_light = mode == "light"
+    preset = PRESETS.get(name, {}).get(flavour) if name != "dynamic" else None
+
+    if name == "dynamic":
+        source = dynamic_source()
+    elif preset:
+        source = hct_of(preset["source"])
+    else:
+        sys.exit(f"scheme: unknown scheme/flavour: {name}/{flavour}")
+
+    scheme = SCHEME_CLASSES[variant](
+        source_color_hct=source, is_dark=not is_light, contrast_level=0.0)
+
+    colours = {}
+    for colour in MaterialDynamicColors().all_colors:
+        colours[colour.name] = colour.get_hct(scheme)
+
+    # snake_case aliases kept for template compatibility
+    for role in ("primary", "secondary", "tertiary", "neutral"):
+        colours[f"{role}_paletteKeyColor"] = colours[f"{role}PaletteKeyColor"]
+    colours["neutral_variant_paletteKeyColor"] = colours["neutralVariantPaletteKeyColor"]
+
+    key = colours["primary_paletteKeyColor"]
+
+    # terminal palette: preset values as-is, otherwise anchors harmonised
+    # toward the palette key colour (greyscaled for monochrome)
+    term_anchors = preset["terms"] if preset and "terms" in preset else TERM_ANCHORS[mode]
+    for i, anchor in enumerate(term_anchors):
+        c = hct_of(anchor)
+        if preset and "terms" in preset:
+            colours[f"term{i}"] = c
+        elif variant == "monochrome":
+            colours[f"term{i}"] = grayscale(c, is_light)
+        else:
+            boost = (0.35 if i < 8 else 0.2) * (-1 if is_light else 1)
+            colours[f"term{i}"] = harmonise(c, key, boost)
+
+    alias_anchors = preset["aliases"] if preset and "aliases" in preset else ALIAS_ANCHORS[mode]
+    for alias, anchor in zip(ALIAS_NAMES, alias_anchors):
+        c = hct_of(anchor)
+        if preset and "aliases" in preset:
+            colours[alias] = c
+        elif variant == "monochrome":
+            colours[alias] = grayscale(c, is_light)
+        else:
+            colours[alias] = harmonise(c, key, -0.2 if is_light else 0.05)
+
+    for kname, anchor in K_ANCHORS.items():
+        c = hct_of(anchor)
+        colours[kname] = harmonise(c, colours["primary"], 0.1)
+        colours[f"{kname}Selection"] = harmonise(c, colours["onPrimaryFixedVariant"], 0.1)
+        if variant == "monochrome":
+            colours[kname] = grayscale(colours[kname], is_light)
+            colours[f"{kname}Selection"] = grayscale(colours[f"{kname}Selection"], is_light)
+
+    if variant == "neutral":
+        for c in colours.values():
+            c.chroma -= 15
+
+    if flavour == "hard":
+        for cname in ("background", *(k for k in colours if k.startswith("surface"))):
+            colours[cname] = (lighten(colours[cname], 0.4) if is_light
+                              else darken(colours[cname], 0.8))
+        colours["term0"] = (lighten(colours["term0"], 0.4) if is_light
+                            else darken(colours["term0"], 0.9))
+
+    # catppuccin-style structural aliases
+    colours["text"] = colours["onBackground"]
+    colours["subtext1"] = colours["onSurfaceVariant"]
+    colours["subtext0"] = colours["outline"]
+    for cname, w in (("overlay2", 0.86), ("overlay1", 0.71), ("overlay0", 0.57),
+                     ("surface2", 0.43), ("surface1", 0.29), ("surface0", 0.14)):
+        colours[cname] = mix(colours["surface"], colours["outline"], w)
+    colours["base"] = colours["surface"]
+    colours["mantle"] = darken(colours["surface"], 0.03)
+    colours["crust"] = darken(colours["surface"], 0.05)
+
+    if flavour == "hard":
+        for cname in ("base", "mantle", "crust"):
+            colours[cname] = (lighten(colours[cname], 0.4) if is_light
+                              else darken(colours[cname], 0.9))
+        for i in range(3):
+            for prefix in ("overlay", "surface"):
+                colours[f"{prefix}{i}"] = (
+                    lighten(colours[f"{prefix}{i}"], 0.4) if is_light
+                    else darken(colours[f"{prefix}{i}"], 0.8))
+
+    out = {cname: hex_of(c) for cname, c in colours.items()}
+    out.update(SUCCESS[mode])
+    return out
+
+
+# ------------------------------------------------------------- templates
+
+
+def _atomic_write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(content)
+    tmp.replace(path)
+
+
+def render_hypr(colours: dict[str, str]) -> None:
+    lua = "return {\n"
+    for cname, val in colours.items():
+        lua += f'  {cname} = "{val}",\n'
+    lua += "}"
+    _atomic_write(CONFIG_HOME / "hypr/scheme/current.lua", lua)
+
+    conf = "".join(f"${cname} = {val}\n" for cname, val in colours.items())
+    _atomic_write(CONFIG_HOME / "hypr/scheme/current.conf", conf)
+
+
+def render_colours_json(settings: dict, colours: dict[str, str]) -> None:
+    doc = {**settings, "colours": colours}
+    _atomic_write(SCHEME_JSON, json.dumps(doc, indent=2))
+    _atomic_write(COLOURS_JSON, json.dumps(doc, indent=2))
+
+
+def render_qt6ct(colours: dict[str, str]) -> None:
+    c = {k: "#ff" + v for k, v in colours.items()}
+    # qt6ct palette order: WindowText Button Light Midlight Dark Mid Text
+    # BrightText ButtonText Base Window Shadow Highlight HighlightedText Link
+    # LinkVisited AlternateBase (unused) ToolTipBase ToolTipText PlaceholderText
+    active = [
+        c["onSurface"], c["surfaceContainerHigh"], c["surfaceBright"],
+        c["surfaceContainer"], c["surfaceContainerLowest"],
+        c["surfaceContainerLow"], c["onSurface"], c["inverseSurface"],
+        c["onSurface"], c["surface"], c["surface"], c["shadow"],
+        c["primary"], c["onPrimary"], c["klink"], c["kvisited"],
+        c["surfaceContainer"], "#ffffffff", c["surfaceContainerHighest"],
+        c["onSurface"], c["outline"],
+    ]
+    disabled = list(active)
+    disabled[0] = disabled[6] = disabled[8] = c["outline"]
+    disabled[12] = c["surfaceContainerHighest"]
+    disabled[13] = c["outline"]
+    lines = ["[ColorScheme]",
+             "active_colors=" + ", ".join(active),
+             "disabled_colors=" + ", ".join(disabled),
+             "inactive_colors=" + ", ".join(active), ""]
+    _atomic_write(CONFIG_HOME / "qt6ct/colors/scheme.colors", "\n".join(lines))
+
+
+def render_gtk(colours: dict[str, str]) -> None:
+    pairs = [
+        ("accent_color", "primary"), ("accent_bg_color", "primary"),
+        ("accent_fg_color", "onPrimary"),
+        ("window_bg_color", "surface"), ("window_fg_color", "onSurface"),
+        ("view_bg_color", "surfaceContainerLow"), ("view_fg_color", "onSurface"),
+        ("headerbar_bg_color", "surfaceContainer"),
+        ("headerbar_fg_color", "onSurface"),
+        ("sidebar_bg_color", "surfaceContainer"),
+        ("sidebar_fg_color", "onSurface"),
+        ("sidebar_backdrop_color", "surfaceContainerLow"),
+        ("card_bg_color", "surfaceContainer"), ("card_fg_color", "onSurface"),
+        ("dialog_bg_color", "surfaceContainerHigh"),
+        ("dialog_fg_color", "onSurface"),
+        ("popover_bg_color", "surfaceContainerHigh"),
+        ("popover_fg_color", "onSurface"),
+        ("error_color", "error"), ("error_bg_color", "error"),
+        ("error_fg_color", "onError"),
+        ("success_color", "success"), ("success_bg_color", "success"),
+        ("success_fg_color", "onSuccess"),
+    ]
+    css = "".join(f"@define-color {gtk_name} #{colours[role]};\n"
+                  for gtk_name, role in pairs)
+    for ver in ("gtk-3.0", "gtk-4.0"):
+        _atomic_write(CONFIG_HOME / ver / "gtk.css", css)
+
+
+def render_terminal(settings: dict, colours: dict[str, str]) -> None:
+    """foot palette + OSC sequences. Source is a config switch: 'hellwal'
+    (default — the wallpaper script copies hellwal's output over these) or
+    'm3' (rendered from term0-15 here)."""
+    source = "hellwal"
+    try:
+        source = json.loads(CONFIG_JSON.read_text())["terminal"]["source"]
+    except (OSError, KeyError, json.JSONDecodeError):
+        pass
+    if source != "m3":
+        return
+
+    foot = ["[colors]",
+            f"foreground={colours['onSurface']}",
+            f"background={colours['surface']}"]
+    foot += [f"regular{i}={colours[f'term{i}']}" for i in range(8)]
+    foot += [f"bright{i}={colours[f'term{i + 8}']}" for i in range(8)]
+    _atomic_write(CACHE_DIR / "foot.ini", "\n".join(foot) + "\n")
+
+    def osc(colour: str, *nums: int) -> str:
+        r, g, b = colour[0:2], colour[2:4], colour[4:6]
+        return f"\x1b]{';'.join(map(str, nums))};rgb:{r}/{g}/{b}\x1b\\"
+
+    seq = (osc(colours["onSurface"], 10) + osc(colours["surface"], 11)
+           + osc(colours["secondary"], 12) + osc(colours["secondary"], 17))
+    for i in range(16):
+        seq += osc(colours[f"term{i}"], 4, i)
+    seq += (osc(colours["primary"], 4, 16) + osc(colours["secondary"], 4, 17)
+            + osc(colours["tertiary"], 4, 18))
+    _atomic_write(CACHE_DIR / "sequences.txt", seq)
+
+
+def render_all(settings: dict, colours: dict[str, str]) -> None:
+    render_colours_json(settings, colours)
+    render_hypr(colours)
+    render_qt6ct(colours)
+    render_gtk(colours)
+    render_terminal(settings, colours)
+
+
+# ------------------------------------------------------------------- CLI
+
+
+def load_settings() -> dict:
+    try:
+        doc = json.loads(SCHEME_JSON.read_text())
+        return {k: doc[k] for k in DEFAULTS}
+    except (OSError, KeyError, json.JSONDecodeError):
+        return dict(DEFAULTS)
+
+
+def scheme_names() -> list[str]:
+    return ["dynamic", *PRESETS]
+
+
+def flavours_of(name: str) -> list[str]:
+    if name == "dynamic":
+        return ["default", "hard"]
+    return list(PRESETS.get(name, {}))
+
+
+def cmd_set(args) -> None:
+    settings = load_settings()
+    if args.random:
+        name = random.choice([n for n in scheme_names() if n != "dynamic"] or ["dynamic"])
+        settings["name"] = name
+        settings["flavour"] = random.choice(flavours_of(name))
+    for field in ("name", "flavour", "mode", "variant"):
+        value = getattr(args, field)
+        if value is not None:
+            settings[field] = value
+
+    if settings["name"] not in scheme_names():
+        sys.exit(f"scheme: unknown scheme '{settings['name']}' "
+                 f"(available: {', '.join(scheme_names())})")
+    if settings["flavour"] not in flavours_of(settings["name"]):
+        settings["flavour"] = flavours_of(settings["name"])[0]
+    if settings["variant"] not in VARIANTS:
+        sys.exit(f"scheme: unknown variant '{settings['variant']}' "
+                 f"(available: {', '.join(VARIANTS)})")
+    if settings["mode"] not in ("dark", "light"):
+        sys.exit("scheme: mode must be 'dark' or 'light'")
+    preset = PRESETS.get(settings["name"], {}).get(settings["flavour"])
+    if preset and "mode" in preset:
+        settings["mode"] = preset["mode"]
+
+    colours = build_colours(settings)
+    render_all(settings, colours)
+    print(f"scheme: {settings['name']}/{settings['flavour']} "
+          f"{settings['mode']} {settings['variant']} rendered")
+
+
+def cmd_sync(_args) -> None:
+    settings = load_settings()
+    colours = build_colours(settings)
+    render_all(settings, colours)
+    print(f"scheme: resynced {settings['name']}/{settings['flavour']} "
+          f"{settings['mode']} {settings['variant']}")
+
+
+def cmd_get(args) -> None:
+    settings = load_settings()
+    if args.json:
+        print(json.dumps(settings))
+    else:
+        for k, v in settings.items():
+            print(f"{k}: {v}")
+
+
+def cmd_list(_args) -> None:
+    for name in scheme_names():
+        print(f"{name}: flavours [{', '.join(flavours_of(name))}]")
+    print(f"variants: {', '.join(VARIANTS)}")
+    print("modes: dark, light")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(prog="scheme", description=__doc__.splitlines()[0])
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    p_set = sub.add_parser("set", help="change scheme settings and re-render")
+    p_set.add_argument("--name")
+    p_set.add_argument("--flavour")
+    p_set.add_argument("--mode", choices=["dark", "light"])
+    p_set.add_argument("--variant", choices=VARIANTS)
+    p_set.add_argument("--random", action="store_true",
+                       help="pick a random preset scheme + flavour")
+    p_set.set_defaults(func=cmd_set)
+
+    p_sync = sub.add_parser("sync", help="regenerate colours + templates "
+                            "(e.g. after a wallpaper change)")
+    p_sync.set_defaults(func=cmd_sync)
+
+    p_get = sub.add_parser("get", help="show current settings")
+    p_get.add_argument("--json", action="store_true")
+    p_get.set_defaults(func=cmd_get)
+
+    p_list = sub.add_parser("list", help="list schemes / flavours / variants")
+    p_list.set_defaults(func=cmd_list)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
