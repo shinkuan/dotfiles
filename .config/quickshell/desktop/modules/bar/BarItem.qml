@@ -54,6 +54,11 @@ Rectangle {
             if (pressX >= 0 && root.bar)
                 root.bar.dragged(m.x - pressX);
         }
-        onClicked: m => root.clicked(m)
+        onClicked: m => {
+            root.clicked(m);
+            // left click keeps the popout open until Esc / a click elsewhere
+            if (m.button === Qt.LeftButton && root.popout !== "" && root.bar)
+                root.bar.itemClicked(root.popout, root.mapToItem(root.bar, 0, root.height / 2).y);
+        }
     }
 }
