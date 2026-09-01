@@ -211,8 +211,6 @@ bind("CTRL + SUPER + Slash",
 -- ============================ --
 -- Screenshots / colour picker
 -- ============================ --
--- Direct grim/slurp/satty pipeline. The frozen-region picker (screencopy
--- overlay with window snapping) upgrades the region binds in Phase 3.
 local screenshot_dir = os.getenv("HOME") .. "/Pictures/Screenshots"
 local region_to_satty = 'mkdir -p "' .. screenshot_dir .. '" && '
     .. 'grim -g "$(slurp)" - | satty -f - -o "' .. screenshot_dir
@@ -234,8 +232,6 @@ bind("XF86AudioLowerVolume", dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0
 -- ============================ --
 -- Power / lock
 -- ============================ --
--- wlogout is not installed; reuse the session menu for now.
--- TODO(Phase 2): point at the new shell's session menu once it exists.
 bind("CTRL + SHIFT + ALT + Delete", dsp.global("caelestia:session"))
 bind("SUPER + L",                   dsp.exec_cmd("pidof hyprlock || hyprlock"))
 bind("SUPER + SHIFT + L",           dsp.exec_cmd("pidof hyprlock || hyprlock"))

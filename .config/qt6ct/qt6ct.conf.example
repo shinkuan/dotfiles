@@ -1,7 +1,5 @@
-; Template for qt6ct.conf — qt6ct stores color_scheme_path as a literal
-; string (no env var or ~ expansion), so the real qt6ct.conf is gitignored
-; and seeded from this file with @XDG_CONFIG_HOME@ replaced by the machine's
-; actual config root (install.sh does the substitution).
+; qt6ct can't expand env vars in color_scheme_path, so the real qt6ct.conf is
+; seeded from this template with @XDG_CONFIG_HOME@ substituted at install.
 [Appearance]
 color_scheme_path=@XDG_CONFIG_HOME@/qt6ct/colors/scheme.colors
 custom_palette=true

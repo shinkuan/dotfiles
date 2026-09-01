@@ -17,8 +17,7 @@ hl.on("hyprland.start", function()
     -- Forward bluetooth media commands to MPRIS
     hl.exec_cmd("mpris-proxy")
 
-    -- Clipboard history (text + images) — consumed by the launcher's
-    -- clipboard view
+    -- Clipboard history (text + images)
     hl.exec_cmd("wl-paste --type text --watch cliphist store")
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 

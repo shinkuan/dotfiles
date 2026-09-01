@@ -5,14 +5,9 @@
 #   wallpaper -r [dir]     random image from dir (default: ~/Pictures/Wallpapers)
 #   wallpaper -g           print current wallpaper path
 #
-# Pipeline: record wallpaper state -> `scheme sync` (M3 palette + all consumer
-# templates) -> terminal palette (hellwal by default, or the M3 term colours,
-# per the scheme config switch) -> hyprctl reload -> tell the shell.
-#
-# This replaces the caelestia-cli wallpaper flow, including its two hooks:
-# the hypr scheme conf is rendered directly by `scheme`, and hellwal (the old
-# wallpaper.postHook) is invoked right here — without this call, terminal
-# colours silently stop following the wallpaper.
+# Pipeline: record wallpaper state -> `scheme sync` -> terminal palette
+# (hellwal or M3, per the scheme config switch) -> hyprctl reload -> shell.
+# hellwal must be invoked here: nothing else regenerates terminal colours.
 set -euo pipefail
 
 CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"

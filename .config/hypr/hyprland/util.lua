@@ -30,17 +30,15 @@ function M.hex_rgb(hex)
     return string.format("[%.8g %.8g %.8g]", r, g, b), r, g, b
 end
 
---- XDG base-directory roots. Every path in this config tree must be derived
---- from these (never a hardwired $HOME/.config), so that a nested test
---- session can point XDG_CONFIG_HOME at a worktree and stay fully isolated
---- from the live config.
+--- XDG base-dir roots; all paths in this config tree derive from these so
+--- the whole tree relocates with XDG_CONFIG_HOME.
 
----@return string  e.g. "/home/user/.config"
+---@return string
 function M.config_home()
     return os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
 end
 
----@return string  this config tree's root, e.g. "/home/user/.config/hypr"
+---@return string
 function M.hypr_dir()
     return M.config_home() .. "/hypr"
 end

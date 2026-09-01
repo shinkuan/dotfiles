@@ -26,11 +26,9 @@ if [[ ! -f "$REPO_ROOT/.config/hypr/hyprland/local.lua" ]]; then
     echo "      see local.lua.example." >&2
 fi
 
-# Until Phase 5 the nested session still autostarts the caelestia shell.
-# Without a cli.json it falls back to defaults, which apply themes globally —
-# including OSC colour sequences written to EVERY /dev/pts, i.e. it restains
-# the outer session's open terminals. Seed a config with all theme outputs
-# disabled (gitignored, like the other worktree seeds).
+# A configless caelestia shell applies themes globally (its terminal
+# sequences hit every /dev/pts, outer session included) — seed a cli.json
+# with all theme outputs disabled.
 if [[ ! -f "$REPO_ROOT/.config/caelestia/cli.json" ]]; then
     echo "seeding .config/caelestia/cli.json (all theme outputs disabled)" >&2
     mkdir -p "$REPO_ROOT/.config/caelestia"
