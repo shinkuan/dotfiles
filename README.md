@@ -90,7 +90,7 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 | `Ctrl+Alt+N` | 通知中心;`Ctrl+Alt+C` 清空通知 |
 | `Ctrl+Super+{Z,X,C,A,S,D,Q,W,E,Space}` | 切換 KGrid activity(`Space` = main) |
 | `Ctrl+Super+方向鍵` | 在 5×5 格子內移動(加 `Shift` 帶著視窗) |
-| `Print` / `Super+Shift+S` | 區域截圖(satty);`Super+Shift+Alt+S` 進剪貼簿;`Super+Print` 抓視窗 |
+| `Print` / `Super+Shift+S` | 區域截圖(satty);`Super+Shift+Alt+S` 進剪貼簿;`Super+Print` 抓視窗;`Super+Alt+Print` 整個螢幕 |
 | `Alt+XF86AudioPlay` | 音訊 popout(切換輸出裝置) |
 
 ## Theming

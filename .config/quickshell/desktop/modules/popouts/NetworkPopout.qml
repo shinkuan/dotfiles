@@ -14,7 +14,10 @@ ColumnLayout {
     width: Config.popouts.width
     spacing: 6
 
-    Component.onCompleted: Net.setScanning(true)
+    Component.onCompleted: {
+        Net.setScanning(true);
+        Net.refreshAddresses();
+    }
     Component.onDestruction: Net.setScanning(false)
 
     ListItem {
@@ -22,7 +25,7 @@ ColumnLayout {
         visible: Net.wired !== null
         icon: "lan"
         title: "Wired"
-        subtitle: Net.wired?.connected ? `Connected · ${Net.wired.address}` + (Net.wired.linkSpeed ? ` · ${Net.wired.linkSpeed} Mb/s` : "") : Net.wired?.hasLink ? "Link up, not connected" : "No link"
+        subtitle: Net.wired?.connected ? `Connected · ${Net.addressOf(Net.wired)}` + (Net.wired.linkSpeed ? ` · ${Net.wired.linkSpeed} Mb/s` : "") : Net.wired?.hasLink ? "Link up, not connected" : "No link"
         active: Net.wired?.connected ?? false
         accent: Colours.success
     }
@@ -76,7 +79,7 @@ ColumnLayout {
                 width: parent.width
                 icon: Net.signalIcon(modelData.signalStrength)
                 title: modelData.name
-                subtitle: modelData.connected ? "Connected" : modelData.stateChanging ? "Connecting…" : modelData.known ? "Saved" : Net.secured(modelData) ? "Secured" : "Open"
+                subtitle: modelData.connected ? "Connected" + (Net.addressOf(Net.wifi) ? ` · ${Net.addressOf(Net.wifi)}` : "") : modelData.stateChanging ? "Connecting…" : modelData.known ? "Saved" : Net.secured(modelData) ? "Secured" : "Open"
                 active: modelData.connected
                 onClicked: {
                     if (modelData.connected)

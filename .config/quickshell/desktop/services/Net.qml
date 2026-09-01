@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Networking
 
 Singleton {
@@ -14,6 +15,7 @@ Singleton {
     readonly property var activeWifi: wifi?.networks.values.find(n => n.connected) ?? null
     readonly property bool connected: wiredConnected || activeWifi !== null
     property bool scanning: false
+    property var addresses: ({})   // device name -> IPv4
 
     // strongest entry per SSID, connected first
     readonly property list<var> wifiNetworks: {
@@ -47,6 +49,36 @@ Singleton {
 
     function secured(net): bool {
         return net && net.security !== WifiSecurityType.Open;
+    }
+
+    function refreshAddresses(): void {
+        if (!addr.running)
+            addr.running = true;
+    }
+
+    function addressOf(dev): string {
+        if (!dev)
+            return "";
+        return addresses[dev.name] ?? dev.address ?? "";
+    }
+
+    Process {
+        id: addr
+
+        command: ["nmcli", "-t", "-f", "GENERAL.DEVICE,IP4.ADDRESS", "device", "show"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const out = {};
+                let dev = "";
+                for (const line of text.split("\n")) {
+                    if (line.startsWith("GENERAL.DEVICE:"))
+                        dev = line.slice(15);
+                    else if (line.startsWith("IP4.ADDRESS[1]:") && dev)
+                        out[dev] = line.slice(15).split("/")[0];
+                }
+                root.addresses = out;
+            }
+        }
     }
 
     function setScanning(on: bool): void {

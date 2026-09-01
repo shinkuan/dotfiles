@@ -8,3 +8,4 @@ ResourcesModule 1.0 ResourcesModule.qml
 PowerButton 1.0 PowerButton.qml
 NotifIcon 1.0 NotifIcon.qml
 MediaModule 1.0 MediaModule.qml
+ActiveWindow 1.0 ActiveWindow.qml

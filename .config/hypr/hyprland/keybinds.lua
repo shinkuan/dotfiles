@@ -196,6 +196,7 @@ local region_to_clipboard = 'qs -c desktop ipc call screenshot regionCopy || (gr
 bind("Print",                   dsp.exec_cmd(region_to_satty), { locked = true })
 bind("SUPER + SHIFT + S",       dsp.exec_cmd(region_to_satty))                    -- region -> satty
 bind("SUPER + Print",           dsp.exec_cmd("hyprshot -m window"))               -- window capture
+bind("SUPER + ALT + Print",     dsp.exec_cmd('mkdir -p "' .. screenshot_dir .. '" && grim -o "$(hyprctl -j activeworkspace | jq -r .monitor)" - | satty -f - -o "' .. screenshot_dir .. '/%Y%m%d-%H%M%S.png" --copy-command wl-copy --early-exit all')) -- whole monitor
 bind("SUPER + SHIFT + ALT + S", dsp.exec_cmd(region_to_clipboard))                -- region -> clipboard
 bind("SUPER + SHIFT + C",       dsp.exec_cmd("hyprpicker -a"))
 

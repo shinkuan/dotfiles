@@ -80,6 +80,10 @@ Item {
             monitor: root.monitor
         }
 
+        ActiveWindow {
+            Layout.alignment: Qt.AlignHCenter
+        }
+
         Item {
             Layout.fillHeight: true
         }

@@ -11,9 +11,18 @@ BarItem {
     required property HyprlandMonitor monitor
     readonly property string wsName: monitor?.activeWorkspace?.name ?? ""
     readonly property var cell: KGrid.parse(wsName)
+    readonly property var occupancy: cell ? KGrid.occupancy(cell.activity) : ({})
 
     popout: "kgrid"
     spacing: 3
+
+    // wheel moves vertically through the grid
+    WheelHandler {
+        onWheel: e => {
+            if (root.cell)
+                KGrid.switchTo(root.cell.activity, root.cell.x, Math.max(1, Math.min(KGrid.rows, root.cell.y + (e.angleDelta.y < 0 ? 1 : -1))));
+        }
+    }
 
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -36,11 +45,12 @@ BarItem {
             Rectangle {
                 required property int index
                 readonly property bool here: root.cell && root.cell.x === index % KGrid.columns + 1 && root.cell.y === Math.floor(index / KGrid.columns) + 1
+                readonly property bool occupied: (root.occupancy[(index % KGrid.columns + 1) + "," + (Math.floor(index / KGrid.columns) + 1)] ?? 0) > 0
 
                 width: 4
                 height: 4
                 radius: 2
-                color: here ? Colours.primary : Colours.alpha(Colours.surfaceVariantText, 0.35)
+                color: here ? Colours.primary : occupied ? Colours.alpha(Colours.surfaceText, 0.7) : Colours.alpha(Colours.surfaceVariantText, 0.3)
             }
         }
     }

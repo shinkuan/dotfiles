@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Services.UPower
 import "../../config"
 import "../../services"
@@ -154,6 +155,14 @@ ColumnLayout {
             detail: ShellState.desktopClock ? "Shown on wallpaper" : "Hidden"
             checked: ShellState.desktopClock
             onClicked: ShellState.toggle("desktopClock")
+        }
+
+        ToggleTile {
+            icon: Colours.light ? "light_mode" : "dark_mode"
+            label: Colours.light ? "Light mode" : "Dark mode"
+            detail: "Colour scheme"
+            checked: Colours.light
+            onClicked: Quickshell.execDetached(["scheme", "set", "--mode", Colours.light ? "dark" : "light"])
         }
 
         ToggleTile {

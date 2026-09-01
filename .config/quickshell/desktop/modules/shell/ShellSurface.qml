@@ -199,10 +199,34 @@ PanelWindow {
         Keys.onEscapePressed: popouts.close()
     }
 
+    // the grab is armed a moment after the layer takes keyboard focus;
+    // arming it while an app still holds focus clears it instantly
+    Timer {
+        id: grabDelay
+
+        interval: 150
+        onTriggered: grab.active = popouts.shortcutActive
+    }
+
+    Connections {
+        target: popouts
+
+        function onShortcutActiveChanged(): void {
+            if (popouts.shortcutActive)
+                grabDelay.restart();
+            else
+                grab.active = false;
+        }
+    }
+
     HyprlandFocusGrab {
-        active: popouts.shortcutActive
+        id: grab
+
         windows: [root]
-        onCleared: popouts.close()
+        onCleared: {
+            if (popouts.shortcutActive)
+                popouts.close();
+        }
     }
 
     Connections {
