@@ -1,3 +1,7 @@
+# XDG fallback for contexts without the Hyprland session env (ssh, tty) —
+# fastfetch's config expands $XDG_CONFIG_HOME and has no fallback of its own.
+set -q XDG_CONFIG_HOME; or set -gx XDG_CONFIG_HOME $HOME/.config
+
 if status is-interactive
     # Commands to run in interactive sessions can go here
     set fish_greeting
@@ -17,7 +21,6 @@ alias ll='ls -alh --color=auto'
 alias vi=vim
 
 set -gx QT_QPA_PLATFORMTHEME qt6ct
-# cat ~/.local/state/caelestia/sequences.txt
 
 # CUDA
 # set -x CUDA_PATH "/opt/cuda"

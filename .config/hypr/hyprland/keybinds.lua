@@ -257,7 +257,7 @@ bind("SUPER + ALT + W",        dsp.exec_cmd("killall -s SIGUSR1 waifuland"))
 bind("CTRL + SUPER + ALT + W", dsp.exec_cmd("killall -s SIGUSR2 waifuland"))
 
 -- Sunshine
-bind("SUPER + ALT + S", dsp.exec_cmd("pkill sunshine || ~/.local/bin/sunshine.sh"))
+bind("SUPER + ALT + S", dsp.exec_cmd("pkill sunshine || " .. os.getenv("HOME") .. "/.local/bin/sunshine.sh"))
 
 -- Toggle third monitor
 bind("SUPER + ALT + T", dsp.exec_cmd(os.getenv("HOME") .. "/.config/hypr/custom_scripts/toggle_third_monitor.sh"))

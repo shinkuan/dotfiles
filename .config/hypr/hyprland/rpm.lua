@@ -9,13 +9,14 @@
 -- /var/cache/hyprpm/<user>/<repo>/<plugin>.so.
 local HOME   = os.getenv("HOME")
 local util   = require("hyprland.util")
+local HYPR   = util.hypr_dir()
 -- Match hyprpm's cache dir, which is keyed by the login name. Derive it from
 -- $HOME (which Hyprland always sets) rather than trusting a possibly-stale
 -- $USER; fall back to $USER only if $HOME is somehow unusable.
 local USER   = (HOME and HOME:match("([^/]+)/?$")) or os.getenv("USER") or ""
 local SO     = "/var/cache/hyprpm/" .. USER .. "/Hypr-DarkWindow/Hypr-DarkWindow.so"
 local SHADER = "chromakey_vscode"
-local TOGGLE = HOME .. "/.config/hypr/custom_scripts/toggle_darkwindow_shader.sh"
+local TOGGLE = HYPR .. "/custom_scripts/toggle_darkwindow_shader.sh"
 local RUNTIME_DIR = os.getenv("XDG_RUNTIME_DIR")
 local INSTANCE    = os.getenv("HYPRLAND_INSTANCE_SIGNATURE")
 local RUNTIME     = RUNTIME_DIR and INSTANCE and (RUNTIME_DIR .. "/hypr/" .. INSTANCE)
@@ -60,7 +61,7 @@ local dw = hl.plugin.darkwindow
 if type(dw) ~= "table" or type(dw.load_shader) ~= "function" then return end
 
 dw.load_shader(SHADER, {
-    path                    = HOME .. "/.config/hypr/shaders/multi_chromakey.frag",
+    path                    = HYPR .. "/shaders/multi_chromakey.frag",
     introduces_transparency = true,
     args                    = "count=3"
         .. " bkg[0]=" .. util.hex_rgb("#121314") .. " similarity[0]=0.03 amount[0]=1 targetOpacity[0]=0.70"

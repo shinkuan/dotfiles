@@ -1,0 +1,14 @@
+; Template for qt6ct.conf — qt6ct stores color_scheme_path as a literal
+; string (no env var or ~ expansion), so the real qt6ct.conf is gitignored
+; and seeded from this file with @XDG_CONFIG_HOME@ replaced by the machine's
+; actual config root (install.sh does the substitution).
+[Appearance]
+color_scheme_path=@XDG_CONFIG_HOME@/qt6ct/colors/scheme.colors
+custom_palette=true
+icon_theme=Papirus-Dark
+standard_dialogs=default
+style=Darkly
+
+[Fonts]
+fixed="Monospace,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
+general="Sans Serif,12,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
