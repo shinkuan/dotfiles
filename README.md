@@ -109,3 +109,16 @@ Never switch branches in this checkout: `~/.config` is symlinked into it, so
 the checked-out tree *is* the running desktop. Work on diverging branches in a
 separate `git worktree` and test in a nested Hyprland session
 (`dev/README.md`).
+
+### Switching a running machine to a new shell version
+
+1. Merge (or fast-forward) the branch into the checkout that `~/.config`
+   points at — never `git switch` there.
+2. `./install.sh --link` to link new systemd units / scripts and seed any new
+   gitignored files, then `systemctl --user daemon-reload`.
+3. Log out and back in: `execs.lua` starts `desktop-shell.service` at session
+   start. From a running session, `systemctl --user restart desktop-shell`
+   restarts only the shell.
+4. Rollback is a `git revert` of the merge plus another relogin; the previous
+   shell's packages are never removed by this repo, so nothing needs
+   reinstalling.
