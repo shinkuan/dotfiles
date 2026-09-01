@@ -142,13 +142,24 @@ Singleton {
         hidePopup(id);
     }
 
+    property var hovered: ({})
+
+    function setHovered(id: int, on: bool): void {
+        const copy = Object.assign({}, hovered);
+        if (on)
+            copy[id] = true;
+        else
+            delete copy[id];
+        hovered = copy;
+    }
+
     Component {
         id: expireComp
 
         Timer {
             property int notifId
 
-            running: true
+            running: !root.hovered[notifId]
             onTriggered: {
                 root.hidePopup(notifId);
                 destroy();

@@ -12,16 +12,17 @@ Singleton {
     readonly property PwNode source: Pipewire.defaultAudioSource
     readonly property list<PwNode> sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && (n.type & PwNodeType.Audio))
     readonly property list<PwNode> sources: Pipewire.nodes.values.filter(n => !n.isSink && !n.isStream && (n.type & PwNodeType.Audio))
-    readonly property list<PwNode> streams: Pipewire.nodes.values.filter(n => n.isStream && (n.type & PwNodeType.Audio) && !n.isSink)
+    readonly property list<PwNode> streams: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioOutStream)
 
     readonly property real volume: sink?.audio?.volume ?? 0
     readonly property bool muted: sink?.audio?.muted ?? true
     readonly property real sourceVolume: source?.audio?.volume ?? 0
     readonly property bool sourceMuted: source?.audio?.muted ?? true
-    readonly property bool playing: streams.some(s => s.ready && s.properties?.["state"] !== "suspended")
+    // a stream is audible only while its link to a sink is active
+    readonly property bool playing: Pipewire.links.values.some(l => l.state === PwLinkState.Active && (l.source?.isStream ?? false) && (l.target?.isSink ?? false))
 
     PwObjectTracker {
-        objects: [...root.sinks, ...root.sources, ...root.streams]
+        objects: [...root.sinks, ...root.sources, ...root.streams, ...Pipewire.links.values]
     }
 
     function displayName(node: PwNode): string {

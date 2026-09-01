@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell.Hyprland
 import "../../config"
 import "../../services"
@@ -81,6 +82,19 @@ Item {
     Component { id: powerComp; PowerPopout {} }
     Component { id: kgridComp; KGridPopout { monitor: root.monitor } }
     Component { id: notificationsComp; NotificationsPopout {} }
+
+    RectangularShadow {
+        anchors.fill: panel
+        radius: panel.radius
+        blur: 28
+        spread: 0
+        offset: Qt.vector2d(0, 6)
+        color: Colours.alpha(Colours.scrim, 0.45)
+        opacity: panel.opacity
+        scale: panel.scale
+        transformOrigin: panel.transformOrigin
+        visible: panel.visible
+    }
 
     Rectangle {
         id: panel

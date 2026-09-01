@@ -63,8 +63,8 @@ Singleton {
         WlrLayershell.namespace: "desktop-idle"
         color: "transparent"
         mask: Region {}
-        implicitWidth: 0
-        implicitHeight: 0
+        implicitWidth: 1
+        implicitHeight: 1
         exclusionMode: ExclusionMode.Ignore
 
         IdleInhibitor {

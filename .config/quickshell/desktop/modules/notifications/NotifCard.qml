@@ -38,6 +38,11 @@ Rectangle {
         return Qt.formatDate(d, "d MMM");
     }
 
+    HoverHandler {
+        enabled: !root.compact
+        onHoveredChanged: Notifs.setHovered(root.entry.id, hovered)
+    }
+
     MouseArea {
         property real pressX: -1
 

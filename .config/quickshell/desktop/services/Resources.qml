@@ -127,7 +127,7 @@ Singleton {
     Process {
         id: temp
 
-        command: ["sh", "-c", "cat /sys/class/hwmon/hwmon*/temp1_input 2>/dev/null | sort -n | tail -1"]
+        command: ["sh", "-c", "for d in /sys/class/hwmon/hwmon*; do case $(cat $d/name 2>/dev/null) in k10temp|zenpower|coretemp) cat $d/temp1_input; exit;; esac; done; cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null"]
         stdout: StdioCollector {
             onStreamFinished: root.cpuTemp = (parseInt(text) || 0) / 1000
         }

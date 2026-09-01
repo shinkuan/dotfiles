@@ -4,6 +4,7 @@ import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import "../../config"
 import "../../services"
+import "../../components"
 
 Column {
     id: root
@@ -50,6 +51,27 @@ Column {
 
             WheelHandler {
                 onWheel: e => slot.modelData.scroll(e.angleDelta.y, false)
+            }
+
+            Rectangle {
+                visible: hover.hovered && (slot.modelData.tooltipTitle || slot.modelData.title)
+                anchors.left: parent.right
+                anchors.leftMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                width: tip.implicitWidth + 16
+                height: tip.implicitHeight + 10
+                radius: 8
+                color: Colours.alpha(Colours.inverseSurface, 0.95)
+                z: 10
+
+                StyledText {
+                    id: tip
+
+                    anchors.centerIn: parent
+                    text: slot.modelData.tooltipTitle || slot.modelData.title
+                    color: Colours.inverseSurfaceText
+                    font.pixelSize: Config.fontSize - 1
+                }
             }
 
             QsMenuAnchor {
