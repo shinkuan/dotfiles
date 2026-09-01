@@ -122,3 +122,10 @@ separate `git worktree` and test in a nested Hyprland session
 4. Rollback is a `git revert` of the merge plus another relogin; the previous
    shell's packages are never removed by this repo, so nothing needs
    reinstalling.
+
+First-session checklist (things a nested test session cannot exercise):
+hover the left edge and drag the bar to pin it; right-click a tray icon;
+type in the launcher (`Super`); drag a window between cells in the overview
+(`Super+Tab`); run `pkexec true` for the polkit dialog; press a controller
+button and confirm `qs -c desktop ipc call idle isInhibited` says true;
+brightness keys on an external monitor; a real notification with actions.
