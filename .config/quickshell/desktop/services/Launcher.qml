@@ -20,6 +20,7 @@ Singleton {
     property list<var> clips: []
     property list<var> wallpapers: []
     property list<var> schemes: []
+    property list<var> emojis: []   // [{ char, name }]
     property bool hasApp2unit: false
     readonly property list<string> variants: ["tonalspot", "vibrant", "expressive", "fidelity", "fruitsalad", "monochrome", "neutral", "rainbow", "content"]
     readonly property string cacheDir: `${Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache"}/desktop-shell/clip`
@@ -108,6 +109,9 @@ Singleton {
         } else if (q.startsWith(p.clipPrefix)) {
             mode = "clip";
             term = q.slice(p.clipPrefix.length).trim().toLowerCase();
+        } else if (p.emojiPrefix !== "" && q.startsWith(p.emojiPrefix) && emojis.length > 0) {
+            mode = "emoji";
+            term = q.slice(p.emojiPrefix.length).trim().toLowerCase();
         } else {
             mode = "apps";
             term = q.trim().toLowerCase();
@@ -144,6 +148,9 @@ Singleton {
             break;
         case "wallpaper":
             out = wallpaperRows(term);
+            break;
+        case "emoji":
+            out = emojiRows(term);
             break;
         }
         results = out;
@@ -296,6 +303,47 @@ Singleton {
                 hide();
             }
         }));
+    }
+
+    function emojiRows(q: string): list<var> {
+        const list = q === "" ? emojis.slice(0, 60) : ranked(emojis, e => score(q, e.name)).slice(0, 60);
+        return list.map(e => ({
+            kind: "emoji",
+            title: e.name,
+            subtitle: "",
+            emoji: e.char,
+            hint: "copy + type",
+            run: () => {
+                Quickshell.execDetached(["wl-copy", "--", e.char]);
+                hide();
+                typeLater.text = e.char;
+                typeLater.restart();
+            }
+        }));
+    }
+
+    // typed after the overlay has released keyboard focus
+    Timer {
+        id: typeLater
+
+        property string text: ""
+
+        interval: 200
+        onTriggered: Quickshell.execDetached(["wtype", "--", text])
+    }
+
+    FileView {
+        path: Config.launcher.emojiFile
+        printErrors: false
+        onLoaded: {
+            const out = [];
+            for (const line of text().split("\n")) {
+                const m = line.match(/^[0-9A-F ]+;\s*fully-qualified\s*#\s*(\S+)\s+E[\d.]+\s+(.*)$/);
+                if (m)
+                    out.push({ char: m[1], name: m[2] });
+            }
+            root.emojis = out;
+        }
     }
 
     function activate(index: int): void {

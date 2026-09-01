@@ -125,6 +125,7 @@ PACKAGES=(
     hellwal
     matugen-bin
     libqalculate
+    unicode-emoji             # launcher emoji picker data
     yad
 
     # ----- File manager / GUI utilities -----

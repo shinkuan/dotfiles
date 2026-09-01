@@ -96,6 +96,8 @@ Singleton {
                 property string actionPrefix: ">"
                 property string calcPrefix: "="
                 property string clipPrefix: ";"
+                property string emojiPrefix: ":"
+                property string emojiFile: "/usr/share/unicode/emoji/emoji-test.txt"
                 property bool fuzzy: true
                 property bool showDangerous: false
                 property var actions: []

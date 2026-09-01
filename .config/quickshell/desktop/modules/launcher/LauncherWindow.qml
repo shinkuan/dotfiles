@@ -47,6 +47,8 @@ PanelWindow {
             return "colors";
         case "wallpaper":
             return "image";
+        case "emoji":
+            return "mood";
         }
         return "search";
     }
@@ -65,6 +67,8 @@ PanelWindow {
             return "Scheme variant";
         case "wallpaper":
             return "Wallpaper";
+        case "emoji":
+            return "Emoji";
         }
         return `Search apps  ·  ${Config.launcher.actionPrefix} actions  ·  ${Config.launcher.calcPrefix} calc  ·  ${Config.launcher.clipPrefix} clipboard`;
     }

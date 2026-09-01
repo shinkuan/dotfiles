@@ -65,7 +65,7 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 - **通知**:自帶 notification daemon;popup 可中鍵 / 右滑關閉、支援 action 與 inline reply;
   歷史持久化在 `$XDG_STATE_HOME/desktop-shell/`;勿擾模式。
 - **Launcher**(`Super` 單擊 / `Super+Space`):app 搜尋、`>` 動作(色票 / variant / 桌布 /
-  明暗 / 電源…,定義在 `config.json`)、`=` 計算(qalc)、`;` 剪貼簿歷史(cliphist,含圖片縮圖)。
+  明暗 / 電源…,定義在 `config.json`)、`=` 計算(qalc)、`;` 剪貼簿歷史(cliphist,含圖片縮圖)、`:` emoji(複製並輸入)。
   數學式子直接輸入也會算。
 - **Overview**(`Super+Tab`):目前 activity 的 5×5 格子 + 即時視窗預覽;點格子切換、
   點視窗聚焦、中鍵關閉、拖曳視窗到別的格子;方向鍵 / Enter / Tab / 字母鍵切 activity。

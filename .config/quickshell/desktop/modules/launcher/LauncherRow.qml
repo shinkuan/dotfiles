@@ -50,6 +50,14 @@ Rectangle {
                 asynchronous: true
             }
 
+            StyledText {
+                visible: root.entry.emoji !== undefined
+                anchors.centerIn: parent
+                text: root.entry.emoji ?? ""
+                font.family: "Noto Color Emoji"
+                font.pixelSize: 24
+            }
+
             MaterialIcon {
                 visible: root.entry.icon !== undefined && !(root.entry.image && thumb.status === Image.Ready)
                 anchors.centerIn: parent

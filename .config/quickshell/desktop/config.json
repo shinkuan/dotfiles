@@ -42,6 +42,7 @@
         "actionPrefix": ">",
         "calcPrefix": "=",
         "clipPrefix": ";",
+        "emojiPrefix": ":",
         "fuzzy": true,
         "showDangerous": false,
         "actions": [
