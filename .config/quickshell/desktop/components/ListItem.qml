@@ -12,12 +12,33 @@ Clickable {
     property string title: ""
     property string subtitle: ""
     property bool active: false
-    property color accent: Colours.primary
+    property color accent: Theme.accent
     default property alias trailing: trailingRow.data
 
-    implicitHeight: 44
+    implicitHeight: Theme.ledger ? 38 : 44
     implicitWidth: row.implicitWidth
-    baseColor: active ? Colours.alpha(accent, 0.16) : "transparent"
+    radius: active && Theme.activePill ? height / 2 : Theme.radiusItem
+    baseColor: active ? (Theme.capsule ? Theme.activeFill : Theme.ledger ? "transparent" : Colours.alpha(accent, Theme.rim ? 0.11 : Theme.signal ? 0.12 : 0.16)) : "transparent"
+
+    // Rim / Ledger: indicator rule on the left; Ledger: dashed row dividers
+    Rectangle {
+        visible: root.active && Theme.activeBar
+        x: 0
+        y: Theme.ledger ? 4 : 6
+        width: 2
+        height: parent.height - y * 2
+        radius: 1
+        color: root.accent
+    }
+
+    Rectangle {
+        visible: Theme.ruledRows
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 1
+        color: Colours.alpha(Colours.outlineVariant, 0.5)
+    }
 
     RowLayout {
         id: row
@@ -41,8 +62,9 @@ Clickable {
             StyledText {
                 Layout.fillWidth: true
                 text: root.title
-                color: root.active ? root.accent : Colours.surfaceText
-                font.weight: root.active ? Font.DemiBold : Font.Normal
+                color: root.active && !Theme.capsule ? root.accent : Colours.surfaceText
+                font.weight: root.active ? (Theme.ledger ? Font.Medium : Font.DemiBold) : Font.Normal
+                font.underline: root.active && Theme.activeUnderline
             }
 
             StyledText {

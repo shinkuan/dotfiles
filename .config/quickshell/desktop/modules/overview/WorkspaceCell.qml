@@ -16,10 +16,10 @@ Rectangle {
 
     width: overview.cellW
     height: overview.cellH
-    radius: Config.radius
-    color: current ? Colours.alpha(Colours.primary, 0.14) : hover.hovered ? Colours.alpha(Colours.surfaceContainerHighest, 0.9) : Colours.alpha(Colours.surfaceContainer, 0.75)
-    border.width: current || selected ? 2 : 1
-    border.color: current ? Colours.primary : selected ? Colours.secondary : Colours.alpha(Colours.outlineVariant, 0.6)
+    radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
+    color: current ? Colours.alpha(Theme.accent, 0.14) : hover.hovered ? Colours.alpha(Colours.surfaceContainerHighest, 0.9) : Colours.alpha(Theme.panel, 0.85)
+    border.width: current || selected ? (Theme.outlined ? 1 : 2) : 1
+    border.color: current ? Theme.accent : selected ? Colours.secondary : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
 
     Behavior on color {
         ColorAnimation {
@@ -51,7 +51,7 @@ Rectangle {
         anchors.top: parent.top
         anchors.margins: 6
         text: `${root.cx},${root.cy}`
-        color: root.current ? Colours.primary : Colours.alpha(Colours.surfaceVariantText, 0.7)
+        color: root.current ? Theme.accent : Colours.alpha(Colours.surfaceVariantText, 0.7)
         font.pixelSize: Config.fontSize - 2
         font.family: Config.fontFamilyMono
     }

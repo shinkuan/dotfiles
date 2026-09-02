@@ -3,29 +3,52 @@ import QtQuick.Layouts
 import "../config"
 import "../services"
 
-RowLayout {
+// Section heading; Ledger rules it, Signal marks it, the rest set it in the
+// theme's label face.
+ColumnLayout {
     id: root
 
     property alias text: label.text
     default property alias trailing: trailing.data
 
-    spacing: 8
+    spacing: 4
     Layout.fillWidth: true
+    Layout.topMargin: Theme.labelRuled ? 4 : 0
 
-    StyledText {
-        id: label
-
+    RowLayout {
         Layout.fillWidth: true
-        color: Colours.primary
-        font.pixelSize: Config.fontSize - 1
-        font.weight: Font.DemiBold
-        font.capitalization: Font.AllUppercase
-        font.letterSpacing: 1
+        spacing: 8
+
+        Rectangle {
+            visible: Theme.labelMarker
+            width: 5
+            height: 5
+            color: Theme.labelColor
+        }
+
+        StyledText {
+            id: label
+
+            Layout.fillWidth: true
+            color: Theme.labelColor
+            font.family: Theme.fontLabel
+            font.pixelSize: Theme.labelSize
+            font.weight: Theme.labelWeight
+            font.capitalization: Theme.labelUpper ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: Theme.labelSpacing
+        }
+
+        Row {
+            id: trailing
+
+            spacing: 4
+        }
     }
 
-    Row {
-        id: trailing
-
-        spacing: 4
+    Rectangle {
+        visible: Theme.labelRuled
+        Layout.fillWidth: true
+        height: 1
+        color: Colours.outlineVariant
     }
 }

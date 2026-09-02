@@ -9,15 +9,15 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string fontFamily: "Rubik"
-    readonly property string fontFamilyMono: "CaskaydiaCove Nerd Font"
+    readonly property string fontFamily: Theme.font
+    readonly property string fontFamilyMono: Theme.fontMono
     readonly property string iconFont: "Material Symbols Rounded"
     readonly property int fontSize: 13
     readonly property int iconSize: 21
 
-    readonly property int radius: 12
-    readonly property int radiusLarge: 20
-    readonly property int padding: 12
+    readonly property int radius: Theme.radiusItem
+    readonly property int radiusLarge: Theme.radius
+    readonly property int padding: Theme.padding
 
     readonly property real animSpeed: adapter.animation.scale
     readonly property int animDurationFast: Math.round(150 * animSpeed)
@@ -26,10 +26,11 @@ Singleton {
 
     readonly property int borderThickness: adapter.border.thickness
     readonly property int borderRounding: adapter.border.rounding
-    readonly property int barWidth: adapter.bar.width
+    readonly property int barWidth: Theme.barSpan
     readonly property int barPinThreshold: adapter.bar.pinThreshold
 
     readonly property alias bar: adapter.bar
+    readonly property alias appearance: adapter.appearance
     readonly property alias popouts: adapter.popouts
     readonly property alias osd: adapter.osd
     readonly property alias kgrid: adapter.kgrid
@@ -53,6 +54,9 @@ Singleton {
         adapter: JsonAdapter {
             id: adapter
 
+            property JsonObject appearance: JsonObject {
+                property string style: "rim"   // rim | ledger | capsule | signal | classic
+            }
             property JsonObject animation: JsonObject {
                 property real scale: 0.8
             }

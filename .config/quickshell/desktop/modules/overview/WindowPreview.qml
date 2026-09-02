@@ -33,10 +33,10 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 4
+        radius: Theme.capsule ? 8 : Theme.outlined ? 0 : 4
         color: Colours.surfaceContainerHighest
         border.width: 1
-        border.color: hover.hovered ? Colours.primary : Colours.alpha(Colours.outline, 0.6)
+        border.color: hover.hovered ? Theme.accent : Colours.alpha(Colours.outline, 0.6)
         clip: true
 
         ScreencopyView {

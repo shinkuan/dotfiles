@@ -1,8 +1,8 @@
 import QtQuick
-import QtQuick.Effects
 import Quickshell.Hyprland
 import "../../config"
 import "../../services"
+import "../../components"
 
 // Hover panel anchored beside the bar. Geometry (x/y/width/height) is the
 // interactive area handed to the surface mask; it includes the gap between
@@ -90,30 +90,12 @@ Item {
     Component { id: mediaComp; MediaPopout {} }
     Component { id: windowComp; WindowPopout {} }
 
-    RectangularShadow {
-        anchors.fill: panel
-        radius: panel.radius
-        blur: 28
-        spread: 0
-        offset: Qt.vector2d(0, 6)
-        color: Colours.alpha(Colours.scrim, 0.45)
-        opacity: panel.opacity
-        scale: panel.scale
-        transformOrigin: panel.transformOrigin
-        visible: panel.visible
-    }
-
-    Rectangle {
+    Surface {
         id: panel
 
         x: root.gap
         width: loader.item ? loader.item.width + Config.padding * 2 : 0
         height: loader.item ? loader.item.height + Config.padding * 2 : 0
-        radius: Config.radiusLarge
-        color: Colours.surfaceContainer
-        border.width: 1
-        border.color: Colours.alpha(Colours.outlineVariant, 0.5)
-        clip: true
 
         opacity: root.shown ? 1 : 0
         scale: root.shown ? 1 : 0.92

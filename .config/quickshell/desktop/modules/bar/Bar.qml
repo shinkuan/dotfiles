@@ -15,8 +15,8 @@ Item {
     signal dragged(real dx)
     signal itemClicked(string popout, real y)
 
-    width: Config.barWidth
-    x: revealed ? 0 : -width
+    width: Theme.barWidth
+    x: revealed ? Theme.barMargin : -width
 
     Behavior on x {
         NumberAnimation {
@@ -62,17 +62,32 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        color: Colours.alpha(Colours.surface, 0.92)
-        topRightRadius: Config.borderRounding
-        bottomRightRadius: Config.borderRounding
+        anchors.topMargin: Theme.barMargin
+        anchors.bottomMargin: Theme.barMargin
+        color: Theme.barColor
+        radius: Theme.capsule ? Theme.barRadius : 0
+        topRightRadius: Theme.barRadius
+        bottomRightRadius: Theme.barRadius
+
+        // Ledger / Signal / Rim: a hairline on the exposed edge
+        Rectangle {
+            visible: Theme.barEdgeLine
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.topMargin: Theme.rim ? Theme.barRadius : 0
+            anchors.bottomMargin: Theme.rim ? Theme.barRadius : 0
+            width: 1
+            color: Theme.signal ? Colours.alpha(Theme.accent, 0.25) : Colours.alpha(Colours.outlineVariant, Theme.rim ? 0.5 : 1)
+        }
     }
 
     ColumnLayout {
         id: layout
 
         anchors.fill: parent
-        anchors.topMargin: 10
-        anchors.bottomMargin: 10
+        anchors.topMargin: 10 + Theme.barMargin
+        anchors.bottomMargin: 10 + Theme.barMargin
         spacing: 6
 
         KGridIndicator {

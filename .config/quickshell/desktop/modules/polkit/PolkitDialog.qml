@@ -48,14 +48,10 @@ PanelWindow {
         }
     }
 
-    Rectangle {
+    Surface {
         anchors.centerIn: parent
         width: 440
         height: column.implicitHeight + 48
-        radius: Config.radiusLarge
-        color: Colours.surfaceContainer
-        border.width: 1
-        border.color: Colours.alpha(Colours.outlineVariant, 0.5)
 
         ColumnLayout {
             id: column
@@ -72,12 +68,12 @@ PanelWindow {
                     width: 48
                     height: 48
                     radius: 24
-                    color: Colours.alpha(Colours.primary, 0.15)
+                    color: Colours.alpha(Theme.accent, 0.15)
 
                     MaterialIcon {
                         anchors.centerIn: parent
                         text: "lock"
-                        color: Colours.primary
+                        color: Theme.accent
                         fill: true
                         font.pixelSize: Config.iconSize + 4
                     }
@@ -135,10 +131,10 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true
                 height: 42
-                radius: Config.radius
-                color: Colours.surfaceContainerHighest
-                border.width: input.activeFocus ? 2 : 0
-                border.color: Colours.primary
+                radius: Theme.capsule ? 21 : Theme.radiusItem
+                color: Theme.field
+                border.width: input.activeFocus ? (Theme.outlined ? 1 : 2) : Theme.outlined ? 1 : 0
+                border.color: input.activeFocus ? Theme.accent : Colours.outlineVariant
 
                 TextInput {
                     id: input

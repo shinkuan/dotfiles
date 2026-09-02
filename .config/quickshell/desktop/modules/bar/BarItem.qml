@@ -21,10 +21,23 @@ Rectangle {
 
     signal clicked(var mouse)
 
-    implicitWidth: Config.barWidth - 8
+    implicitWidth: Theme.barWidth - 8
     implicitHeight: column.implicitHeight + 10
-    radius: Config.radius
-    color: active ? Colours.alpha(Colours.primary, 0.18) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
+    radius: Theme.barItemRadius
+    color: active ? (Theme.barItemFilled ? Colours.alpha(Theme.accent, 0.3) : Theme.barItemOutlined ? "transparent" : Colours.alpha(Theme.accent, 0.18)) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
+    border.width: active && Theme.barItemOutlined ? 1 : 0
+    border.color: Theme.accent
+
+    // Rim / Ledger: a 2px indicator on the screen edge
+    Rectangle {
+        visible: root.active && Theme.activeBar
+        x: Theme.rim ? -4 : -(Theme.barWidth - root.width) / 2
+        y: 6
+        width: 2
+        height: parent.height - 12
+        radius: 1
+        color: Theme.accent
+    }
 
     Behavior on color {
         ColorAnimation {

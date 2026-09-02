@@ -61,15 +61,11 @@ Item {
         }
     }
 
-    Rectangle {
+    Surface {
         id: panel
 
         width: column.implicitWidth + 48
         height: column.implicitHeight + 36
-        radius: Config.radiusLarge
-        color: Colours.alpha(Colours.surfaceContainer, 0.96)
-        border.width: 1
-        border.color: Colours.alpha(Colours.outlineVariant, 0.5)
 
         Column {
             id: column
@@ -80,9 +76,12 @@ Item {
             StyledText {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: root.cell ? KGrid.labelFor(root.cell.activity) : ""
-                color: Colours.primary
-                font.pixelSize: Config.fontSize + 9
+                color: Theme.accent
+                font.family: Theme.fontLabel
+                font.pixelSize: Theme.labelUpper ? Config.fontSize + 5 : Config.fontSize + 9
                 font.weight: Font.Bold
+                font.capitalization: Theme.labelUpper ? Font.AllUppercase : Font.MixedCase
+                font.letterSpacing: Theme.labelUpper ? Theme.labelSpacing * 2 : 0
             }
 
             Grid {
@@ -102,8 +101,8 @@ Item {
 
                         width: root.dot
                         height: root.dot
-                        radius: root.dot / 2
-                        color: here ? Colours.primary : occupied ? Colours.alpha(Colours.surfaceText, 0.55) : Colours.alpha(Colours.surfaceVariantText, 0.22)
+                        radius: Theme.outlined ? 0 : root.dot / 2
+                        color: here ? Theme.accent : occupied ? Colours.alpha(Colours.surfaceText, 0.55) : Colours.alpha(Colours.surfaceVariantText, 0.22)
                         scale: here ? 1.25 : 1
 
                         Behavior on scale {

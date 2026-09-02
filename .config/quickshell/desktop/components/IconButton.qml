@@ -14,16 +14,16 @@ Clickable {
 
     implicitWidth: size
     implicitHeight: size
-    radius: size / 2
-    baseColor: checked ? Colours.primary : "transparent"
-    hoverColor: checked ? Colours.mix(Colours.primary, Colours.primaryText, 0.12) : Colours.alpha(Colours.surfaceText, 0.08)
-    pressColor: checked ? Colours.mix(Colours.primary, Colours.primaryText, 0.24) : Colours.alpha(Colours.surfaceText, 0.14)
+    radius: Theme.outlined ? Theme.radiusChip : size / 2
+    baseColor: checked ? Theme.accent : "transparent"
+    hoverColor: checked ? Colours.mix(Theme.accent, Theme.accentText, 0.12) : Colours.alpha(Colours.surfaceText, 0.08)
+    pressColor: checked ? Colours.mix(Theme.accent, Theme.accentText, 0.24) : Colours.alpha(Colours.surfaceText, 0.14)
 
     MaterialIcon {
         id: icon
 
         anchors.centerIn: parent
-        color: root.checked ? Colours.primaryText : root.iconColor
+        color: root.checked ? Theme.accentText : root.iconColor
         font.pixelSize: root.iconSize
     }
 }

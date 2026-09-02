@@ -106,12 +106,9 @@ Item {
         }
     }
 
-    Rectangle {
+    Surface {
         anchors.fill: parent
-        radius: height / 2
-        color: Colours.alpha(Colours.surfaceContainer, 0.96)
-        border.width: 1
-        border.color: Colours.alpha(Colours.outlineVariant, 0.5)
+        radius: Theme.outlined ? Theme.radius : height / 2
 
         Row {
             anchors.centerIn: parent
@@ -120,7 +117,7 @@ Item {
             MaterialIcon {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.icon
-                color: root.muted ? Colours.outline : Colours.primary
+                color: root.muted ? Colours.outline : Theme.accent
                 fill: true
             }
 
@@ -129,7 +126,7 @@ Item {
                 width: 190
                 value: root.value
                 interactive: false
-                accent: root.muted ? Colours.outline : Colours.primary
+                accent: root.muted ? Colours.outline : Theme.accent
             }
 
             StyledText {

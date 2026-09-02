@@ -460,6 +460,16 @@ Singleton {
         }
     }
 
+    // entries arrive asynchronously after startup
+    Connections {
+        target: DesktopEntries.applications
+
+        function onValuesChanged(): void {
+            if (root.open)
+                root.compute();
+        }
+    }
+
     Process {
         running: true
         command: ["sh", "-c", "command -v app2unit"]

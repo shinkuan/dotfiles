@@ -1,4 +1,7 @@
 {
+    "appearance": {
+        "style": "rim"
+    },
     "animation": {
         "scale": 0.8
     },

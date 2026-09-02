@@ -39,11 +39,13 @@ ColumnLayout {
         property bool checked: false
 
         Layout.fillWidth: true
-        implicitHeight: 56
-        radius: Config.radius + 2
-        baseColor: checked ? Colours.primary : Colours.surfaceContainerHighest
-        hoverColor: checked ? Colours.mix(Colours.primary, Colours.primaryText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.08)
-        pressColor: checked ? Colours.mix(Colours.primary, Colours.primaryText, 0.2) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.14)
+        implicitHeight: Theme.capsule ? 64 : 56
+        radius: checked && Theme.activePill ? height / 2 : Theme.radiusTile
+        baseColor: checked ? (Theme.outlined ? Colours.alpha(Theme.accent, Theme.signal ? 0.14 : 0) : Theme.accent) : Theme.outlined ? "transparent" : Theme.panelRaised
+        hoverColor: Colours.mix(baseColor, Colours.surfaceText, 0.08)
+        pressColor: Colours.mix(baseColor, Colours.surfaceText, 0.14)
+        border.width: Theme.outlined ? 1 : 0
+        border.color: checked ? Theme.accent : Colours.outlineVariant
 
         RowLayout {
             anchors.fill: parent
@@ -53,7 +55,7 @@ ColumnLayout {
             MaterialIcon {
                 text: tile.icon
                 fill: tile.checked
-                color: tile.checked ? Colours.primaryText : Colours.surfaceVariantText
+                color: tile.checked ? (Theme.outlined ? Theme.accent : Theme.accentText) : Colours.surfaceVariantText
             }
 
             ColumnLayout {
@@ -63,14 +65,14 @@ ColumnLayout {
                 StyledText {
                     Layout.fillWidth: true
                     text: tile.label
-                    color: tile.checked ? Colours.primaryText : Colours.surfaceText
+                    color: tile.checked ? (Theme.outlined ? Theme.accent : Theme.accentText) : Colours.surfaceText
                     font.weight: Font.DemiBold
                 }
 
                 StyledText {
                     Layout.fillWidth: true
                     text: tile.detail
-                    color: tile.checked ? Colours.alpha(Colours.primaryText, 0.8) : Colours.surfaceVariantText
+                    color: tile.checked ? (Theme.outlined ? Colours.alpha(Theme.accent, 0.8) : Colours.alpha(Theme.accentText, 0.8)) : Colours.surfaceVariantText
                     font.pixelSize: Config.fontSize - 2
                 }
             }
@@ -86,11 +88,13 @@ ColumnLayout {
         readonly property bool isArmed: root.armed === label
 
         Layout.fillWidth: true
-        implicitHeight: 62
-        radius: Config.radius + 2
-        baseColor: isArmed ? Colours.error : Colours.surfaceContainerHighest
-        hoverColor: isArmed ? Colours.mix(Colours.error, Colours.errorText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.08)
-        pressColor: isArmed ? Colours.mix(Colours.error, Colours.errorText, 0.2) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.14)
+        implicitHeight: Theme.capsule ? 56 : 62
+        radius: Theme.capsule ? height / 2 : Theme.radiusTile
+        baseColor: isArmed ? Colours.error : Theme.outlined ? "transparent" : Theme.panelRaised
+        hoverColor: Colours.mix(baseColor, Colours.surfaceText, 0.08)
+        pressColor: Colours.mix(baseColor, Colours.surfaceText, 0.14)
+        border.width: Theme.outlined ? 1 : 0
+        border.color: isArmed ? Colours.error : danger ? Colours.alpha(Colours.error, 0.5) : Colours.outlineVariant
 
         signal activated()
 
@@ -118,7 +122,9 @@ ColumnLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: sbtn.isArmed ? "Sure?" : sbtn.label
                 color: sbtn.isArmed ? Colours.errorText : Colours.surfaceVariantText
-                font.pixelSize: Config.fontSize - 2
+                font.pixelSize: Config.fontSize - (Theme.outlined ? 3 : 2)
+                font.capitalization: Theme.outlined ? Font.AllUppercase : Font.MixedCase
+                font.letterSpacing: Theme.outlined ? 0.6 : 0
             }
         }
     }

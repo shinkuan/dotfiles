@@ -96,7 +96,7 @@ PanelWindow {
     function handleDrag(pressX: real, dx: real): void {
         if (!ShellState.barPinned && pressX <= root.interactiveLeft && dx > Config.barPinThreshold)
             ShellState.set("barPinned", true);
-        else if (ShellState.barPinned && pressX <= Config.barWidth && dx < -Config.barPinThreshold)
+        else if (ShellState.barPinned && pressX <= Theme.barSpan && dx < -Config.barPinThreshold)
             ShellState.set("barPinned", false);
     }
 

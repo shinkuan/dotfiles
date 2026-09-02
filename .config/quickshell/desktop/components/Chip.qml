@@ -9,15 +9,17 @@ Clickable {
     property string icon: ""
     property string text: ""
     property bool checked: false
-    property color accent: Colours.primary
-    property color accentText: Colours.primaryText
+    property color accent: Theme.accent
+    property color accentText: Theme.accentText
 
-    implicitHeight: 30
+    implicitHeight: Theme.capsule ? 32 : 30
     implicitWidth: row.implicitWidth + 24
-    radius: height / 2
-    baseColor: checked ? accent : Colours.surfaceContainerHighest
-    hoverColor: checked ? Colours.mix(accent, accentText, 0.12) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.08)
-    pressColor: checked ? Colours.mix(accent, accentText, 0.24) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.14)
+    radius: Theme.radiusChip === 999 ? height / 2 : Theme.radiusChip
+    baseColor: checked ? (Theme.outlined ? Colours.alpha(accent, Theme.signal ? 1 : 0) : Theme.capsule ? Colours.primaryContainer : accent) : Theme.outlined ? "transparent" : Theme.field
+    hoverColor: checked ? Colours.mix(baseColor, accentText, 0.12) : Colours.mix(Theme.field, Colours.surfaceText, 0.08)
+    pressColor: checked ? Colours.mix(baseColor, accentText, 0.24) : Colours.mix(Theme.field, Colours.surfaceText, 0.14)
+    border.width: Theme.outlined ? 1 : 0
+    border.color: checked ? accent : Colours.outlineVariant
 
     Row {
         id: row
@@ -29,15 +31,17 @@ Clickable {
             visible: root.icon !== ""
             text: root.icon
             font.pixelSize: Config.iconSize - 4
-            color: root.checked ? root.accentText : Colours.surfaceVariantText
+            color: root.checked ? (Theme.ledger ? root.accent : Theme.capsule ? Colours.primaryContainerText : root.accentText) : Colours.surfaceVariantText
             anchors.verticalCenter: parent.verticalCenter
         }
 
         StyledText {
             visible: root.text !== ""
             text: root.text
-            color: root.checked ? root.accentText : Colours.surfaceText
-            font.pixelSize: Config.fontSize - 1
+            color: root.checked ? (Theme.ledger ? root.accent : Theme.capsule ? Colours.primaryContainerText : root.accentText) : Colours.surfaceText
+            font.pixelSize: Config.fontSize - (Theme.outlined ? 2 : 1)
+            font.capitalization: Theme.outlined ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: Theme.outlined ? 0.8 : 0
             anchors.verticalCenter: parent.verticalCenter
         }
     }

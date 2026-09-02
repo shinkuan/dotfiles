@@ -78,17 +78,13 @@ PanelWindow {
         onClicked: Launcher.hide()
     }
 
-    Rectangle {
+    Surface {
         id: panel
 
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.round(parent.height * 0.18)
         width: 640
         height: column.implicitHeight + 24
-        radius: Config.radiusLarge
-        color: Colours.surfaceContainer
-        border.width: 1
-        border.color: Colours.alpha(Colours.outlineVariant, 0.5)
 
         MouseArea {
             anchors.fill: parent
@@ -104,8 +100,18 @@ PanelWindow {
             Rectangle {
                 Layout.fillWidth: true
                 height: 48
-                radius: Config.radius + 2
-                color: Colours.surfaceContainerHighest
+                radius: Theme.capsule ? 24 : Theme.outlined ? 0 : Theme.radiusItem + 2
+                color: Theme.outlined ? "transparent" : Theme.field
+
+                // Ledger / Signal: the field is a ruled line, not a box
+                Rectangle {
+                    visible: Theme.outlined
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    height: 1
+                    color: Theme.signal ? Colours.alpha(Theme.accent, 0.4) : Colours.outlineVariant
+                }
 
                 RowLayout {
                     anchors.fill: parent
@@ -115,7 +121,7 @@ PanelWindow {
 
                     MaterialIcon {
                         text: root.modeIcon()
-                        color: Colours.primary
+                        color: Theme.accent
                     }
 
                     TextInput {

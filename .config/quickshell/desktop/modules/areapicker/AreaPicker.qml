@@ -124,7 +124,7 @@ PanelWindow {
         visible: width > 0 && height > 0
         color: "transparent"
         border.width: 2
-        border.color: root.hasSel ? Colours.primary : Colours.tertiary
+        border.color: root.hasSel ? Theme.accent : Colours.tertiary
 
         Rectangle {
             x: parent.width - width - 6
@@ -147,16 +147,13 @@ PanelWindow {
     }
 
     // hint pill
-    Rectangle {
+    Surface {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: 24
         width: hint.implicitWidth + 32
         height: 40
-        radius: 20
-        color: Colours.alpha(Colours.surfaceContainer, 0.95)
-        border.width: 1
-        border.color: Colours.alpha(Colours.outlineVariant, 0.5)
+        radius: Theme.outlined ? Theme.radius : 20
         visible: capture.hasContent
 
         Row {
@@ -168,7 +165,7 @@ PanelWindow {
             MaterialIcon {
                 anchors.verticalCenter: parent.verticalCenter
                 text: Picker.mode === "copy" ? "content_copy" : "edit"
-                color: Colours.primary
+                color: Theme.accent
                 font.pixelSize: Config.iconSize - 3
             }
 

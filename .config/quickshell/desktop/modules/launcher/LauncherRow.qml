@@ -15,9 +15,28 @@ Rectangle {
     readonly property bool selected: Launcher.selected === rowIndex
     readonly property bool danger: entry.danger === true
 
-    height: 56
-    radius: Config.radius
-    color: selected ? Colours.alpha(danger ? Colours.error : Colours.primary, 0.18) : "transparent"
+    height: Theme.outlined ? 48 : 56
+    radius: selected && Theme.activePill ? height / 2 : Theme.radiusItem
+    color: selected ? (Theme.capsule ? Theme.activeFill : Colours.alpha(danger ? Colours.error : Theme.accent, Theme.ledger ? 0 : Theme.rim ? 0.11 : Theme.signal ? 0.12 : 0.18)) : "transparent"
+
+    Rectangle {
+        visible: root.selected && (Theme.activeBar || Theme.signal)
+        x: 0
+        y: 6
+        width: 2
+        height: parent.height - 12
+        radius: 1
+        color: root.danger ? Colours.error : Theme.accent
+    }
+
+    Rectangle {
+        visible: Theme.ruledRows
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 1
+        color: Colours.alpha(Colours.outlineVariant, 0.5)
+    }
 
     HoverHandler {
         onHoveredChanged: {
@@ -62,7 +81,7 @@ Rectangle {
                 visible: root.entry.icon !== undefined && !(root.entry.image && thumb.status === Image.Ready)
                 anchors.centerIn: parent
                 text: root.entry.icon ?? ""
-                color: root.danger ? Colours.error : root.selected ? Colours.primary : Colours.surfaceVariantText
+                color: root.danger ? Colours.error : root.selected ? Theme.accent : Colours.surfaceVariantText
                 font.pixelSize: Config.iconSize + 3
             }
 
@@ -102,7 +121,7 @@ Rectangle {
             StyledText {
                 Layout.fillWidth: true
                 text: root.entry.title
-                color: root.danger ? Colours.error : Colours.surfaceText
+                color: root.danger ? Colours.error : root.selected && Theme.signal ? Theme.accent : Colours.surfaceText
                 font.pixelSize: Config.fontSize + 1
                 font.weight: root.selected ? Font.DemiBold : Font.Normal
             }

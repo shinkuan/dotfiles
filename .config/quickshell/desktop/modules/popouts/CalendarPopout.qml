@@ -119,13 +119,25 @@ ColumnLayout {
 
                 width: 38
                 height: 34
-                radius: Config.radius
-                color: isToday ? Colours.primary : "transparent"
+                radius: Theme.capsule ? 17 : Theme.outlined ? 0 : Theme.radiusItem
+                color: isToday && !Theme.outlined ? Theme.accent : "transparent"
+                border.width: isToday && Theme.signal ? 1 : 0
+                border.color: Theme.accent
+
+                // Ledger: today is underscored, not filled
+                Rectangle {
+                    visible: parent.isToday && Theme.ledger
+                    anchors.bottom: parent.bottom
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 20
+                    height: 2
+                    color: Theme.accent
+                }
 
                 StyledText {
                     anchors.centerIn: parent
                     text: parent.modelData.getDate()
-                    color: parent.isToday ? Colours.primaryText : !parent.inMonth ? Colours.alpha(Colours.surfaceVariantText, 0.35) : parent.weekend ? Colours.tertiary : Colours.surfaceText
+                    color: parent.isToday ? (Theme.outlined ? Theme.accent : Theme.accentText) : !parent.inMonth ? Colours.alpha(Colours.surfaceVariantText, 0.35) : parent.weekend ? Colours.tertiary : Colours.surfaceText
                     font.weight: parent.isToday ? Font.Bold : Font.Normal
                 }
             }

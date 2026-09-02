@@ -11,7 +11,7 @@ ColumnLayout {
     property string label: ""
     property string value: ""
     property real ratio: 0
-    property color accent: ratio > 0.9 ? Colours.error : Colours.primary
+    property color accent: ratio > 0.9 ? Colours.error : Theme.accent
 
     spacing: 4
     Layout.fillWidth: true
@@ -40,24 +40,11 @@ ColumnLayout {
         }
     }
 
-    Rectangle {
+    Slider {
         Layout.fillWidth: true
-        height: 6
-        radius: 3
-        color: Colours.surfaceContainerHighest
-
-        Rectangle {
-            width: parent.width * Math.max(0, Math.min(1, root.ratio))
-            height: parent.height
-            radius: parent.radius
-            color: root.accent
-
-            Behavior on width {
-                NumberAnimation {
-                    duration: Config.animDuration
-                    easing.type: Easing.OutCubic
-                }
-            }
-        }
+        value: root.ratio
+        accent: root.accent
+        interactive: false
+        implicitHeight: 12
     }
 }
