@@ -25,7 +25,8 @@ BarItem {
     }
 
     StyledText {
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenter: root.horizontal ? undefined : parent.horizontalCenter
+        anchors.verticalCenter: root.horizontal ? parent.verticalCenter : undefined
         text: root.cell ? KGrid.labelFor(root.cell.activity) : (root.wsName || "?")
         color: root.fgAccent
         font.family: Theme.fontLabel
@@ -38,7 +39,8 @@ BarItem {
     }
 
     Grid {
-        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenter: root.horizontal ? undefined : parent.horizontalCenter
+        anchors.verticalCenter: root.horizontal ? parent.verticalCenter : undefined
         columns: KGrid.columns
         spacing: 2
         visible: root.cell !== null

@@ -22,12 +22,23 @@ Item {
     readonly property int gap: 6
     readonly property int margin: 8
 
-    x: barEdge
-    y: Math.max(margin, Math.min(parent.height - panel.height - margin, anchorY - panel.height / 2))
-    width: shown ? gap + panel.width : 0
-    height: shown ? panel.height : 0
+    readonly property bool horizontal: Theme.barTop
+
+    x: horizontal ? Math.max(margin, Math.min(parent.width - panel.width - margin, anchorY - panel.width / 2)) : barEdge
+    y: horizontal ? barEdge : Math.max(margin, Math.min(parent.height - panel.height - margin, anchorY - panel.height / 2))
+    width: shown ? (horizontal ? panel.width : gap + panel.width) : 0
+    height: shown ? (horizontal ? gap + panel.height : panel.height) : 0
+
+    Behavior on x {
+        enabled: root.horizontal
+        NumberAnimation {
+            duration: Config.animDuration
+            easing.type: Easing.OutCubic
+        }
+    }
 
     Behavior on y {
+        enabled: !root.horizontal
         NumberAnimation {
             duration: Config.animDuration
             easing.type: Easing.OutCubic
@@ -93,13 +104,14 @@ Item {
     Surface {
         id: panel
 
-        x: root.gap
+        x: root.horizontal ? 0 : root.gap
+        y: root.horizontal ? root.gap : 0
         width: loader.item ? loader.item.width + Config.padding * 2 : 0
         height: loader.item ? loader.item.height + Config.padding * 2 : 0
 
         opacity: root.shown ? 1 : 0
         scale: root.shown ? 1 : Theme.popScale
-        transformOrigin: Item.Left
+        transformOrigin: root.horizontal ? Item.Top : Item.Left
         visible: opacity > 0
 
         Behavior on opacity {

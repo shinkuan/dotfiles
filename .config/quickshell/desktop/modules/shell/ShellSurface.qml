@@ -20,7 +20,9 @@ PanelWindow {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
     readonly property bool hasFullscreen: monitor?.activeWorkspace?.hasFullscreen ?? false
     property bool barHovered: false
-    readonly property real interactiveLeft: bar.revealed ? Config.barWidth : Config.borderThickness
+    readonly property bool barTop: Theme.barTop
+    readonly property real interactiveLeft: bar.revealed && !barTop ? Config.barWidth : Config.borderThickness
+    readonly property real interactiveTop: bar.revealed && barTop ? Config.barWidth : Config.borderThickness
 
     WlrLayershell.namespace: "desktop-shell"
     WlrLayershell.layer: WlrLayer.Top
@@ -69,10 +71,10 @@ PanelWindow {
         height: root.height
 
         Region {
-            x: root.interactiveLeft
-            y: 0
+            x: root.barTop ? 0 : root.interactiveLeft
+            y: root.barTop ? root.interactiveTop : 0
             width: root.width - x
-            height: root.height
+            height: root.height - y
             intersection: Intersection.Xor
         }
 
@@ -93,10 +95,11 @@ PanelWindow {
         }
     }
 
-    function handleDrag(pressX: real, dx: real): void {
-        if (!ShellState.barPinned && pressX <= root.interactiveLeft && dx > Config.barPinThreshold)
+    function handleDrag(press: real, delta: real): void {
+        const edge = root.barTop ? root.interactiveTop : root.interactiveLeft;
+        if (!ShellState.barPinned && press <= edge && delta > Config.barPinThreshold)
             ShellState.set("barPinned", true);
-        else if (ShellState.barPinned && pressX <= Theme.barSpan && dx < -Config.barPinThreshold)
+        else if (ShellState.barPinned && press <= Theme.barSpan && delta < -Config.barPinThreshold)
             ShellState.set("barPinned", false);
     }
 
@@ -104,10 +107,10 @@ PanelWindow {
         if (root.hasFullscreen)
             return;
         leaveGrace.stop();
-        const inBar = x <= root.interactiveLeft;
+        const inBar = root.barTop ? y <= root.interactiveTop : x <= root.interactiveLeft;
         root.barHovered = inBar;
         if (inBar) {
-            const hit = bar.popoutAt(y);
+            const hit = bar.popoutAt(root.barTop ? x : y);
             if (hit && Config.popouts.showOnHover && !popouts.shortcutActive)
                 popouts.open(hit.id, hit.y);
             else if (!hit && !popouts.shortcutActive)
@@ -153,11 +156,11 @@ PanelWindow {
 
         anchors.fill: parent
         acceptedButtons: root.hasFullscreen ? Qt.NoButton : Qt.LeftButton
-        onPressed: mouse => pressX = mouse.x
+        onPressed: mouse => pressX = root.barTop ? mouse.y : mouse.x
         onReleased: pressX = -1
         onPositionChanged: mouse => {
             if (pressX >= 0)
-                root.handleDrag(pressX, mouse.x - pressX);
+                root.handleDrag(pressX, (root.barTop ? mouse.y : mouse.x) - pressX);
         }
     }
 
@@ -167,8 +170,10 @@ PanelWindow {
         monitor: root.monitor
         revealed: !root.hasFullscreen && (ShellState.barPinned || root.barHovered || popouts.shown)
         activePopout: popouts.current
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
+        anchors.top: root.barTop ? undefined : parent.top
+        anchors.bottom: root.barTop ? undefined : parent.bottom
+        anchors.left: root.barTop ? parent.left : undefined
+        anchors.right: root.barTop ? parent.right : undefined
         onDragged: dx => root.handleDrag(0, dx)
         onItemClicked: (id, y) => popouts.openShortcut(id, y, false)
     }

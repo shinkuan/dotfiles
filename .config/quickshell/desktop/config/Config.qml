@@ -98,6 +98,7 @@ Singleton {
                 property int width: 44
                 property int pinThreshold: 20
                 property bool showResources: true
+                property string position: "left"   // left | top
             }
             property JsonObject popouts: JsonObject {
                 property bool showOnHover: true

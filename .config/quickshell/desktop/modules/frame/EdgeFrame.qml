@@ -13,11 +13,12 @@ Scope {
 
     EdgeZone {
         anchors.left: true
-        exclusiveZone: ShellState.barPinned ? Config.barWidth : Config.borderThickness
+        exclusiveZone: ShellState.barPinned && !Theme.barTop ? Config.barWidth : Config.borderThickness
     }
 
     EdgeZone {
         anchors.top: true
+        exclusiveZone: ShellState.barPinned && Theme.barTop ? Config.barWidth : Config.borderThickness
     }
 
     EdgeZone {

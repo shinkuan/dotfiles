@@ -18,6 +18,7 @@ Rectangle {
         return p;
     }
     readonly property bool active: popout !== "" && bar !== null && bar.activePopout === popout
+    readonly property bool horizontal: bar?.horizontal ?? false
     // solid directions invert the entry's foreground while it is active
     readonly property bool filled: active && Theme.barItemFilled
     readonly property color fg: filled ? Theme.accentText : Colours.surfaceText
@@ -26,8 +27,8 @@ Rectangle {
 
     signal clicked(var mouse)
 
-    implicitWidth: Theme.barWidth - 8
-    implicitHeight: column.implicitHeight + 10
+    implicitWidth: horizontal ? Math.max(Theme.barWidth - 8, row.implicitWidth + 14) : Theme.barWidth - 8
+    implicitHeight: horizontal ? Theme.barWidth - 8 : column.implicitHeight + 10
     radius: Theme.barItemRadius
     color: active ? (Theme.barItemFilled ? Theme.accent : Theme.barItemOutlined ? "transparent" : Colours.alpha(Theme.accent, 0.18)) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
     border.width: active && Theme.barItemOutlined ? 1 : 0
@@ -36,10 +37,10 @@ Rectangle {
     // Rim / Ledger: a 2px indicator on the screen edge
     Rectangle {
         visible: root.active && Theme.activeBar
-        x: Theme.rim ? -4 : -(Theme.barWidth - root.width) / 2
-        y: 6
-        width: 2
-        height: parent.height - 12
+        x: root.horizontal ? 6 : (Theme.rim ? -4 : -(Theme.barWidth - root.width) / 2)
+        y: root.horizontal ? (Theme.rim ? -4 : -(Theme.barWidth - root.height) / 2) : 6
+        width: root.horizontal ? parent.width - 12 : 2
+        height: root.horizontal ? 2 : parent.height - 12
         radius: 1
         color: Theme.accent
     }
@@ -50,11 +51,30 @@ Rectangle {
         }
     }
 
+    // vertical bars stack content, horizontal bars line it up
     Column {
         id: column
 
+        visible: !root.horizontal
         anchors.centerIn: parent
         spacing: root.spacing
+    }
+
+    Row {
+        id: row
+
+        visible: root.horizontal
+        anchors.centerIn: parent
+        spacing: root.spacing + 4
+    }
+
+    onHorizontalChanged: reparentContent()
+    Component.onCompleted: reparentContent()
+
+    function reparentContent(): void {
+        const from = horizontal ? column : row, to = horizontal ? row : column;
+        for (const c of [...from.children])
+            c.parent = to;
     }
 
     HoverHandler {
@@ -63,20 +83,24 @@ Rectangle {
 
     MouseArea {
         property real pressX: -1
+        property real pressY: -1
 
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        onPressed: m => pressX = m.x
+        onPressed: m => {
+            pressX = m.x;
+            pressY = m.y;
+        }
         onReleased: pressX = -1
         onPositionChanged: m => {
             if (pressX >= 0 && root.bar)
-                root.bar.dragged(m.x - pressX);
+                root.bar.dragged(root.horizontal ? m.y - pressY : m.x - pressX);
         }
         onClicked: m => {
             root.clicked(m);
             // left click keeps the popout open until Esc / a click elsewhere
             if (m.button === Qt.LeftButton && root.popout !== "" && root.bar)
-                root.bar.itemClicked(root.popout, root.mapToItem(root.bar, 0, root.height / 2).y);
+                root.bar.itemClicked(root.popout, root.horizontal ? root.mapToItem(root.bar, root.width / 2, 0).x : root.mapToItem(root.bar, 0, root.height / 2).y);
         }
     }
 }

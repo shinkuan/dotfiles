@@ -62,6 +62,7 @@ Singleton {
     readonly property real popScale: capsule ? 0.85 : poster ? 1 : signal ? 0.98 : 0.92
 
     // bar
+    readonly property bool barTop: Config.bar.position === "top"
     readonly property int barWidth: ledger ? 40 : (capsule || poster) ? 48 : 44
     readonly property int barMargin: capsule ? 10 : 0           // detached from the screen edge
     readonly property int barSpan: barWidth + barMargin * 2

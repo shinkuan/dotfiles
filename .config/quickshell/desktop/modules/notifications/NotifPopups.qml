@@ -16,6 +16,7 @@ Item {
     anchors.top: parent.top
     anchors.right: parent.right
     anchors.margins: 16
+    anchors.topMargin: 16 + (Theme.barTop && ShellState.barPinned ? Config.barWidth : 0)
     width: Config.notifications.width
     height: column.implicitHeight
     visible: entries.length > 0

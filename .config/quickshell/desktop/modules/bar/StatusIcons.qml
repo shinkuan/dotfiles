@@ -5,11 +5,14 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-Column {
+Grid {
     id: root
 
     readonly property list<var> bluetoothConnected: Bluetooth.devices.values.filter(d => d.connected)
 
+    flow: Theme.barTop ? Grid.LeftToRight : Grid.TopToBottom
+    columns: Theme.barTop ? 99 : 1
+    rows: Theme.barTop ? 1 : 99
     spacing: 0
 
     BarItem {
@@ -18,7 +21,8 @@ Column {
         popout: "audio"
 
         MaterialIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
+            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Audio.muted ? "volume_off" : Audio.volume > 0.5 ? "volume_up" : Audio.volume > 0 ? "volume_down" : "volume_mute"
             color: Audio.muted ? audioItem.fgDim : audioItem.fg
         }
@@ -39,7 +43,8 @@ Column {
         popout: "audio"
 
         MaterialIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
+            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Audio.sourceMuted ? "mic_off" : "mic"
             color: Audio.sourceMuted ? micItem.fgDim : micItem.fg
         }
@@ -56,7 +61,8 @@ Column {
         popout: "network"
 
         MaterialIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
+            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Net.wiredConnected ? "lan" : Net.activeWifi ? Net.signalIcon(Net.activeWifi.signalStrength) : Net.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off"
             color: Net.connected ? netItem.fg : netItem.fgDim
         }
@@ -69,7 +75,8 @@ Column {
         visible: Vpn.connections.length > 0
 
         MaterialIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
+            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Vpn.active.length > 0 ? "vpn_lock" : "vpn_key_off"
             color: Vpn.active.length > 0 ? vpnItem.fgAccent : vpnItem.fgDim
         }
@@ -82,7 +89,8 @@ Column {
         visible: Bluetooth.defaultAdapter !== null
 
         MaterialIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
+            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: root.bluetoothConnected.length > 0 ? "bluetooth_connected" : "bluetooth"
             color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? btItem.fgDim : root.bluetoothConnected.length > 0 ? btItem.fgAccent : btItem.fg
         }
@@ -94,7 +102,8 @@ Column {
         spacing: 0
 
         MaterialIcon {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
+            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: {
                 const p = UPower.displayDevice?.percentage ?? 0;
                 if (!UPower.onBattery)
@@ -106,7 +115,8 @@ Column {
         }
 
         StyledText {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
+            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Math.round((UPower.displayDevice?.percentage ?? 0) * 100) + "%"
             color: Colours.surfaceVariantText
             font.pixelSize: Config.fontSize - 4

@@ -6,9 +6,12 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-Column {
+Grid {
     id: root
 
+    flow: Theme.barTop ? Grid.LeftToRight : Grid.TopToBottom
+    columns: Theme.barTop ? 99 : 1
+    rows: Theme.barTop ? 1 : 99
     spacing: 2
     visible: SystemTray.items.values.length > 0
 
@@ -20,8 +23,8 @@ Column {
 
             required property SystemTrayItem modelData
 
-            width: Config.barWidth - 8
-            height: 30
+            width: Theme.barTop ? 30 : Theme.barWidth - 8
+            height: Theme.barTop ? Theme.barWidth - 8 : 30
             radius: Config.radius
             color: hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
 
@@ -55,9 +58,12 @@ Column {
 
             Rectangle {
                 visible: hover.hovered && (slot.modelData.tooltipTitle || slot.modelData.title)
-                anchors.left: parent.right
+                anchors.left: Theme.barTop ? undefined : parent.right
                 anchors.leftMargin: 10
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenter: Theme.barTop ? undefined : parent.verticalCenter
+                anchors.top: Theme.barTop ? parent.bottom : undefined
+                anchors.topMargin: 10
+                anchors.horizontalCenter: Theme.barTop ? parent.horizontalCenter : undefined
                 width: tip.implicitWidth + 16
                 height: tip.implicitHeight + 10
                 radius: 8
@@ -79,9 +85,10 @@ Column {
 
                 menu: slot.modelData.menu
                 anchor.item: slot
-                anchor.edges: Edges.Right
-                anchor.gravity: Edges.Right
-                anchor.margins.left: 8
+                anchor.edges: Theme.barTop ? Edges.Bottom : Edges.Right
+                anchor.gravity: Theme.barTop ? Edges.Bottom : Edges.Right
+                anchor.margins.left: Theme.barTop ? 0 : 8
+                anchor.margins.top: Theme.barTop ? 8 : 0
             }
         }
     }
