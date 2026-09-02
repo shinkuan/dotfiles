@@ -23,7 +23,8 @@ Item {
     anchors.left: atLeft ? parent.left : undefined
     anchors.margins: 16
     anchors.topMargin: 16 + (Theme.barTop && ShellState.barPinned ? Config.barWidth : 0)
-    anchors.leftMargin: 16 + (!Theme.barTop && ShellState.barPinned ? Config.barWidth : 0)
+    anchors.leftMargin: 16 + (!Theme.barTop && !Theme.barRight && ShellState.barPinned ? Config.barWidth : 0)
+    anchors.rightMargin: 16 + (Theme.barRight && ShellState.barPinned ? Config.barWidth : 0)
     width: Config.notifications.width
     height: column.implicitHeight
     visible: entries.length > 0

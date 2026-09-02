@@ -21,6 +21,7 @@ PanelWindow {
     readonly property bool hasFullscreen: monitor?.activeWorkspace?.hasFullscreen ?? false
     property bool barHovered: false
     readonly property bool barTop: Theme.barTop
+    readonly property bool barRight: Theme.barRight
     readonly property real interactiveLeft: bar.revealed && !barTop ? Config.barWidth : Config.borderThickness
     readonly property real interactiveTop: bar.revealed && barTop ? Config.barWidth : Config.borderThickness
 
@@ -71,9 +72,9 @@ PanelWindow {
         height: root.height
 
         Region {
-            x: root.barTop ? 0 : root.interactiveLeft
+            x: root.barTop || root.barRight ? 0 : root.interactiveLeft
             y: root.barTop ? root.interactiveTop : 0
-            width: root.width - x
+            width: root.barRight ? root.width - root.interactiveLeft : root.width - x
             height: root.height - y
             intersection: Intersection.Xor
         }
@@ -95,6 +96,7 @@ PanelWindow {
         }
     }
 
+    // press / delta are measured from the bar's own edge inward
     function handleDrag(press: real, delta: real): void {
         const edge = root.barTop ? root.interactiveTop : root.interactiveLeft;
         if (!ShellState.barPinned && press <= edge && delta > Config.barPinThreshold)
@@ -103,11 +105,15 @@ PanelWindow {
             ShellState.set("barPinned", false);
     }
 
+    function edgeCoord(mouse): real {
+        return root.barTop ? mouse.y : root.barRight ? root.width - mouse.x : mouse.x;
+    }
+
     function handleHover(x: real, y: real): void {
         if (root.hasFullscreen)
             return;
         leaveGrace.stop();
-        const inBar = root.barTop ? y <= root.interactiveTop : x <= root.interactiveLeft;
+        const inBar = root.barTop ? y <= root.interactiveTop : root.barRight ? x >= root.width - root.interactiveLeft : x <= root.interactiveLeft;
         root.barHovered = inBar;
         if (inBar) {
             const hit = bar.popoutAt(root.barTop ? x : y);
@@ -156,11 +162,11 @@ PanelWindow {
 
         anchors.fill: parent
         acceptedButtons: root.hasFullscreen ? Qt.NoButton : Qt.LeftButton
-        onPressed: mouse => pressX = root.barTop ? mouse.y : mouse.x
+        onPressed: mouse => pressX = root.edgeCoord(mouse)
         onReleased: pressX = -1
         onPositionChanged: mouse => {
             if (pressX >= 0)
-                root.handleDrag(pressX, (root.barTop ? mouse.y : mouse.x) - pressX);
+                root.handleDrag(pressX, root.edgeCoord(mouse) - pressX);
         }
     }
 
@@ -174,7 +180,7 @@ PanelWindow {
         anchors.bottom: root.barTop ? undefined : parent.bottom
         anchors.left: root.barTop ? parent.left : undefined
         anchors.right: root.barTop ? parent.right : undefined
-        onDragged: dx => root.handleDrag(0, dx)
+        onDragged: dx => root.handleDrag(0, root.barRight ? -dx : dx)
         onItemClicked: (id, y) => popouts.openShortcut(id, y, false)
     }
 

@@ -12,15 +12,16 @@ Item {
     property bool revealed: false
     property string activePopout: ""
     readonly property bool horizontal: Theme.barTop
-    // how far the bar currently reaches into the screen (x or y edge)
-    readonly property real exposedWidth: horizontal ? height + y : width + x
+    readonly property bool mirrored: Theme.barRight
+    // how far the bar currently reaches into the screen, measured from its own edge
+    readonly property real exposedWidth: horizontal ? height + y : mirrored ? parent.width - x : width + x
 
     signal dragged(real dx)
     signal itemClicked(string popout, real y)
 
     width: horizontal ? undefined : Theme.barWidth
     height: horizontal ? Theme.barWidth : undefined
-    x: horizontal ? 0 : (revealed ? Theme.barMargin : -width)
+    x: horizontal ? 0 : mirrored ? (revealed ? parent.width - width - Theme.barMargin : parent.width) : (revealed ? Theme.barMargin : -width)
     y: horizontal ? (revealed ? Theme.barMargin : -height) : 0
 
     Behavior on x {
@@ -80,7 +81,7 @@ Item {
         radius: Theme.barRadius
         blur: Theme.shadow
         spread: 0
-        offset: Qt.vector2d(Theme.capsule ? 0 : 6, Theme.capsule ? 8 : 0)
+        offset: Qt.vector2d(Theme.capsule ? 0 : (root.mirrored ? -6 : 6), Theme.capsule ? 8 : 0)
         color: Colours.alpha(Colours.scrim, Theme.shadowOpacity)
     }
 
@@ -94,9 +95,10 @@ Item {
         anchors.rightMargin: root.horizontal ? Theme.barMargin : 0
         color: Theme.barColor
         radius: Theme.capsule ? Theme.barRadius : 0
-        topRightRadius: root.horizontal ? (Theme.capsule ? Theme.barRadius : 0) : Theme.barRadius
-        bottomRightRadius: Theme.barRadius
-        bottomLeftRadius: root.horizontal ? Theme.barRadius : (Theme.capsule ? Theme.barRadius : 0)
+        topLeftRadius: (root.mirrored || Theme.capsule) ? Theme.barRadius : 0
+        topRightRadius: (root.horizontal || root.mirrored) ? (Theme.capsule ? Theme.barRadius : 0) : Theme.barRadius
+        bottomRightRadius: root.mirrored ? (Theme.capsule ? Theme.barRadius : 0) : Theme.barRadius
+        bottomLeftRadius: (root.horizontal || root.mirrored) ? Theme.barRadius : (Theme.capsule ? Theme.barRadius : 0)
 
         // Signal: brackets on the exposed corners
         Repeater {
@@ -131,7 +133,8 @@ Item {
         // Ledger / Signal / Rim: a hairline on the exposed edge
         Rectangle {
             visible: Theme.barEdgeLine && !root.horizontal
-            anchors.right: parent.right
+            anchors.right: root.mirrored ? undefined : parent.right
+            anchors.left: root.mirrored ? parent.left : undefined
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.topMargin: Theme.rim ? Theme.barRadius : 0

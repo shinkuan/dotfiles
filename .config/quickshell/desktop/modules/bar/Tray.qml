@@ -58,8 +58,10 @@ Grid {
 
             Rectangle {
                 visible: hover.hovered && (slot.modelData.tooltipTitle || slot.modelData.title)
-                anchors.left: Theme.barTop ? undefined : parent.right
+                anchors.left: Theme.barTop || Theme.barRight ? undefined : parent.right
+                anchors.right: Theme.barRight ? parent.left : undefined
                 anchors.leftMargin: 10
+                anchors.rightMargin: 10
                 anchors.verticalCenter: Theme.barTop ? undefined : parent.verticalCenter
                 anchors.top: Theme.barTop ? parent.bottom : undefined
                 anchors.topMargin: 10
@@ -85,9 +87,10 @@ Grid {
 
                 menu: slot.modelData.menu
                 anchor.item: slot
-                anchor.edges: Theme.barTop ? Edges.Bottom : Edges.Right
-                anchor.gravity: Theme.barTop ? Edges.Bottom : Edges.Right
-                anchor.margins.left: Theme.barTop ? 0 : 8
+                anchor.edges: Theme.barTop ? Edges.Bottom : Theme.barRight ? Edges.Left : Edges.Right
+                anchor.gravity: Theme.barTop ? Edges.Bottom : Theme.barRight ? Edges.Left : Edges.Right
+                anchor.margins.left: Theme.barTop || Theme.barRight ? 0 : 8
+                anchor.margins.right: Theme.barRight ? 8 : 0
                 anchor.margins.top: Theme.barTop ? 8 : 0
             }
         }

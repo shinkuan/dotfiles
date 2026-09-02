@@ -37,7 +37,7 @@ Rectangle {
     // Rim / Ledger: a 2px indicator on the screen edge
     Rectangle {
         visible: root.active && Theme.activeBar
-        x: root.horizontal ? 6 : (Theme.rim ? -4 : -(Theme.barWidth - root.width) / 2)
+        x: root.horizontal ? 6 : Theme.barRight ? (Theme.rim ? root.width + 2 : root.width + (Theme.barWidth - root.width) / 2 - 2) : (Theme.rim ? -4 : -(Theme.barWidth - root.width) / 2)
         y: root.horizontal ? (Theme.rim ? -4 : -(Theme.barWidth - root.height) / 2) : 6
         width: root.horizontal ? parent.width - 12 : 2
         height: root.horizontal ? 2 : parent.height - 12

@@ -23,8 +23,9 @@ Item {
     readonly property int margin: 8
 
     readonly property bool horizontal: Theme.barTop
+    readonly property bool mirrored: Theme.barRight
 
-    x: horizontal ? Math.max(margin, Math.min(parent.width - panel.width - margin, anchorY - panel.width / 2)) : barEdge
+    x: horizontal ? Math.max(margin, Math.min(parent.width - panel.width - margin, anchorY - panel.width / 2)) : mirrored ? parent.width - barEdge - width : barEdge
     y: horizontal ? barEdge : Math.max(margin, Math.min(parent.height - panel.height - margin, anchorY - panel.height / 2))
     width: shown ? (horizontal ? panel.width : gap + panel.width) : 0
     height: shown ? (horizontal ? gap + panel.height : panel.height) : 0
@@ -104,14 +105,14 @@ Item {
     Surface {
         id: panel
 
-        x: root.horizontal ? 0 : root.gap
+        x: root.horizontal || root.mirrored ? 0 : root.gap
         y: root.horizontal ? root.gap : 0
         width: loader.item ? loader.item.width + Config.padding * 2 : 0
         height: loader.item ? loader.item.height + Config.padding * 2 : 0
 
         opacity: root.shown ? 1 : 0
         scale: root.shown ? 1 : Theme.popScale
-        transformOrigin: root.horizontal ? Item.Top : Item.Left
+        transformOrigin: root.horizontal ? Item.Top : root.mirrored ? Item.Right : Item.Left
         visible: opacity > 0
 
         Behavior on opacity {
