@@ -176,10 +176,6 @@ PanelWindow {
         monitor: root.monitor
         revealed: !root.hasFullscreen && (ShellState.barPinned || root.barHovered || popouts.shown)
         activePopout: popouts.current
-        anchors.top: root.barTop ? undefined : parent.top
-        anchors.bottom: root.barTop ? undefined : parent.bottom
-        anchors.left: root.barTop ? parent.left : undefined
-        anchors.right: root.barTop ? parent.right : undefined
         onDragged: dx => root.handleDrag(0, root.barRight ? -dx : dx)
         onItemClicked: (id, y) => popouts.openShortcut(id, y, false)
     }

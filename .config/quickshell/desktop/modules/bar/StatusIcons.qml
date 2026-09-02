@@ -12,7 +12,6 @@ Grid {
 
     flow: Theme.barTop ? Grid.LeftToRight : Grid.TopToBottom
     columns: Theme.barTop ? 99 : 1
-    rows: Theme.barTop ? 1 : 99
     spacing: 0
 
     BarItem {

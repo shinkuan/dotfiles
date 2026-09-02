@@ -19,8 +19,9 @@ Item {
     signal dragged(real dx)
     signal itemClicked(string popout, real y)
 
-    width: horizontal ? undefined : Theme.barWidth
-    height: horizontal ? Theme.barWidth : undefined
+    // explicit geometry: anchors cannot be toggled reliably at runtime
+    width: horizontal ? parent.width : Theme.barWidth
+    height: horizontal ? Theme.barWidth : parent.height
     x: horizontal ? 0 : mirrored ? (revealed ? parent.width - width - Theme.barMargin : parent.width) : (revealed ? Theme.barMargin : -width)
     y: horizontal ? (revealed ? Theme.barMargin : -height) : 0
 

@@ -58,7 +58,6 @@ Rectangle {
         anchors.centerIn: parent
         flow: root.horizontal ? Grid.LeftToRight : Grid.TopToBottom
         columns: root.horizontal ? 99 : 1
-        rows: root.horizontal ? 1 : 99
         rowSpacing: root.spacing
         columnSpacing: root.spacing + 4
         horizontalItemAlignment: Grid.AlignHCenter
