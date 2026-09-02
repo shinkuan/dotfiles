@@ -1,187 +1,196 @@
 {
-    "appearance": {
-        "style": "rim"
-    },
     "animation": {
         "scale": 0.8
     },
-    "border": {
-        "thickness": 10,
-        "rounding": 25
+    "appearance": {
+        "style": "rim"
     },
     "bar": {
-        "width": 44,
         "pinThreshold": 20,
-        "showResources": true
+        "showResources": true,
+        "width": 44
     },
-    "popouts": {
-        "showOnHover": true,
-        "width": 340,
-        "listHeight": 320
+    "border": {
+        "rounding": 25,
+        "thickness": 10
     },
-    "osd": {
-        "hideDelay": 2000
-    },
-    "kgrid": {
-        "osd": true,
-        "hideDelay": 1000
+    "brightness": {
+        "external": true,
+        "step": 5
     },
     "desktopClock": {
-        "position": "bottom-right",
-        "margin": 48
-    },
-    "notifications": {
-        "timeout": 5000,
-        "criticalTimeout": 0,
-        "maxHistory": 200,
-        "width": 380
+        "margin": 48,
+        "position": "bottom-right"
     },
     "idle": {
         "inhibitWhenAudio": true,
         "joystickHold": 60
     },
+    "kgrid": {
+        "hideDelay": 1000,
+        "osd": true
+    },
     "launcher": {
-        "maxResults": 9,
         "actionPrefix": ">",
-        "calcPrefix": "=",
-        "clipPrefix": ";",
-        "emojiPrefix": ":",
-        "fuzzy": true,
-        "showDangerous": false,
         "actions": [
             {
-                "name": "Scheme",
-                "icon": "palette",
-                "description": "Change the colour scheme",
                 "command": [
                     "@scheme"
-                ]
+                ],
+                "description": "Change the colour scheme",
+                "icon": "palette",
+                "name": "Scheme"
             },
             {
-                "name": "Variant",
-                "icon": "colors",
-                "description": "Change the scheme variant",
                 "command": [
                     "@variant"
-                ]
+                ],
+                "description": "Change the scheme variant",
+                "icon": "colors",
+                "name": "Variant"
             },
             {
-                "name": "Wallpaper",
-                "icon": "image",
-                "description": "Pick a wallpaper",
                 "command": [
                     "@wallpaper"
-                ]
+                ],
+                "description": "Pick a wallpaper",
+                "icon": "image",
+                "name": "Wallpaper"
             },
             {
-                "name": "Random wallpaper",
-                "icon": "casino",
-                "description": "Switch to a random wallpaper",
+                "command": [
+                    "@style"
+                ],
+                "description": "Switch the shell's visual direction",
+                "icon": "style",
+                "name": "Style"
+            },
+            {
                 "command": [
                     "wallpaper",
                     "-r"
-                ]
+                ],
+                "description": "Switch to a random wallpaper",
+                "icon": "casino",
+                "name": "Random wallpaper"
             },
             {
-                "name": "Light",
-                "icon": "light_mode",
-                "description": "Switch the scheme to light mode",
                 "command": [
                     "scheme",
                     "set",
                     "--mode",
                     "light"
-                ]
+                ],
+                "description": "Switch the scheme to light mode",
+                "icon": "light_mode",
+                "name": "Light"
             },
             {
-                "name": "Dark",
-                "icon": "dark_mode",
-                "description": "Switch the scheme to dark mode",
                 "command": [
                     "scheme",
                     "set",
                     "--mode",
                     "dark"
-                ]
+                ],
+                "description": "Switch the scheme to dark mode",
+                "icon": "dark_mode",
+                "name": "Dark"
             },
             {
-                "name": "VS Code shader",
-                "icon": "blur_on",
-                "description": "Toggle the VS Code transparency shader",
                 "command": [
                     "hyprctl",
                     "eval",
                     "_G.toggle_darkwindow_shader()"
-                ]
+                ],
+                "description": "Toggle the VS Code transparency shader",
+                "icon": "blur_on",
+                "name": "VS Code shader"
             },
             {
-                "name": "Settings",
-                "icon": "settings",
-                "description": "Open the shell config",
                 "command": [
                     "@config"
-                ]
+                ],
+                "description": "Open the shell config",
+                "icon": "settings",
+                "name": "Settings"
             },
             {
-                "name": "Lock",
-                "icon": "lock",
-                "description": "Lock the session",
                 "command": [
                     "sh",
                     "-c",
                     "pidof hyprlock || hyprlock"
-                ]
+                ],
+                "description": "Lock the session",
+                "icon": "lock",
+                "name": "Lock"
             },
             {
-                "name": "Sleep",
-                "icon": "bedtime",
-                "description": "Suspend the system",
                 "command": [
                     "systemctl",
                     "suspend"
-                ]
+                ],
+                "description": "Suspend the system",
+                "icon": "bedtime",
+                "name": "Sleep"
             },
             {
-                "name": "Logout",
-                "icon": "logout",
-                "description": "End the Hyprland session",
                 "command": [
                     "hyprctl",
                     "dispatch",
                     "hl.dsp.exit()"
                 ],
-                "dangerous": true
+                "dangerous": true,
+                "description": "End the Hyprland session",
+                "icon": "logout",
+                "name": "Logout"
             },
             {
-                "name": "Reboot",
-                "icon": "restart_alt",
-                "description": "Reboot the system",
                 "command": [
                     "systemctl",
                     "reboot"
                 ],
-                "dangerous": true
+                "dangerous": true,
+                "description": "Reboot the system",
+                "icon": "restart_alt",
+                "name": "Reboot"
             },
             {
-                "name": "Shutdown",
-                "icon": "power_settings_new",
-                "description": "Shut the system down",
                 "command": [
                     "systemctl",
                     "poweroff"
                 ],
-                "dangerous": true
+                "dangerous": true,
+                "description": "Shut the system down",
+                "icon": "power_settings_new",
+                "name": "Shutdown"
             }
-        ]
+        ],
+        "calcPrefix": "=",
+        "clipPrefix": ";",
+        "emojiFile": "/usr/share/unicode/emoji/emoji-test.txt",
+        "emojiPrefix": ":",
+        "fuzzy": true,
+        "maxResults": 9,
+        "showDangerous": false
     },
-    "screenshot": {
-        "directory": "Pictures/Screenshots"
+    "notifications": {
+        "criticalTimeout": 0,
+        "maxHistory": 200,
+        "timeout": 5000,
+        "width": 380
+    },
+    "osd": {
+        "hideDelay": 2000
+    },
+    "popouts": {
+        "listHeight": 320,
+        "showOnHover": true,
+        "width": 340
     },
     "resources": {
         "interval": 2000
     },
-    "brightness": {
-        "external": true,
-        "step": 5
+    "screenshot": {
+        "directory": "Pictures/Screenshots"
     }
 }

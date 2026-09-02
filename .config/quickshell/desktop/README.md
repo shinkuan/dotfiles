@@ -100,5 +100,6 @@ Hot-loaded; every key is optional.
 (clear/toggleDnd/dnd), `launcher` (toggle/open/close/search/clipboard),
 `overview` (toggle/open/close), `popout` (open <id>/close), `screenshot`
 (region/regionCopy/cancel/capture), `session` (lock/suspend/logout),
-`media` (playPause/next/previous/stop), `wallpaper` (set/get).
+`media` (playPause/next/previous/stop), `wallpaper` (set/get), `theme`
+(set <style>/get/cycle — rewrites config.json).
 Call with `qs -c desktop ipc call <target> <function> [args]`.

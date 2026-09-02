@@ -95,7 +95,7 @@ Singleton {
         const p = Config.launcher;
         if (q.startsWith(p.actionPrefix)) {
             const rest = q.slice(p.actionPrefix.length);
-            const sub = rest.match(/^(scheme|variant|wallpaper)\s*(.*)$/);
+            const sub = rest.match(/^(scheme|variant|wallpaper|style)\s*(.*)$/);
             if (sub) {
                 mode = sub[1];
                 term = sub[2].trim().toLowerCase();
@@ -152,6 +152,9 @@ Singleton {
         case "emoji":
             out = emojiRows(term);
             break;
+        case "style":
+            out = styleRows(term);
+            break;
         }
         results = out;
         if (selected >= out.length)
@@ -205,7 +208,7 @@ Singleton {
 
     function runAction(a): void {
         const cmd = a.command ?? [];
-        if (cmd[0] === "@scheme" || cmd[0] === "@variant" || cmd[0] === "@wallpaper") {
+        if (cmd[0] === "@scheme" || cmd[0] === "@variant" || cmd[0] === "@wallpaper" || cmd[0] === "@style") {
             query = Config.launcher.actionPrefix + cmd[0].slice(1) + " ";
             return;
         }
@@ -302,6 +305,19 @@ Singleton {
                 Quickshell.execDetached(["wallpaper", "-f", w.path]);
                 hide();
             }
+        }));
+    }
+
+    function styleRows(q: string): list<var> {
+        const names = { rim: "Rim — lacquer with a lit edge", ledger: "Ledger — ruled, monospaced", capsule: "Capsule — floating dock, pill rows", signal: "Signal — HUD brackets, segmented meters", poster: "Poster — solid blocks, heavy rules", classic: "Classic" };
+        const list = q === "" ? Config.styles : ranked(Config.styles, s => Math.max(score(q, s), score(q, names[s]) * 0.7));
+        return list.map(s => ({
+            kind: "style",
+            title: s,
+            subtitle: names[s] ?? "",
+            icon: Config.appearance.style === s ? "check_circle" : "style",
+            hint: Config.appearance.style === s ? "current" : "",
+            run: () => Config.setStyle(s)
         }));
     }
 

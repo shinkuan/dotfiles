@@ -41,8 +41,38 @@ Singleton {
     readonly property alias screenshot: adapter.screenshot
     readonly property alias resources: adapter.resources
     readonly property alias brightness: adapter.brightness
+    readonly property list<string> styles: ["rim", "ledger", "capsule", "signal", "poster", "classic"]
+
+    // writes config.json back through the adapter (keys are preserved)
+    function setStyle(name: string): void {
+        if (!styles.includes(name)) {
+            console.warn("Config: unknown style", name);
+            return;
+        }
+        adapter.appearance.style = name;
+        file.writeAdapter();
+    }
+
+    IpcHandler {
+        target: "theme"
+
+        function set(name: string): void {
+            root.setStyle(name);
+        }
+
+        function get(): string {
+            return adapter.appearance.style;
+        }
+
+        function cycle(): void {
+            const i = root.styles.indexOf(adapter.appearance.style);
+            root.setStyle(root.styles[(i + 1) % root.styles.length]);
+        }
+    }
 
     FileView {
+        id: file
+
         path: Quickshell.shellDir + "/config.json"
         watchChanges: true
         onFileChanged: reload()
