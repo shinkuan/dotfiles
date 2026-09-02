@@ -35,18 +35,30 @@ Item {
         clip: true
     }
 
-    // Rim: a lit top edge
+    // Rim: a lit top edge with a soft fall-off below it
     Rectangle {
         visible: Theme.rimLight
-        x: parent.width * 0.12
+        x: parent.width * 0.1
         y: 0
-        width: parent.width * 0.76
+        width: parent.width * 0.8
         height: 1
         gradient: Gradient {
             orientation: Gradient.Horizontal
             GradientStop { position: 0; color: "transparent" }
-            GradientStop { position: 0.3; color: Colours.alpha(Theme.accent, 0.55) }
-            GradientStop { position: 0.7; color: Colours.alpha(Theme.accent, 0.55) }
+            GradientStop { position: 0.25; color: Colours.alpha(Theme.accent, 0.8) }
+            GradientStop { position: 0.75; color: Colours.alpha(Theme.accent, 0.8) }
+            GradientStop { position: 1; color: "transparent" }
+        }
+    }
+
+    Rectangle {
+        visible: Theme.rimLight
+        x: parent.width * 0.2
+        y: 1
+        width: parent.width * 0.6
+        height: 14
+        gradient: Gradient {
+            GradientStop { position: 0; color: Colours.alpha(Theme.accent, 0.16) }
             GradientStop { position: 1; color: "transparent" }
         }
     }

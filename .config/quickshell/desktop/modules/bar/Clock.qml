@@ -17,17 +17,23 @@ BarItem {
     }
 
 
+    readonly property string face: (Theme.ledger || Theme.signal) ? Theme.fontMono : Theme.font
+
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "HH")
+        font.family: root.face
         font.pixelSize: Config.fontSize + 2
-        font.weight: Font.Bold
+        font.weight: Theme.ledger ? Font.Medium : Font.Bold
+        color: Theme.signal ? Theme.accent : Colours.surfaceText
     }
 
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "mm")
+        font.family: root.face
         font.pixelSize: Config.fontSize + 2
+        color: Theme.signal ? Theme.accent : Colours.surfaceText
     }
 
     StyledText {
