@@ -103,5 +103,5 @@ Hot-loaded; every key is optional.
 `overview` (toggle/open/close), `popout` (open <id>/close), `screenshot`
 (region/regionCopy/cancel/capture), `session` (lock/suspend/logout),
 `media` (playPause/next/previous/stop), `wallpaper` (set/get), `theme`
-(set <style>/get/cycle — rewrites config.json).
+(set <style>/get/cycle — rewrites config.json through the adapter, so keys it does not know are dropped).
 Call with `qs -c desktop ipc call <target> <function> [args]`.

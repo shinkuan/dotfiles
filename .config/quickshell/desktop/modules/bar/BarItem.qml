@@ -79,7 +79,10 @@ Rectangle {
             pressX = m.x;
             pressY = m.y;
         }
-        onReleased: pressX = -1
+        onReleased: {
+            pressX = -1;
+            pressY = -1;
+        }
         onPositionChanged: m => {
             if (pressX >= 0 && root.bar)
                 root.bar.dragged(root.horizontal ? m.y - pressY : m.x - pressX);

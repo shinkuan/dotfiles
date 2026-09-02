@@ -75,6 +75,7 @@ Singleton {
 
         path: Quickshell.shellDir + "/config.json"
         watchChanges: true
+        atomicWrites: true
         onFileChanged: reload()
         onLoadFailed: err => {
             if (err !== FileViewError.FileNotFound)

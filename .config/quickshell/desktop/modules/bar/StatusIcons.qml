@@ -86,6 +86,8 @@ Grid {
     }
 
     BarItem {
+        id: batteryItem
+
         popout: "power"
         visible: UPower.displayDevice?.isLaptopBattery ?? false
         spacing: 0
@@ -98,12 +100,12 @@ Grid {
                 const level = Math.min(6, Math.round(p * 6));
                 return level === 6 ? "battery_full" : level === 0 ? "battery_alert" : `battery_${level}_bar`;
             }
-            color: (UPower.displayDevice?.percentage ?? 1) < 0.15 && UPower.onBattery ? Colours.error : Colours.surfaceText
+            color: (UPower.displayDevice?.percentage ?? 1) < 0.15 && UPower.onBattery ? Colours.error : batteryItem.fg
         }
 
         StyledText {
             text: Math.round((UPower.displayDevice?.percentage ?? 0) * 100) + "%"
-            color: Colours.surfaceVariantText
+            color: batteryItem.filled ? batteryItem.fgDim : Colours.surfaceVariantText
             font.pixelSize: Config.fontSize - 4
         }
     }

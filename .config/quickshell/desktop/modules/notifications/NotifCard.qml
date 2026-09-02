@@ -26,6 +26,7 @@ Surface {
     // critical mixes on an opaque base: translucent panels would wash it out
     color: critical ? Colours.mix(Colours.surfaceContainerHigh, Colours.errorContainer, 0.35) : compact ? Theme.panelRaised : Theme.panel
     borderColor: critical ? Colours.alpha(Colours.error, 0.6) : Theme.borderColor
+    borderWidth: critical ? 1 : Theme.borderWidth
 
     function timeLabel(t: real): string {
         const d = new Date(t);

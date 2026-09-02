@@ -32,7 +32,7 @@ BarItem {
         font.capitalization: Theme.labelUpper && !Theme.ledger ? Font.AllUppercase : Font.MixedCase
         font.letterSpacing: Theme.rim ? 0.5 : Theme.signal ? 1 : 0
         font.pixelSize: Theme.labelUpper && !Theme.ledger ? Config.fontSize - 2 : Config.fontSize
-        width: Math.min(implicitWidth, Theme.barWidth - 6)
+        width: root.horizontal ? implicitWidth : Math.min(implicitWidth, Theme.barWidth - 6)
         horizontalAlignment: Text.AlignHCenter
     }
 

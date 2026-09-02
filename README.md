@@ -80,7 +80,7 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 `rim`(預設,深漆面板 + 受光鑲邊)、`ledger`(規線帳冊、等寬標籤)、`capsule`(懸浮膠囊 dock、pill 列)、
 `signal`(HUD 角標、分段量表)、`poster`(實心色塊、粗線標題)、`classic`。
 `bar.position` 可設 `left`(預設)、`right` 或 `top`(水平 bar,popout 從下方彈出);`bar.entries` 決定模組順序與取捨。
-不想改檔案的話:launcher 打 `>style`,或 `qs -c desktop ipc call theme set rim`(`theme cycle` 輪流切)。
+不想改檔案的話:launcher 打 `>style`,或 `qs -c desktop ipc call theme set rim`(`theme cycle` 輪流切;這會由 shell 回寫 config.json,只保留它認得的鍵)。
 色票由 `scheme` / `wallpaper` 產生,shell 熱載入 `$XDG_STATE_HOME/scheme/colours.json`。
 
 ### 常用快捷鍵

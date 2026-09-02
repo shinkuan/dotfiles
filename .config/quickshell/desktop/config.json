@@ -6,10 +6,6 @@
         "style": "rim"
     },
     "bar": {
-        "pinThreshold": 20,
-        "showResources": true,
-        "width": 44,
-        "position": "left",
         "entries": [
             "kgrid",
             "window",
@@ -21,7 +17,11 @@
             "notifications",
             "clock",
             "power"
-        ]
+        ],
+        "pinThreshold": 20,
+        "position": "left",
+        "showResources": true,
+        "width": 44
     },
     "border": {
         "rounding": 25,
@@ -184,14 +184,15 @@
         "emojiPrefix": ":",
         "fuzzy": true,
         "maxResults": 9,
+        "position": "top",
         "showDangerous": false
     },
     "notifications": {
         "criticalTimeout": 0,
         "maxHistory": 200,
+        "position": "top-right",
         "timeout": 5000,
-        "width": 380,
-        "position": "top-right"
+        "width": 380
     },
     "osd": {
         "hideDelay": 2000

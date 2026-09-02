@@ -12,6 +12,7 @@ Item {
     property int radius: Theme.radius
     property bool shadow: true
     property color borderColor: Theme.borderColor
+    property int borderWidth: Theme.borderWidth
     default property alias content: inner.data
 
     RectangularShadow {
@@ -30,7 +31,7 @@ Item {
         anchors.fill: parent
         radius: root.radius
         color: root.color
-        border.width: Theme.borderWidth
+        border.width: root.borderWidth
         border.color: root.borderColor
         clip: true
     }
@@ -77,14 +78,14 @@ Item {
 
             Rectangle {
                 x: 0
-                y: parent.parent.index === 0 ? 0 : 9
+                y: parent.index === 0 ? 0 : 9
                 width: 10
                 height: 1
                 color: Theme.accent
             }
 
             Rectangle {
-                x: parent.parent.index === 0 ? 0 : 9
+                x: parent.index === 0 ? 0 : 9
                 y: 0
                 width: 1
                 height: 10

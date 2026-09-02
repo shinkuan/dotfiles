@@ -17,7 +17,7 @@ Singleton {
     readonly property bool poster: style === "poster"
 
     // type
-    readonly property string font: capsule ? "Rubik" : signal ? "IBM Plex Mono" : "IBM Plex Sans"
+    readonly property string font: (capsule || style === "classic") ? "Rubik" : signal ? "IBM Plex Mono" : "IBM Plex Sans"
     readonly property string fontMono: "IBM Plex Mono"
     readonly property string fontLabel: (rim || poster) ? "IBM Plex Sans Condensed" : (ledger || signal) ? "IBM Plex Mono" : capsule ? "Rubik" : "IBM Plex Sans"
     readonly property int labelSize: signal ? 10 : capsule ? 12 : poster ? 14 : 11
@@ -49,7 +49,7 @@ Singleton {
     readonly property int radiusChip: (ledger || signal) ? 2 : poster ? 4 : 999
     readonly property int radiusTile: rim ? 12 : ledger ? 2 : capsule ? 20 : signal ? 2 : poster ? 6 : 14
     readonly property bool solid: poster                // chips / tiles / bar entries are solid blocks
-    readonly property int borderWidth: (ledger || signal || rim) ? 1 : 0
+    readonly property int borderWidth: (ledger || signal || rim || style === "classic") ? 1 : 0
     readonly property color borderColor: signal ? Colours.alpha(Colours.tertiary, 0.18) : rim ? Colours.alpha(Colours.outlineVariant, 0.45) : ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.5)
     readonly property bool rimLight: rim                // lit top edge
     readonly property bool cornerTicks: signal          // HUD corner brackets
@@ -64,7 +64,7 @@ Singleton {
     // bar
     readonly property bool barTop: Config.bar.position === "top"
     readonly property bool barRight: Config.bar.position === "right"
-    readonly property int barWidth: ledger ? 40 : (capsule || poster) ? 48 : 44
+    readonly property int barWidth: Config.bar.width + (ledger ? -4 : (capsule || poster) ? 4 : 0)
     readonly property int barMargin: capsule ? 10 : 0           // detached from the screen edge
     readonly property int barSpan: barWidth + barMargin * 2
     readonly property int barRadius: capsule ? 24 : rim ? 22 : (ledger || signal || poster) ? 0 : 25

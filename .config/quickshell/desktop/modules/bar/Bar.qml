@@ -132,7 +132,7 @@ Item {
             Item {
                 required property int index
 
-                x: parent.width - 10
+                x: root.mirrored ? 0 : parent.width - 10
                 y: index === 0 ? 0 : parent.height - 10
                 width: 10
                 height: 10
@@ -146,7 +146,7 @@ Item {
                 }
 
                 Rectangle {
-                    x: 9
+                    x: root.mirrored ? 0 : 9
                     y: 0
                     width: 1
                     height: 10
@@ -205,7 +205,7 @@ Item {
                 Layout.alignment: layout.align
                 Layout.fillHeight: modelData === "spacer" && !root.horizontal
                 Layout.fillWidth: modelData === "spacer" && root.horizontal
-                visible: modelData === "spacer" || (item?.shown ?? true)
+                visible: modelData === "spacer" || (item !== null && (item.shown ?? true))
                 sourceComponent: root.registry[modelData] ?? null
             }
         }
