@@ -12,7 +12,10 @@ agent and idle inhibitor. Run with `qs -c desktop` (normally via
   effects are touched once in `Component.onCompleted` so they instantiate.
 - `config/Config.qml` — appearance constants plus `config.json`, hot-loaded
   through a `JsonAdapter` (any key may be omitted; defaults live on the
-  adapter).
+  adapter). `config/Theme.qml` turns `appearance.style` into design tokens
+  (panel material, radii, rim light / corner ticks / ruled rows, label face,
+  accent, bar shape); components read `Theme`, never literal shapes.
+  `components/Surface.qml` is the themed panel every popup is built on.
 - `components/` — shared widgets: `StyledText`, `MaterialIcon`, `Clickable`,
   `IconButton`, `Toggle`, `Slider`, `ListItem`, `SectionLabel`, `Meter`,
   `Chip`.
@@ -76,6 +79,7 @@ Hot-loaded; every key is optional.
 
 | Key | Meaning |
 |---|---|
+| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `classic` — tokens live in `config/Theme.qml` |
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
 | `bar.width`, `bar.pinThreshold`, `bar.showResources` | bar width; drag distance that pins it; CPU/memory meters entry |

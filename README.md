@@ -76,7 +76,9 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
   手把有輸入時也會抑制(`joystick-idle-watch`)。
 - **Polkit 代理**在 shell 內;shell 掛掉時手動跑 `polkit-fallback`。
 
-設定檔:`.config/quickshell/desktop/config.json`,存檔即時生效。
+設定檔:`.config/quickshell/desktop/config.json`,存檔即時生效。`appearance.style` 切換視覺風格:
+`rim`(預設,深漆面板 + 受光鑲邊)、`ledger`(規線帳冊、等寬標籤)、`capsule`(懸浮膠囊 dock、pill 列)、
+`signal`(HUD 角標、分段量表)、`classic`。
 色票由 `scheme` / `wallpaper` 產生,shell 熱載入 `$XDG_STATE_HOME/scheme/colours.json`。
 
 ### 常用快捷鍵
