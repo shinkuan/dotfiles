@@ -23,7 +23,8 @@ Surface {
     implicitHeight: column.implicitHeight + 24
     radius: compact ? Theme.radiusTile : Math.max(Theme.radius - 4, Theme.radiusItem)
     shadow: !compact
-    color: critical ? Colours.mix(compact ? Theme.panelRaised : Theme.panel, Colours.errorContainer, 0.35) : compact ? Theme.panelRaised : Theme.panel
+    // critical mixes on an opaque base: translucent panels would wash it out
+    color: critical ? Colours.mix(Colours.surfaceContainerHigh, Colours.errorContainer, 0.35) : compact ? Theme.panelRaised : Theme.panel
     borderColor: critical ? Colours.alpha(Colours.error, 0.6) : Theme.borderColor
 
     function timeLabel(t: real): string {
