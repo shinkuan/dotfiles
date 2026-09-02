@@ -16,6 +16,7 @@ Singleton {
     property string mode: "apps"
     property string term: ""
     property list<var> results: []
+    readonly property int columns: mode === "wallpaper" ? 4 : 1   // grid modes
     property string calcResult: ""
     property list<var> clips: []
     property list<var> wallpapers: []
