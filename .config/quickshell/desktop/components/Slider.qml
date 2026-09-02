@@ -23,8 +23,8 @@ Item {
         visible: !Theme.segmented
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width
-        height: Theme.capsule ? 10 : Theme.ledger ? 4 : 6
-        radius: Theme.ledger ? 0 : height / 2
+        height: (Theme.capsule || Theme.poster) ? 10 : Theme.ledger ? 4 : 6
+        radius: (Theme.ledger || Theme.poster) ? 0 : height / 2
         color: Colours.surfaceContainerHighest
 
         Rectangle {
@@ -69,7 +69,7 @@ Item {
         height: mouse.pressed ? 22 : 16
         radius: 2
         color: Theme.capsule ? Colours.surfaceText : root.accent
-        visible: root.interactive && !Theme.segmented
+        visible: root.interactive && !Theme.segmented && !Theme.poster
 
         Behavior on x {
             enabled: !mouse.pressed

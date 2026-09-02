@@ -79,7 +79,7 @@ Hot-loaded; every key is optional.
 
 | Key | Meaning |
 |---|---|
-| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `classic` — tokens live in `config/Theme.qml` |
+| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `classic` — tokens live in `config/Theme.qml` |
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
 | `bar.width`, `bar.pinThreshold`, `bar.showResources` | bar width; drag distance that pins it; CPU/memory meters entry |

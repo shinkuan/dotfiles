@@ -17,7 +17,7 @@ Rectangle {
 
     height: Theme.outlined ? 48 : 56
     radius: selected && Theme.activePill ? height / 2 : Theme.radiusItem
-    color: selected ? (Theme.capsule ? Theme.activeFill : Colours.alpha(danger ? Colours.error : Theme.accent, Theme.ledger ? 0 : Theme.rim ? 0.11 : Theme.signal ? 0.12 : 0.18)) : "transparent"
+    color: selected ? ((Theme.capsule || Theme.poster) && !danger ? Theme.activeFill : Colours.alpha(danger ? Colours.error : Theme.accent, Theme.ledger ? 0 : Theme.rim ? 0.11 : Theme.signal ? 0.12 : 0.18)) : "transparent"
 
     Rectangle {
         visible: root.selected && (Theme.activeBar || Theme.signal)
@@ -121,7 +121,7 @@ Rectangle {
             StyledText {
                 Layout.fillWidth: true
                 text: root.entry.title
-                color: root.danger ? Colours.error : root.selected && Theme.signal ? Theme.accent : Colours.surfaceText
+                color: root.danger ? Colours.error : root.selected && (Theme.signal || Theme.poster) ? Theme.activeText : Colours.surfaceText
                 font.pixelSize: Config.fontSize + 1
                 font.weight: root.selected ? Font.DemiBold : Font.Normal
             }

@@ -40,8 +40,9 @@ Clickable {
             text: root.text
             color: root.checked ? (Theme.ledger ? root.accent : Theme.capsule ? Colours.primaryContainerText : root.accentText) : Colours.surfaceText
             font.pixelSize: Config.fontSize - (Theme.outlined ? 2 : 1)
-            font.capitalization: Theme.outlined ? Font.AllUppercase : Font.MixedCase
-            font.letterSpacing: Theme.outlined ? 0.8 : 0
+            font.capitalization: (Theme.outlined || Theme.solid) ? Font.AllUppercase : Font.MixedCase
+            font.letterSpacing: (Theme.outlined || Theme.solid) ? 0.8 : 0
+            font.weight: Theme.solid ? Font.DemiBold : Font.Normal
             anchors.verticalCenter: parent.verticalCenter
         }
     }

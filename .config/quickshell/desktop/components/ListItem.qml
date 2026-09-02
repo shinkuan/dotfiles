@@ -18,7 +18,7 @@ Clickable {
     implicitHeight: Theme.ledger ? 38 : 44
     implicitWidth: row.implicitWidth
     radius: active && Theme.activePill ? height / 2 : Theme.radiusItem
-    baseColor: active ? (Theme.capsule ? Theme.activeFill : Theme.ledger ? "transparent" : Colours.alpha(accent, Theme.rim ? 0.11 : Theme.signal ? 0.12 : 0.16)) : "transparent"
+    baseColor: active ? ((Theme.capsule || Theme.poster) ? Theme.activeFill : Theme.ledger ? "transparent" : Colours.alpha(accent, Theme.rim ? 0.11 : Theme.signal ? 0.12 : 0.16)) : "transparent"
 
     // Rim / Ledger: indicator rule on the left; Ledger: dashed row dividers
     Rectangle {
@@ -52,7 +52,7 @@ Clickable {
             visible: root.icon !== ""
             text: root.icon
             fill: root.iconFill
-            color: root.active ? root.accent : Colours.surfaceVariantText
+            color: root.active ? Theme.activeIcon : Colours.surfaceVariantText
         }
 
         ColumnLayout {
@@ -62,7 +62,7 @@ Clickable {
             StyledText {
                 Layout.fillWidth: true
                 text: root.title
-                color: root.active && !Theme.capsule ? root.accent : Colours.surfaceText
+                color: root.active ? Theme.activeText : Colours.surfaceText
                 font.weight: root.active ? (Theme.ledger ? Font.Medium : Font.DemiBold) : Font.Normal
                 font.underline: root.active && Theme.activeUnderline
             }
@@ -71,7 +71,7 @@ Clickable {
                 Layout.fillWidth: true
                 visible: root.subtitle !== ""
                 text: root.subtitle
-                color: Colours.surfaceVariantText
+                color: root.active && Theme.poster ? Colours.alpha(Theme.activeText, 0.8) : Colours.surfaceVariantText
                 font.pixelSize: Config.fontSize - 2
             }
         }

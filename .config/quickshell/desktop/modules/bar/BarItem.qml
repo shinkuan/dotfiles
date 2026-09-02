@@ -24,7 +24,7 @@ Rectangle {
     implicitWidth: Theme.barWidth - 8
     implicitHeight: column.implicitHeight + 10
     radius: Theme.barItemRadius
-    color: active ? (Theme.barItemFilled ? Colours.alpha(Theme.accent, 0.3) : Theme.barItemOutlined ? "transparent" : Colours.alpha(Theme.accent, 0.18)) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
+    color: active ? (Theme.barItemFilled ? Colours.alpha(Theme.accent, Theme.poster ? 0.9 : 0.3) : Theme.barItemOutlined ? "transparent" : Colours.alpha(Theme.accent, 0.18)) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
     border.width: active && Theme.barItemOutlined ? 1 : 0
     border.color: Theme.accent
 

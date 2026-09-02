@@ -55,7 +55,7 @@ Singleton {
             id: adapter
 
             property JsonObject appearance: JsonObject {
-                property string style: "rim"   // rim | ledger | capsule | signal | classic
+                property string style: "rim"   // rim | ledger | capsule | signal | poster | classic
             }
             property JsonObject animation: JsonObject {
                 property real scale: 0.8

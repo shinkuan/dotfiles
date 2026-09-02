@@ -41,7 +41,7 @@ ColumnLayout {
         Layout.fillWidth: true
         implicitHeight: Theme.capsule ? 64 : 56
         radius: checked && Theme.activePill ? height / 2 : Theme.radiusTile
-        baseColor: checked ? (Theme.outlined ? Colours.alpha(Theme.accent, Theme.signal ? 0.14 : 0) : Theme.accent) : Theme.outlined ? "transparent" : Theme.panelRaised
+        baseColor: checked ? (Theme.outlined ? Colours.alpha(Theme.accent, Theme.signal ? 0.14 : 0) : Theme.solid ? Colours.primaryContainer : Theme.accent) : Theme.outlined ? "transparent" : Theme.panelRaised
         hoverColor: Colours.mix(baseColor, Colours.surfaceText, 0.08)
         pressColor: Colours.mix(baseColor, Colours.surfaceText, 0.14)
         border.width: Theme.outlined ? 1 : 0
@@ -55,7 +55,7 @@ ColumnLayout {
             MaterialIcon {
                 text: tile.icon
                 fill: tile.checked
-                color: tile.checked ? (Theme.outlined ? Theme.accent : Theme.accentText) : Colours.surfaceVariantText
+                color: tile.checked ? (Theme.outlined ? Theme.accent : Theme.solid ? Colours.primaryContainerText : Theme.accentText) : Colours.surfaceVariantText
             }
 
             ColumnLayout {
@@ -65,14 +65,14 @@ ColumnLayout {
                 StyledText {
                     Layout.fillWidth: true
                     text: tile.label
-                    color: tile.checked ? (Theme.outlined ? Theme.accent : Theme.accentText) : Colours.surfaceText
+                    color: tile.checked ? (Theme.outlined ? Theme.accent : Theme.solid ? Colours.primaryContainerText : Theme.accentText) : Colours.surfaceText
                     font.weight: Font.DemiBold
                 }
 
                 StyledText {
                     Layout.fillWidth: true
                     text: tile.detail
-                    color: tile.checked ? (Theme.outlined ? Colours.alpha(Theme.accent, 0.8) : Colours.alpha(Theme.accentText, 0.8)) : Colours.surfaceVariantText
+                    color: tile.checked ? (Theme.outlined ? Colours.alpha(Theme.accent, 0.8) : Theme.solid ? Colours.alpha(Colours.primaryContainerText, 0.8) : Colours.alpha(Theme.accentText, 0.8)) : Colours.surfaceVariantText
                     font.pixelSize: Config.fontSize - 2
                 }
             }
@@ -122,9 +122,10 @@ ColumnLayout {
                 anchors.horizontalCenter: parent.horizontalCenter
                 text: sbtn.isArmed ? "Sure?" : sbtn.label
                 color: sbtn.isArmed ? Colours.errorText : Colours.surfaceVariantText
-                font.pixelSize: Config.fontSize - (Theme.outlined ? 3 : 2)
-                font.capitalization: Theme.outlined ? Font.AllUppercase : Font.MixedCase
-                font.letterSpacing: Theme.outlined ? 0.6 : 0
+                font.pixelSize: Config.fontSize - ((Theme.outlined || Theme.solid) ? 3 : 2)
+                font.capitalization: (Theme.outlined || Theme.solid) ? Font.AllUppercase : Font.MixedCase
+                font.letterSpacing: (Theme.outlined || Theme.solid) ? 0.6 : 0
+                font.weight: Theme.solid ? Font.DemiBold : Font.Normal
             }
         }
     }

@@ -48,7 +48,7 @@ ColumnLayout {
     Rectangle {
         visible: Theme.labelRuled
         Layout.fillWidth: true
-        height: 1
-        color: Colours.outlineVariant
+        height: Theme.labelRuleWidth
+        color: Theme.labelRuleColor
     }
 }
