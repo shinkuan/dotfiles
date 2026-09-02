@@ -34,7 +34,7 @@ BarItem {
             anchors.centerIn: parent
             visible: root.iconSource === ""
             text: "web_asset"
-            color: Colours.surfaceVariantText
+            color: root.filled ? root.fgDim : Colours.surfaceVariantText
         }
     }
 

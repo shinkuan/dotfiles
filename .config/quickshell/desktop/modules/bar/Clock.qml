@@ -25,7 +25,7 @@ BarItem {
         font.family: root.face
         font.pixelSize: Config.fontSize + 2
         font.weight: Theme.ledger ? Font.Medium : Font.Bold
-        color: Theme.signal ? Theme.accent : Colours.surfaceText
+        color: Theme.signal ? root.fgAccent : root.fg
     }
 
     StyledText {
@@ -33,21 +33,21 @@ BarItem {
         text: Qt.formatDateTime(clock.date, "mm")
         font.family: root.face
         font.pixelSize: Config.fontSize + 2
-        color: Theme.signal ? Theme.accent : Colours.surfaceText
+        color: Theme.signal ? root.fgAccent : root.fg
     }
 
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         topPadding: 4
         text: Qt.formatDateTime(clock.date, "ddd")
-        color: Colours.surfaceVariantText
+        color: root.filled ? root.fgDim : Colours.surfaceVariantText
         font.pixelSize: Config.fontSize - 3
     }
 
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         text: Qt.formatDateTime(clock.date, "d/M")
-        color: Colours.surfaceVariantText
+        color: root.filled ? root.fgDim : Colours.surfaceVariantText
         font.pixelSize: Config.fontSize - 3
     }
 }

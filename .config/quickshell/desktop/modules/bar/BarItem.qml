@@ -18,13 +18,18 @@ Rectangle {
         return p;
     }
     readonly property bool active: popout !== "" && bar !== null && bar.activePopout === popout
+    // solid directions invert the entry's foreground while it is active
+    readonly property bool filled: active && Theme.barItemFilled
+    readonly property color fg: filled ? Theme.accentText : Colours.surfaceText
+    readonly property color fgDim: filled ? Colours.alpha(Theme.accentText, 0.6) : Colours.outline
+    readonly property color fgAccent: filled ? Theme.accentText : Theme.accent
 
     signal clicked(var mouse)
 
     implicitWidth: Theme.barWidth - 8
     implicitHeight: column.implicitHeight + 10
     radius: Theme.barItemRadius
-    color: active ? (Theme.barItemFilled ? Colours.alpha(Theme.accent, Theme.poster ? 0.9 : 0.3) : Theme.barItemOutlined ? "transparent" : Colours.alpha(Theme.accent, 0.18)) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
+    color: active ? (Theme.barItemFilled ? Theme.accent : Theme.barItemOutlined ? "transparent" : Colours.alpha(Theme.accent, 0.18)) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
     border.width: active && Theme.barItemOutlined ? 1 : 0
     border.color: Theme.accent
 

@@ -27,7 +27,7 @@ BarItem {
     StyledText {
         anchors.horizontalCenter: parent.horizontalCenter
         text: root.cell ? KGrid.labelFor(root.cell.activity) : (root.wsName || "?")
-        color: Theme.accent
+        color: root.fgAccent
         font.family: Theme.fontLabel
         font.weight: Theme.ledger ? Font.Medium : Font.Bold
         font.capitalization: Theme.labelUpper && !Theme.ledger ? Font.AllUppercase : Font.MixedCase
@@ -54,7 +54,7 @@ BarItem {
                 width: 4
                 height: 4
                 radius: Theme.outlined ? 0 : 2
-                color: here ? Theme.accent : occupied ? Colours.alpha(Colours.surfaceText, 0.7) : Colours.alpha(Colours.surfaceVariantText, 0.3)
+                color: here ? root.fgAccent : occupied ? Colours.alpha(root.fg, 0.7) : Colours.alpha(root.fg, 0.3)
             }
         }
     }

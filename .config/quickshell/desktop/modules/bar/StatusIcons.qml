@@ -13,12 +13,14 @@ Column {
     spacing: 0
 
     BarItem {
+        id: audioItem
+
         popout: "audio"
 
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Audio.muted ? "volume_off" : Audio.volume > 0.5 ? "volume_up" : Audio.volume > 0 ? "volume_down" : "volume_mute"
-            color: Audio.muted ? Colours.outline : Colours.surfaceText
+            color: Audio.muted ? audioItem.fgDim : audioItem.fg
         }
 
         WheelHandler {
@@ -32,12 +34,14 @@ Column {
     }
 
     BarItem {
+        id: micItem
+
         popout: "audio"
 
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Audio.sourceMuted ? "mic_off" : "mic"
-            color: Audio.sourceMuted ? Colours.outline : Colours.surfaceText
+            color: Audio.sourceMuted ? micItem.fgDim : micItem.fg
         }
 
         onClicked: m => {
@@ -47,34 +51,40 @@ Column {
     }
 
     BarItem {
+        id: netItem
+
         popout: "network"
 
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Net.wiredConnected ? "lan" : Net.activeWifi ? Net.signalIcon(Net.activeWifi.signalStrength) : Net.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off"
-            color: Net.connected ? Colours.surfaceText : Colours.outline
+            color: Net.connected ? netItem.fg : netItem.fgDim
         }
     }
 
     BarItem {
+        id: vpnItem
+
         popout: "vpn"
         visible: Vpn.connections.length > 0
 
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Vpn.active.length > 0 ? "vpn_lock" : "vpn_key_off"
-            color: Vpn.active.length > 0 ? Theme.accent : Colours.outline
+            color: Vpn.active.length > 0 ? vpnItem.fgAccent : vpnItem.fgDim
         }
     }
 
     BarItem {
+        id: btItem
+
         popout: "bluetooth"
         visible: Bluetooth.defaultAdapter !== null
 
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.bluetoothConnected.length > 0 ? "bluetooth_connected" : "bluetooth"
-            color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? Colours.outline : root.bluetoothConnected.length > 0 ? Theme.accent : Colours.surfaceText
+            color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? btItem.fgDim : root.bluetoothConnected.length > 0 ? btItem.fgAccent : btItem.fg
         }
     }
 

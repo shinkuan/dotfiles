@@ -4,6 +4,8 @@ import "../../services"
 import "../../components"
 
 BarItem {
+    id: item
+
     popout: "notifications"
 
     Item {
@@ -14,7 +16,7 @@ BarItem {
         MaterialIcon {
             anchors.centerIn: parent
             text: ShellState.dnd ? "notifications_off" : Notifs.unread > 0 ? "notifications_unread" : "notifications"
-            color: ShellState.dnd ? Colours.outline : Notifs.unread > 0 ? Theme.accent : Colours.surfaceText
+            color: ShellState.dnd ? item.fgDim : Notifs.unread > 0 ? item.fgAccent : item.fg
         }
 
         Rectangle {
