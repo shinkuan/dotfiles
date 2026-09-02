@@ -99,6 +99,8 @@ Singleton {
                 property int pinThreshold: 20
                 property bool showResources: true
                 property string position: "left"   // left | right | top
+                // order of bar entries; unknown ids are skipped
+                property list<string> entries: ["kgrid", "window", "spacer", "media", "resources", "tray", "status", "notifications", "clock", "power"]
             }
             property JsonObject popouts: JsonObject {
                 property bool showOnHover: true

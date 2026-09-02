@@ -63,7 +63,8 @@ plain `MouseArea` (no `hoverEnabled`) for clicks everywhere in the surface.
 ## Adding a bar module
 
 Create `modules/bar/Foo.qml` as a `BarItem { popout: "foo" }`, register it
-in `modules/bar/qmldir`, add it to the `ColumnLayout` in `Bar.qml`.
+in `modules/bar/qmldir`, add a `Component` plus a `registry` key in
+`Bar.qml`, and list the key in `config.json` `bar.entries`.
 
 ## Adding a popout
 
@@ -82,7 +83,7 @@ Hot-loaded; every key is optional.
 | `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `classic` — tokens live in `config/Theme.qml` |
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
-| `bar.width`, `bar.pinThreshold`, `bar.showResources`, `bar.position` | bar thickness; drag distance that pins it; CPU/memory meters entry; `left`, `right` or `top` |
+| `bar.width`, `bar.pinThreshold`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it; CPU/memory meters entry; `left`, `right` or `top`; entry order (`kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power`) |
 | `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
 | `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |
 | `desktopClock.position`, `desktopClock.margin` | `top-left` … `bottom-right` / `bottom-center` |

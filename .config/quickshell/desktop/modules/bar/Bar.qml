@@ -19,6 +19,30 @@ Item {
     signal dragged(real dx)
     signal itemClicked(string popout, real y)
 
+    readonly property var registry: ({
+        kgrid: kgridComp,
+        window: windowComp,
+        spacer: spacerComp,
+        media: mediaComp,
+        resources: resourcesComp,
+        tray: trayComp,
+        status: statusComp,
+        notifications: notifComp,
+        clock: clockComp,
+        power: powerComp
+    })
+
+    Component { id: kgridComp; KGridIndicator { monitor: root.monitor } }
+    Component { id: windowComp; ActiveWindow {} }
+    Component { id: spacerComp; Item {} }
+    Component { id: mediaComp; MediaModule {} }
+    Component { id: resourcesComp; ResourcesModule { shown: Config.bar.showResources } }
+    Component { id: trayComp; Tray {} }
+    Component { id: statusComp; StatusIcons {} }
+    Component { id: notifComp; NotifIcon {} }
+    Component { id: clockComp; Clock {} }
+    Component { id: powerComp; PowerButton {} }
+
     // explicit geometry: anchors cannot be toggled reliably at runtime
     width: horizontal ? parent.width : Theme.barWidth
     height: horizontal ? Theme.barWidth : parent.height
@@ -172,47 +196,18 @@ Item {
         columnSpacing: 6
         rowSpacing: 6
 
-        KGridIndicator {
-            Layout.alignment: layout.align
-            monitor: root.monitor
-        }
+        Repeater {
+            model: Config.bar.entries
 
-        ActiveWindow {
-            Layout.alignment: layout.align
-        }
+            Loader {
+                required property string modelData
 
-        Item {
-            Layout.fillHeight: !root.horizontal
-            Layout.fillWidth: root.horizontal
-        }
-
-        MediaModule {
-            Layout.alignment: layout.align
-        }
-
-        ResourcesModule {
-            Layout.alignment: layout.align
-            visible: Config.bar.showResources
-        }
-
-        Tray {
-            Layout.alignment: layout.align
-        }
-
-        StatusIcons {
-            Layout.alignment: layout.align
-        }
-
-        NotifIcon {
-            Layout.alignment: layout.align
-        }
-
-        Clock {
-            Layout.alignment: layout.align
-        }
-
-        PowerButton {
-            Layout.alignment: layout.align
+                Layout.alignment: layout.align
+                Layout.fillHeight: modelData === "spacer" && !root.horizontal
+                Layout.fillWidth: modelData === "spacer" && root.horizontal
+                visible: modelData === "spacer" || (item?.shown ?? true)
+                sourceComponent: root.registry[modelData] ?? null
+            }
         }
     }
 }

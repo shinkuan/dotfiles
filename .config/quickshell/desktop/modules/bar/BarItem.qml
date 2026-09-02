@@ -8,6 +8,7 @@ Rectangle {
     id: root
 
     property string popout: ""
+    property bool shown: true   // entry wants to be in the bar (Item.visible is effective, not own)
     property int spacing: 2
     default property alias content: grid.data
     readonly property alias hovered: hover.hovered

@@ -12,7 +12,7 @@ BarItem {
     readonly property MprisPlayer player: Players.active
 
     popout: "media"
-    visible: player !== null
+    shown: player !== null
 
     Item {
         width: Config.iconSize + 2

@@ -9,7 +9,19 @@
         "pinThreshold": 20,
         "showResources": true,
         "width": 44,
-        "position": "left"
+        "position": "left",
+        "entries": [
+            "kgrid",
+            "window",
+            "spacer",
+            "media",
+            "resources",
+            "tray",
+            "status",
+            "notifications",
+            "clock",
+            "power"
+        ]
     },
     "border": {
         "rounding": 25,

@@ -12,7 +12,7 @@ Grid {
     flow: Theme.barTop ? Grid.LeftToRight : Grid.TopToBottom
     columns: Theme.barTop ? 99 : 1
     spacing: 2
-    visible: SystemTray.items.values.length > 0
+    readonly property bool shown: SystemTray.items.values.length > 0
 
     Repeater {
         model: SystemTray.items

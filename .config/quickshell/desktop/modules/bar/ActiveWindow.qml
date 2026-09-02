@@ -16,7 +16,7 @@ BarItem {
     readonly property string iconSource: cls ? Quickshell.iconPath(DesktopEntries.heuristicLookup(cls)?.icon ?? cls, true) : ""
 
     popout: "window"
-    visible: toplevel !== null
+    shown: toplevel !== null
 
     Item {
         width: Config.iconSize + 2
