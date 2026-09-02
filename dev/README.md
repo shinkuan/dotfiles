@@ -52,7 +52,10 @@ env WAYLAND_DISPLAY=<nested socket> HYPRLAND_INSTANCE_SIGNATURE=<nested sig> \
 instance: no arguments starts the shell, `ipc call bar toggle` talks to it,
 and `-- grim shot.png` runs any command inside it (screenshots of the nested
 output for visual checks — without the prefix grim captures the live
-session).
+session). The nested window must be on a *visible* outer workspace:
+while it is hidden the nested compositor gets no frame callbacks and `grim`
+blocks forever. Headless outputs created with `hyprctl output create headless`
+stay 0x0 under the Lua config, so they are no substitute.
 
 - **Hover without a mouse**: `hyprctl -i <sig> dispatch 'hl.dsp.cursor.move({ x = 5, y = 600 })'`
   warps the nested cursor. A warp only produces a pointer enter/leave, not
