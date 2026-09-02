@@ -31,9 +31,9 @@ BarItem {
         font.family: Theme.fontLabel
         font.weight: Theme.ledger ? Font.Medium : Font.Bold
         font.capitalization: Theme.labelUpper && !Theme.ledger ? Font.AllUppercase : Font.MixedCase
-        font.letterSpacing: Theme.rim ? 1 : Theme.signal ? 1.5 : 0
-        font.pixelSize: Theme.labelUpper && !Theme.ledger ? Config.fontSize - 1 : Config.fontSize
-        width: Math.min(implicitWidth, root.width - 4)
+        font.letterSpacing: Theme.rim ? 0.5 : Theme.signal ? 1 : 0
+        font.pixelSize: Theme.labelUpper && !Theme.ledger ? Config.fontSize - 2 : Config.fontSize
+        width: Math.min(implicitWidth, Theme.barWidth - 6)
         horizontalAlignment: Text.AlignHCenter
     }
 
