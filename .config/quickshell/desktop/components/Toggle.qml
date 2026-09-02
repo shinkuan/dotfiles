@@ -15,7 +15,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: root.checked ? Colours.primary : Colours.surfaceContainerHighest
+        color: root.checked ? Theme.accent : Colours.surfaceContainerHighest
         border.width: root.checked ? 0 : 2
         border.color: Colours.outline
 
@@ -32,7 +32,7 @@ Item {
         width: root.checked ? 18 : 14
         height: width
         radius: width / 2
-        color: root.checked ? Colours.primaryText : Colours.outline
+        color: root.checked ? Theme.accentText : Colours.outline
 
         Behavior on x {
             NumberAnimation {

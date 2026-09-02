@@ -98,7 +98,7 @@ Item {
         height: loader.item ? loader.item.height + Config.padding * 2 : 0
 
         opacity: root.shown ? 1 : 0
-        scale: root.shown ? 1 : 0.92
+        scale: root.shown ? 1 : Theme.popScale
         transformOrigin: Item.Left
         visible: opacity > 0
 

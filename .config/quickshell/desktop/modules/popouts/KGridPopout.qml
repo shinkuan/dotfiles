@@ -37,8 +37,8 @@ ColumnLayout {
 
                 text: modelData.label
                 checked: root.selected === modelData.id
-                accent: root.cell?.activity === modelData.id ? Colours.primary : Colours.secondaryContainer
-                accentText: root.cell?.activity === modelData.id ? Colours.primaryText : Colours.secondaryContainerText
+                accent: root.cell?.activity === modelData.id ? Theme.accent : Colours.secondaryContainer
+                accentText: root.cell?.activity === modelData.id ? Theme.accentText : Colours.secondaryContainerText
                 onClicked: {
                     if (root.selected === modelData.id)
                         KGrid.switchActivity(modelData.id);
@@ -67,14 +67,14 @@ ColumnLayout {
                 width: 52
                 height: 40
                 radius: Config.radius
-                baseColor: here ? Colours.primary : windows > 0 ? Colours.surfaceContainerHighest : Colours.alpha(Colours.surfaceContainerHighest, 0.4)
-                hoverColor: here ? Colours.mix(Colours.primary, Colours.primaryText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.1)
+                baseColor: here ? Theme.accent : windows > 0 ? Colours.surfaceContainerHighest : Colours.alpha(Colours.surfaceContainerHighest, 0.4)
+                hoverColor: here ? Colours.mix(Theme.accent, Theme.accentText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.1)
                 onClicked: KGrid.switchTo(root.selected, cx, cy)
 
                 StyledText {
                     anchors.centerIn: parent
                     text: parent.windows > 0 ? parent.windows : ""
-                    color: parent.here ? Colours.primaryText : Colours.surfaceVariantText
+                    color: parent.here ? Theme.accentText : Colours.surfaceVariantText
                     font.pixelSize: Config.fontSize - 1
                     font.weight: Font.DemiBold
                 }
@@ -85,7 +85,7 @@ ColumnLayout {
                     width: 6
                     height: 6
                     radius: 3
-                    color: parent.here ? Colours.primaryText : Colours.alpha(Colours.surfaceVariantText, 0.4)
+                    color: parent.here ? Theme.accentText : Colours.alpha(Colours.surfaceVariantText, 0.4)
                 }
             }
         }

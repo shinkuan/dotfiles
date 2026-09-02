@@ -42,7 +42,7 @@ ColumnLayout {
             Slider {
                 Layout.fillWidth: true
                 value: vrow.node?.audio?.volume ?? 0
-                accent: vrow.node?.audio?.muted ? Colours.outline : Colours.primary
+                accent: vrow.node?.audio?.muted ? Colours.outline : Theme.accent
                 onMoved: v => Audio.setVolume(vrow.node, v)
             }
         }
@@ -83,7 +83,7 @@ ColumnLayout {
             MaterialIcon {
                 visible: sinkItem.active
                 text: "check"
-                color: Colours.primary
+                color: Theme.accent
                 font.pixelSize: Config.iconSize - 4
             }
         }
@@ -116,7 +116,7 @@ ColumnLayout {
             MaterialIcon {
                 visible: sourceItem.active
                 text: "check"
-                color: Colours.primary
+                color: Theme.accent
                 font.pixelSize: Config.iconSize - 4
             }
         }

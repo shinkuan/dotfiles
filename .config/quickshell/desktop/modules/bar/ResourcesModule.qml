@@ -32,7 +32,7 @@ BarItem {
                     width: parent.width
                     height: parent.height * Math.max(0.06, Math.min(1, parent.modelData.ratio))
                     radius: parent.radius
-                    color: parent.modelData.ratio > 0.9 ? Colours.error : Colours.primary
+                    color: parent.modelData.ratio > 0.9 ? Colours.error : Theme.accent
 
                     Behavior on height {
                         NumberAnimation {

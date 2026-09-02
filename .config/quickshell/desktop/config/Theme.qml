@@ -59,6 +59,7 @@ Singleton {
     readonly property int shadow: ledger ? 24 : capsule ? 40 : signal ? 0 : poster ? 30 : 28
     readonly property real shadowOpacity: capsule ? 0.45 : 0.5
     readonly property int padding: capsule ? 18 : 14
+    readonly property real popScale: capsule ? 0.85 : poster ? 1 : signal ? 0.98 : 0.92
 
     // bar
     readonly property int barWidth: ledger ? 40 : (capsule || poster) ? 48 : 44

@@ -162,7 +162,7 @@ Surface {
                     color: Colours.surfaceVariantText
                     wrapMode: Text.Wrap
                     maximumLineCount: root.compact ? 3 : 6
-                    linkColor: Colours.primary
+                    linkColor: Theme.accent
                     onLinkActivated: link => Quickshell.execDetached(["xdg-open", link])
                 }
             }

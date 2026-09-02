@@ -9,6 +9,6 @@ BarItem {
     MaterialIcon {
         anchors.horizontalCenter: parent.horizontalCenter
         text: "power_settings_new"
-        color: Idle.inhibited ? Colours.primary : Colours.surfaceText
+        color: Idle.inhibited ? Theme.accent : Colours.surfaceText
     }
 }

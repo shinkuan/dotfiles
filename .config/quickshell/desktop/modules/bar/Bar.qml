@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell.Hyprland
 import "../../config"
 import "../../services"
@@ -60,7 +61,19 @@ Item {
         return p.y + it.height / 2;
     }
 
+    RectangularShadow {
+        anchors.fill: barBg
+        visible: Theme.shadow > 0 && (Theme.capsule || Theme.rim || Theme.poster)
+        radius: Theme.barRadius
+        blur: Theme.shadow
+        spread: 0
+        offset: Qt.vector2d(Theme.capsule ? 0 : 6, Theme.capsule ? 8 : 0)
+        color: Colours.alpha(Colours.scrim, Theme.shadowOpacity)
+    }
+
     Rectangle {
+        id: barBg
+
         anchors.fill: parent
         anchors.topMargin: Theme.barMargin
         anchors.bottomMargin: Theme.barMargin
@@ -68,6 +81,36 @@ Item {
         radius: Theme.capsule ? Theme.barRadius : 0
         topRightRadius: Theme.barRadius
         bottomRightRadius: Theme.barRadius
+
+        // Signal: brackets on the exposed corners
+        Repeater {
+            model: Theme.cornerTicks ? 2 : 0
+
+            Item {
+                required property int index
+
+                x: parent.width - 10
+                y: index === 0 ? 0 : parent.height - 10
+                width: 10
+                height: 10
+
+                Rectangle {
+                    x: 0
+                    y: parent.index === 0 ? 0 : 9
+                    width: 10
+                    height: 1
+                    color: Theme.accent
+                }
+
+                Rectangle {
+                    x: 9
+                    y: 0
+                    width: 1
+                    height: 10
+                    color: Theme.accent
+                }
+            }
+        }
 
         // Ledger / Signal / Rim: a hairline on the exposed edge
         Rectangle {

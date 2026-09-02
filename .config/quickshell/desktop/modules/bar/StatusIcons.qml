@@ -63,7 +63,7 @@ Column {
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Vpn.active.length > 0 ? "vpn_lock" : "vpn_key_off"
-            color: Vpn.active.length > 0 ? Colours.primary : Colours.outline
+            color: Vpn.active.length > 0 ? Theme.accent : Colours.outline
         }
     }
 
@@ -74,7 +74,7 @@ Column {
         MaterialIcon {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.bluetoothConnected.length > 0 ? "bluetooth_connected" : "bluetooth"
-            color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? Colours.outline : root.bluetoothConnected.length > 0 ? Colours.primary : Colours.surfaceText
+            color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? Colours.outline : root.bluetoothConnected.length > 0 ? Theme.accent : Colours.surfaceText
         }
     }
 

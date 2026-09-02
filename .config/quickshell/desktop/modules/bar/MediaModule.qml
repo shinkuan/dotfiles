@@ -40,7 +40,7 @@ BarItem {
             anchors.centerIn: parent
             visible: art.status !== Image.Ready
             text: root.player?.isPlaying ? "music_note" : "pause_circle"
-            color: root.player?.isPlaying ? Colours.primary : Colours.surfaceVariantText
+            color: root.player?.isPlaying ? Theme.accent : Colours.surfaceVariantText
         }
     }
 

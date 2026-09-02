@@ -171,8 +171,8 @@ PanelWindow {
 
                         text: modelData.label
                         checked: Overview.activity === modelData.id
-                        accent: root.currentCell?.activity === modelData.id ? Colours.primary : Colours.secondaryContainer
-                        accentText: root.currentCell?.activity === modelData.id ? Colours.primaryText : Colours.secondaryContainerText
+                        accent: root.currentCell?.activity === modelData.id ? Theme.accent : Colours.secondaryContainer
+                        accentText: root.currentCell?.activity === modelData.id ? Theme.accentText : Colours.secondaryContainerText
                         onClicked: Overview.activity = modelData.id
                     }
                 }
