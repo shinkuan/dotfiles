@@ -46,6 +46,15 @@ Rectangle {
         color: Theme.accent
     }
 
+    scale: hover.hovered ? Theme.hoverScale : 1
+
+    Behavior on scale {
+        NumberAnimation {
+            duration: Config.animDurationFast
+            easing.type: Easing.OutBack
+        }
+    }
+
     Behavior on color {
         ColorAnimation {
             duration: Config.animDurationFast

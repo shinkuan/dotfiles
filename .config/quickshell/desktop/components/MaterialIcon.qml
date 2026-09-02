@@ -4,7 +4,7 @@ import "../services"
 
 Text {
     property bool fill: false
-    property int weight: 400
+    property int weight: Theme.iconWeight
 
     color: Colours.surfaceText
     font.family: Config.iconFont
