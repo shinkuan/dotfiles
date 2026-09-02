@@ -21,8 +21,6 @@ Grid {
         popout: "audio"
 
         MaterialIcon {
-            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Audio.muted ? "volume_off" : Audio.volume > 0.5 ? "volume_up" : Audio.volume > 0 ? "volume_down" : "volume_mute"
             color: Audio.muted ? audioItem.fgDim : audioItem.fg
         }
@@ -43,8 +41,6 @@ Grid {
         popout: "audio"
 
         MaterialIcon {
-            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Audio.sourceMuted ? "mic_off" : "mic"
             color: Audio.sourceMuted ? micItem.fgDim : micItem.fg
         }
@@ -61,8 +57,6 @@ Grid {
         popout: "network"
 
         MaterialIcon {
-            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Net.wiredConnected ? "lan" : Net.activeWifi ? Net.signalIcon(Net.activeWifi.signalStrength) : Net.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off"
             color: Net.connected ? netItem.fg : netItem.fgDim
         }
@@ -75,8 +69,6 @@ Grid {
         visible: Vpn.connections.length > 0
 
         MaterialIcon {
-            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Vpn.active.length > 0 ? "vpn_lock" : "vpn_key_off"
             color: Vpn.active.length > 0 ? vpnItem.fgAccent : vpnItem.fgDim
         }
@@ -89,8 +81,6 @@ Grid {
         visible: Bluetooth.defaultAdapter !== null
 
         MaterialIcon {
-            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: root.bluetoothConnected.length > 0 ? "bluetooth_connected" : "bluetooth"
             color: !(Bluetooth.defaultAdapter?.enabled ?? false) ? btItem.fgDim : root.bluetoothConnected.length > 0 ? btItem.fgAccent : btItem.fg
         }
@@ -102,8 +92,6 @@ Grid {
         spacing: 0
 
         MaterialIcon {
-            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: {
                 const p = UPower.displayDevice?.percentage ?? 0;
                 if (!UPower.onBattery)
@@ -115,8 +103,6 @@ Grid {
         }
 
         StyledText {
-            anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-            anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
             text: Math.round((UPower.displayDevice?.percentage ?? 0) * 100) + "%"
             color: Colours.surfaceVariantText
             font.pixelSize: Config.fontSize - 4

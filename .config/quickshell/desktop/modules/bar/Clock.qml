@@ -20,8 +20,9 @@ BarItem {
     readonly property string face: (Theme.ledger || Theme.signal) ? Theme.fontMono : Theme.font
 
     StyledText {
+        id: hh
+
         visible: root.horizontal
-        anchors.verticalCenter: parent.verticalCenter
         text: Qt.formatDateTime(clock.date, "HH:mm")
         font.family: root.face
         font.pixelSize: Config.fontSize + 1
@@ -31,7 +32,6 @@ BarItem {
 
     StyledText {
         visible: root.horizontal
-        anchors.verticalCenter: parent.verticalCenter
         text: Qt.formatDateTime(clock.date, "ddd d/M")
         color: root.filled ? root.fgDim : Colours.surfaceVariantText
         font.pixelSize: Config.fontSize - 2
@@ -39,8 +39,6 @@ BarItem {
 
     StyledText {
         visible: !root.horizontal
-        anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-        anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
         text: Qt.formatDateTime(clock.date, "HH")
         font.family: root.face
         font.pixelSize: Config.fontSize + 2
@@ -50,8 +48,6 @@ BarItem {
 
     StyledText {
         visible: !root.horizontal
-        anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-        anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
         text: Qt.formatDateTime(clock.date, "mm")
         font.family: root.face
         font.pixelSize: Config.fontSize + 2
@@ -60,8 +56,6 @@ BarItem {
 
     StyledText {
         visible: !root.horizontal
-        anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-        anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
         topPadding: 4
         text: Qt.formatDateTime(clock.date, "ddd")
         color: root.filled ? root.fgDim : Colours.surfaceVariantText
@@ -70,8 +64,6 @@ BarItem {
 
     StyledText {
         visible: !root.horizontal
-        anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-        anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
         text: Qt.formatDateTime(clock.date, "d/M")
         color: root.filled ? root.fgDim : Colours.surfaceVariantText
         font.pixelSize: Config.fontSize - 3

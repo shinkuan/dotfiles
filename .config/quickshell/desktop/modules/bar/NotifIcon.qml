@@ -9,8 +9,6 @@ BarItem {
     popout: "notifications"
 
     Item {
-        anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-        anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
         width: Config.iconSize
         height: Config.iconSize
 

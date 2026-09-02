@@ -9,7 +9,7 @@ Rectangle {
 
     property string popout: ""
     property int spacing: 2
-    default property alias content: column.data
+    default property alias content: grid.data
     readonly property alias hovered: hover.hovered
     readonly property Item bar: {
         let p = parent;
@@ -27,8 +27,8 @@ Rectangle {
 
     signal clicked(var mouse)
 
-    implicitWidth: horizontal ? Math.max(Theme.barWidth - 8, row.implicitWidth + 14) : Theme.barWidth - 8
-    implicitHeight: horizontal ? Theme.barWidth - 8 : column.implicitHeight + 10
+    implicitWidth: horizontal ? Math.max(Theme.barWidth - 8, grid.implicitWidth + 14) : Theme.barWidth - 8
+    implicitHeight: horizontal ? Theme.barWidth - 8 : grid.implicitHeight + 10
     radius: Theme.barItemRadius
     color: active ? (Theme.barItemFilled ? Theme.accent : Theme.barItemOutlined ? "transparent" : Colours.alpha(Theme.accent, 0.18)) : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
     border.width: active && Theme.barItemOutlined ? 1 : 0
@@ -51,30 +51,18 @@ Rectangle {
         }
     }
 
-    // vertical bars stack content, horizontal bars line it up
-    Column {
-        id: column
+    // content flows with the bar; children must not anchor themselves
+    Grid {
+        id: grid
 
-        visible: !root.horizontal
         anchors.centerIn: parent
-        spacing: root.spacing
-    }
-
-    Row {
-        id: row
-
-        visible: root.horizontal
-        anchors.centerIn: parent
-        spacing: root.spacing + 4
-    }
-
-    onHorizontalChanged: reparentContent()
-    Component.onCompleted: reparentContent()
-
-    function reparentContent(): void {
-        const from = horizontal ? column : row, to = horizontal ? row : column;
-        for (const c of [...from.children])
-            c.parent = to;
+        flow: root.horizontal ? Grid.LeftToRight : Grid.TopToBottom
+        columns: root.horizontal ? 99 : 1
+        rows: root.horizontal ? 1 : 99
+        rowSpacing: root.spacing
+        columnSpacing: root.spacing + 4
+        horizontalItemAlignment: Grid.AlignHCenter
+        verticalItemAlignment: Grid.AlignVCenter
     }
 
     HoverHandler {

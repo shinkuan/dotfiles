@@ -10,8 +10,6 @@ BarItem {
     popout: "resources"
 
     Row {
-        anchors.horizontalCenter: Theme.barTop ? undefined : parent.horizontalCenter
-        anchors.verticalCenter: Theme.barTop ? parent.verticalCenter : undefined
         spacing: 4
 
         Repeater {
