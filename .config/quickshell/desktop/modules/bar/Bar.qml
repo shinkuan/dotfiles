@@ -113,6 +113,7 @@ Item {
     Rectangle {
         id: barBg
 
+        visible: !Theme.frame
         anchors.fill: parent
         anchors.topMargin: root.horizontal ? 0 : Theme.barMargin
         anchors.bottomMargin: root.horizontal ? 0 : Theme.barMargin

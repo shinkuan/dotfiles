@@ -19,16 +19,20 @@ Item {
     property real barEdge: 0
     readonly property bool shown: current !== ""
     readonly property bool needsKeyboard: loader.item?.needsKeyboard ?? false
-    readonly property int gap: 6
+    readonly property int gap: Theme.frame ? 0 : 6
     readonly property int margin: 8
 
     readonly property bool horizontal: Theme.barTop
     readonly property bool mirrored: Theme.barRight
+    readonly property bool frame: Theme.frame
+    // slot handed to the frame shader, in the surface's coordinates
+    readonly property vector4d blobRect: frame && loaded !== "" ? Qt.vector4d(x + panel.x - 40, y, panel.width + 40, panel.height) : Qt.vector4d(0, 0, 0, 0)
 
     x: horizontal ? Math.max(margin, Math.min(parent.width - panel.width - margin, anchorY - panel.width / 2)) : mirrored ? parent.width - barEdge - width : barEdge
     y: horizontal ? barEdge : Math.max(margin, Math.min(parent.height - panel.height - margin, anchorY - panel.height / 2))
-    width: shown ? (horizontal ? panel.width : gap + panel.width) : 0
-    height: shown ? (horizontal ? gap + panel.height : panel.height) : 0
+    width: frame ? Math.max(0, panel.width + panel.x) : shown ? (horizontal ? panel.width : gap + panel.width) : 0
+    height: frame ? panel.height : shown ? (horizontal ? gap + panel.height : panel.height) : 0
+    clip: frame
 
     Behavior on x {
         enabled: root.horizontal
@@ -41,8 +45,9 @@ Item {
     Behavior on y {
         enabled: !root.horizontal
         NumberAnimation {
-            duration: Config.animDuration
-            easing.type: Easing.OutCubic
+            duration: Theme.spatialDuration
+            easing.type: Theme.spatialType
+            easing.bezierCurve: Theme.spatialCurve
         }
     }
 
@@ -105,11 +110,14 @@ Item {
     Surface {
         id: panel
 
-        x: root.horizontal || root.mirrored ? 0 : root.gap
+        // frame: slides out from under the bar band
+        x: root.frame ? (root.shown ? 0 : -width) : root.horizontal || root.mirrored ? 0 : root.gap
         y: root.horizontal ? root.gap : 0
         width: loader.item ? loader.item.width + Config.padding * 2 : 0
         height: loader.item ? loader.item.height + Config.padding * 2 : 0
 
+        color: root.frame ? "transparent" : Theme.panel
+        shadow: !root.frame
         opacity: root.shown ? 1 : 0
         scale: root.shown ? 1 : Theme.popScale
         transformOrigin: root.horizontal ? Item.Top : root.mirrored ? Item.Right : Item.Left
@@ -119,7 +127,20 @@ Item {
             NumberAnimation {
                 duration: Config.animDurationFast
                 onRunningChanged: {
-                    if (!running && !root.shown)
+                    if (!running && !root.shown && !root.frame)
+                        root.loaded = "";
+                }
+            }
+        }
+
+        Behavior on x {
+            enabled: root.frame
+            NumberAnimation {
+                duration: Theme.spatialDuration
+                easing.type: Theme.spatialType
+                easing.bezierCurve: Theme.spatialCurve
+                onRunningChanged: {
+                    if (!running && !root.shown && root.frame)
                         root.loaded = "";
                 }
             }
@@ -134,15 +155,17 @@ Item {
 
         Behavior on width {
             NumberAnimation {
-                duration: Config.animDuration
-                easing.type: Easing.OutCubic
+                duration: Theme.spatialDuration
+                easing.type: Theme.spatialType
+                easing.bezierCurve: Theme.spatialCurve
             }
         }
 
         Behavior on height {
             NumberAnimation {
-                duration: Config.animDuration
-                easing.type: Easing.OutCubic
+                duration: Theme.spatialDuration
+                easing.type: Theme.spatialType
+                easing.bezierCurve: Theme.spatialCurve
             }
         }
 

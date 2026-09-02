@@ -39,16 +39,20 @@ Item {
 
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.bottom
-    anchors.bottomMargin: shown ? 40 : 0
+    // frame: rises out of the bottom band instead of fading in place
+    anchors.bottomMargin: Theme.frame ? (shown ? Config.borderThickness : -height) : shown ? 40 : 0
     width: 320
     height: 52
+    // slot for the frame shader; kept until fully retracted so the band never bulges
+    readonly property vector4d blobRect: Theme.frame && (shown || anchors.bottomMargin > -height + 1) ? Qt.vector4d(x, y, width, height + 40) : Qt.vector4d(0, 0, 0, 0)
     opacity: shown ? 1 : 0
     visible: opacity > 0
 
     Behavior on anchors.bottomMargin {
         NumberAnimation {
-            duration: Config.animDuration
-            easing.type: Easing.OutCubic
+            duration: Theme.spatialDuration
+            easing.type: Theme.spatialType
+            easing.bezierCurve: Theme.spatialCurve
         }
     }
 
@@ -109,6 +113,8 @@ Item {
     Surface {
         anchors.fill: parent
         radius: Theme.outlined ? Theme.radius : height / 2
+        color: Theme.frame ? "transparent" : Theme.panel
+        shadow: !Theme.frame
 
         Row {
             anchors.centerIn: parent

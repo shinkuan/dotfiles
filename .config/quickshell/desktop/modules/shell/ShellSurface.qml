@@ -20,6 +20,16 @@ PanelWindow {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
     readonly property bool hasFullscreen: monitor?.activeWorkspace?.hasFullscreen ?? false
     property bool barHovered: false
+    // frame style: the border collapses for fullscreen windows
+    property real frameThickness: Theme.frame && !hasFullscreen ? Config.borderThickness : 0
+
+    Behavior on frameThickness {
+        NumberAnimation {
+            duration: Theme.spatialDuration
+            easing.type: Theme.spatialType
+            easing.bezierCurve: Theme.spatialCurve
+        }
+    }
     readonly property bool barTop: Theme.barTop
     readonly property bool barRight: Theme.barRight
     readonly property real interactiveLeft: bar.revealed && !barTop ? Config.barWidth : Config.borderThickness
@@ -170,11 +180,21 @@ PanelWindow {
         }
     }
 
+    FrameBlob {
+        anchors.fill: parent
+        visible: Theme.frame && (root.frameThickness > 0 || bar.exposedWidth > 0)
+        frame: Qt.vector4d(Math.max(bar.exposedWidth, root.frameThickness), root.frameThickness, root.frameThickness, root.frameThickness)
+        rounding: Config.borderRounding * (root.frameThickness / Math.max(1, Config.borderThickness))
+        p0: popouts.blobRect
+        p1: osd.blobRect
+        radii: Qt.vector4d(Theme.radius, osd.height / 2, Theme.radius, Theme.radius)
+    }
+
     Bar {
         id: bar
 
         monitor: root.monitor
-        revealed: !root.hasFullscreen && (ShellState.barPinned || root.barHovered || popouts.shown)
+        revealed: !root.hasFullscreen && (Theme.barAlways || ShellState.barPinned || root.barHovered || popouts.shown)
         activePopout: popouts.current
         onDragged: dx => root.handleDrag(0, root.barRight ? -dx : dx)
         onItemClicked: (id, y) => popouts.openShortcut(id, y, false)
@@ -188,6 +208,8 @@ PanelWindow {
     }
 
     Osd {
+        id: osd
+
         monitor: root.monitor
         screenName: root.screen.name
         suppressed: popouts.shown

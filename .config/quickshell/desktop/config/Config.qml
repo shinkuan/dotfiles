@@ -41,7 +41,7 @@ Singleton {
     readonly property alias screenshot: adapter.screenshot
     readonly property alias resources: adapter.resources
     readonly property alias brightness: adapter.brightness
-    readonly property list<string> styles: ["rim", "ledger", "capsule", "signal", "poster", "classic"]
+    readonly property list<string> styles: ["rim", "ledger", "capsule", "signal", "poster", "frame", "classic"]
 
     // writes config.json back through the adapter (keys are preserved)
     function setStyle(name: string): void {
@@ -86,7 +86,7 @@ Singleton {
             id: adapter
 
             property JsonObject appearance: JsonObject {
-                property string style: "rim"   // rim | ledger | capsule | signal | poster | classic
+                property string style: "rim"   // rim | ledger | capsule | signal | poster | frame | classic
             }
             property JsonObject animation: JsonObject {
                 property real scale: 0.8

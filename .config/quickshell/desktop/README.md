@@ -80,7 +80,7 @@ Hot-loaded; every key is optional.
 
 | Key | Meaning |
 |---|---|
-| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `classic` — tokens live in `config/Theme.qml` |
+| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `frame`, `classic` — tokens live in `config/Theme.qml`. `frame` draws a rounded border around the screen with the bar in its left band; popouts and the OSD grow out of it (`modules/shell/frame.frag`, rebuilt with `qsb` after edits) |
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
 | `bar.width`, `bar.pinThreshold`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it; CPU/memory meters entry; `left`, `right` or `top`; entry order (`kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power`) |
