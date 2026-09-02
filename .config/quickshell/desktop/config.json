@@ -178,7 +178,8 @@
         "criticalTimeout": 0,
         "maxHistory": 200,
         "timeout": 5000,
-        "width": 380
+        "width": 380,
+        "position": "top-right"
     },
     "osd": {
         "hideDelay": 2000

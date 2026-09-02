@@ -121,6 +121,7 @@ Singleton {
                 property int criticalTimeout: 0
                 property int maxHistory: 200
                 property int width: 380
+                property string position: "top-right"   // top-right | bottom-right | top-left | bottom-left
             }
             property JsonObject idle: JsonObject {
                 property bool inhibitWhenAudio: true
@@ -128,6 +129,7 @@ Singleton {
             }
             property JsonObject launcher: JsonObject {
                 property int maxResults: 9
+                property string position: "top"   // top | center
                 property string actionPrefix: ">"
                 property string calcPrefix: "="
                 property string clipPrefix: ";"

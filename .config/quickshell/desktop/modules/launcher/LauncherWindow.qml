@@ -83,7 +83,7 @@ PanelWindow {
         id: panel
 
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.round(parent.height * 0.18)
+        y: Config.launcher.position === "center" ? Math.round((parent.height - height) / 2) : Math.round(parent.height * 0.18)
         width: 640
         height: column.implicitHeight + 24
 

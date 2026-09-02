@@ -86,8 +86,9 @@ Hot-loaded; every key is optional.
 | `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
 | `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |
 | `desktopClock.position`, `desktopClock.margin` | `top-left` … `bottom-right` / `bottom-center` |
-| `notifications.timeout`, `criticalTimeout`, `maxHistory`, `width` | popup timeouts (0 = never), history size, popup width |
+| `notifications.timeout`, `criticalTimeout`, `maxHistory`, `width`, `position` | popup timeouts (0 = never), history size, popup width, corner (`top-right` … `bottom-left`) |
 | `idle.inhibitWhenAudio`, `idle.joystickHold` | inhibit while audio plays; seconds to hold after controller input |
+| `launcher.position` | `top` (upper third) or `center` |
 | `launcher.maxResults`, `actionPrefix`, `calcPrefix`, `clipPrefix`, `emojiPrefix`, `emojiFile`, `fuzzy`, `showDangerous`, `actions` | launcher behaviour and the action list (`name`, `icon`, `description`, `command`, `dangerous`, `enabled`; `@scheme` / `@variant` / `@wallpaper` / `@config` are built-in commands) |
 | `screenshot.directory` | relative to `$HOME` |
 | `resources.interval` | background poll interval in ms |

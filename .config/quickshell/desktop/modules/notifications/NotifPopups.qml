@@ -13,10 +13,17 @@ Item {
     // keyboard focus is only worth taking while a reply field can be used
     readonly property bool needsKeyboard: entries.some(e => e.hasInlineReply && e.notif)
 
-    anchors.top: parent.top
-    anchors.right: parent.right
+    readonly property string position: Config.notifications.position
+    readonly property bool atBottom: position.startsWith("bottom")
+    readonly property bool atLeft: position.endsWith("left")
+
+    anchors.top: atBottom ? undefined : parent.top
+    anchors.bottom: atBottom ? parent.bottom : undefined
+    anchors.right: atLeft ? undefined : parent.right
+    anchors.left: atLeft ? parent.left : undefined
     anchors.margins: 16
     anchors.topMargin: 16 + (Theme.barTop && ShellState.barPinned ? Config.barWidth : 0)
+    anchors.leftMargin: 16 + (!Theme.barTop && ShellState.barPinned ? Config.barWidth : 0)
     width: Config.notifications.width
     height: column.implicitHeight
     visible: entries.length > 0
@@ -35,7 +42,7 @@ Item {
             }
             NumberAnimation {
                 properties: "x"
-                from: 60
+                from: root.atLeft ? -60 : 60
                 to: 0
                 duration: Config.animDuration
                 easing.type: Easing.OutCubic
