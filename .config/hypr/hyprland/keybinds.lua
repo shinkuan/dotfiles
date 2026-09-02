@@ -15,6 +15,8 @@ bind("SUPER + Super_L", dsp.global("desktop:launcher"), { release = true })
 bind("SUPER + Space",   dsp.global("desktop:launcher"))
 bind("SUPER + B",       dsp.exec_cmd(V.menu))
 bind("SUPER + V",       dsp.global("desktop:clipboard"))
+bind("SUPER + D",         dsp.exec_cmd("qs -c desktop ipc call summon toggle"))
+bind("SUPER + SHIFT + D", dsp.exec_cmd("qs -c desktop ipc call summon center"))
 
 bind("CTRL + ALT + Delete", dsp.global("desktop:session"))
 bind("SUPER + Escape",      dsp.global("desktop:session"))

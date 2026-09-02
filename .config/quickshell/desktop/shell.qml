@@ -12,11 +12,12 @@ import "modules/areapicker"
 import "modules/launcher"
 import "modules/polkit"
 import "modules/overview"
+import "modules/summon"
 
 ShellRoot {
     // singletons with side effects (IPC handlers, shortcuts, inhibitor
     // surface, pollers) must be touched once to be instantiated
-    Component.onCompleted: [Requests, Idle, Vpn, Brightness, ShellState, Audio, Picker, Notifs, Launcher, Players, Polkit, Overview, Battery]
+    Component.onCompleted: [Requests, Idle, Vpn, Brightness, ShellState, Audio, Picker, Notifs, Launcher, Players, Polkit, Overview, Battery, Summon]
 
     Variants {
         model: Quickshell.screens
@@ -51,6 +52,10 @@ ShellRoot {
             }
 
             OverviewWindow {
+                screen: scope.modelData
+            }
+
+            SummonWindow {
                 screen: scope.modelData
             }
         }

@@ -17,3 +17,4 @@ singleton Players 1.0 Players.qml
 singleton Polkit 1.0 Polkit.qml
 singleton Overview 1.0 Overview.qml
 singleton Battery 1.0 Battery.qml
+singleton Summon 1.0 Summon.qml

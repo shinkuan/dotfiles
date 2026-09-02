@@ -103,5 +103,8 @@ Hot-loaded; every key is optional.
 `overview` (toggle/open/close), `popout` (open <id>/close), `screenshot`
 (region/regionCopy/cancel/capture), `session` (lock/suspend/logout),
 `media` (playPause/next/previous/stop), `wallpaper` (set/get), `theme`
-(set <style>/get/cycle — rewrites config.json through the adapter, so keys it does not know are dropped).
+(set <style>/get/cycle — rewrites config.json through the adapter, so keys it does not know are dropped),
+`summon` (toggle/open/center/hide — a deck with clock, workspaces, volume,
+brightness, media and a search shortcut that scales out of the pointer
+position, or the screen centre; bound to SUPER+D / SUPER+SHIFT+D).
 Call with `qs -c desktop ipc call <target> <function> [args]`.
