@@ -165,6 +165,7 @@ ColumnLayout {
                 readonly property bool inMonth: modelData.getMonth() === root.month
                 readonly property bool isToday: root.sameDay(modelData, root.today)
                 readonly property bool isSelected: root.sameDay(modelData, root.selected)
+                readonly property bool weekend: modelData.getDay() === 0 || modelData.getDay() === 6
                 readonly property var evs: Calendar.eventMap[Calendar.dayKey(modelData)] ?? []
 
                 width: root.cell
@@ -186,7 +187,7 @@ ColumnLayout {
                         StyledText {
                             anchors.centerIn: parent
                             text: day.modelData.getDate()
-                            color: day.isToday ? (Theme.outlined ? Theme.accent : Colours.inverseSurfaceText) : day.inMonth ? Colours.surfaceText : Colours.alpha(Colours.surfaceText, 0.3)
+                            color: day.isToday ? (Theme.outlined ? Theme.accent : Colours.inverseSurfaceText) : !day.inMonth ? Colours.alpha(day.weekend ? Colours.tertiary : Colours.surfaceText, 0.3) : day.weekend ? Colours.tertiary : Colours.surfaceText
                             font.pixelSize: Config.fontSize
                             font.weight: day.isToday ? Font.DemiBold : Font.Normal
                         }

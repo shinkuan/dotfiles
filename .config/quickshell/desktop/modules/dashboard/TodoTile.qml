@@ -10,6 +10,15 @@ DashTile {
 
     readonly property list<var> taskLists: Calendar.lists.filter(l => l.todos)
 
+    // somewhere for keyboard focus to go when the add field is left
+    function dropFocus(): void {
+        focusSink.forceActiveFocus();
+    }
+
+    Item {
+        id: focusSink
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 4
@@ -145,9 +154,17 @@ DashTile {
                     Calendar.addTodo(text, "");
                     text = "";
                 }
-                Keys.onEscapePressed: {
+                // Esc cancels the field before the shell's Esc closes the dashboard
+                Keys.onShortcutOverride: event => event.accepted = event.key === Qt.Key_Escape
+                Keys.onEscapePressed: cancel()
+                onVisibleChanged: {
+                    if (!visible)
+                        cancel();
+                }
+
+                function cancel(): void {
                     text = "";
-                    focus = false;
+                    root.dropFocus();
                 }
 
                 StyledText {

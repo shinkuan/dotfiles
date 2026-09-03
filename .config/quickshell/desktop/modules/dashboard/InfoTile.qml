@@ -115,6 +115,8 @@ DashTile {
             implicitHeight: 38
             radius: 14
             baseColor: Colours.surfaceContainerHigh
+            hoverColor: Colours.surfaceContainerHighest
+            pressColor: Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.12)
             onClicked: ShellState.toggle("dnd")
 
             RowLayout {

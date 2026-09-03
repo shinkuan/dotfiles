@@ -55,6 +55,7 @@ Item {
         closeGrace.stop();
         shown = false;
         shortcutActive = false;
+        todo.dropFocus();
     }
 
     function toggle(): void {
@@ -86,6 +87,15 @@ Item {
         anchors.fill: parent
         color: root.frame ? "transparent" : Theme.panel
         shadow: !root.frame
+
+        // a click on bare panel takes keyboard focus away from the task field
+        MouseArea {
+            anchors.fill: parent
+            onPressed: mouse => {
+                todo.dropFocus();
+                mouse.accepted = false;
+            }
+        }
 
         GridLayout {
             id: body
@@ -166,6 +176,8 @@ Item {
             }
 
             TodoTile {
+                id: todo
+
                 Layout.row: 1
                 Layout.column: 2
                 Layout.rowSpan: 2

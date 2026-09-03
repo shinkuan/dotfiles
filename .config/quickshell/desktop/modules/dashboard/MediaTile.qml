@@ -41,7 +41,7 @@ DashTile {
             fillMode: Image.PreserveAspectCrop
             asynchronous: true
             sourceSize: Qt.size(64, 64)
-            opacity: 0.5
+            opacity: 0.65
             layer.enabled: true
             layer.effect: MultiEffect {
                 blurEnabled: true
@@ -54,8 +54,8 @@ DashTile {
             anchors.fill: parent
             gradient: Gradient {
                 orientation: Gradient.Horizontal
-                GradientStop { position: 0; color: Colours.alpha(Colours.surfaceContainer, 0.15) }
-                GradientStop { position: 1; color: Colours.alpha(Colours.surfaceContainer, 0.6) }
+                GradientStop { position: 0; color: Colours.alpha(Colours.surfaceContainer, 0.1) }
+                GradientStop { position: 1; color: Colours.alpha(Colours.surfaceContainer, 0.5) }
             }
         }
     }
