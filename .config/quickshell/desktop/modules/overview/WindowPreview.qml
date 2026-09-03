@@ -2,40 +2,32 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
-import Quickshell.Hyprland
 import "../../config"
 import "../../services"
 import "../../components"
 
-// Live miniature of one window inside a cell. Left click focuses, middle
-// click closes, dragging beyond a few pixels hands the window to the cell
-// under the pointer on release.
+// Live miniature of one window inside a cell; input lives in the overview's
+// grid MouseArea so a drag survives the cell rebuild on activity switches.
 Item {
     id: root
 
     required property var win          // { toplevel, address, title, cls, x, y, w, h }
     required property var overview     // OverviewWindow
-    property bool dragging: false
     readonly property bool active: overview.active
     readonly property real scale: overview.previewScale
+    readonly property bool lifted: overview.dragWin ? overview.dragWin.address === win.address : false
 
     // clamped to the cell so partly off-screen windows never spill into neighbours
-    x: dragging ? dragX : Math.max(0, Math.min(Math.round(win.x * scale), parent.width - width))
-    y: dragging ? dragY : Math.max(0, Math.min(Math.round(win.y * scale), parent.height - height))
+    x: Math.max(0, Math.min(Math.round(win.x * scale), parent.width - width))
+    y: Math.max(0, Math.min(Math.round(win.y * scale), parent.height - height))
     width: Math.max(12, Math.min(Math.round(win.w * scale), parent.width))
     height: Math.max(8, Math.min(Math.round(win.h * scale), parent.height))
-    z: dragging ? 100 : 0
-
-    property real dragX: 0
-    property real dragY: 0
-
-    // lift the whole cell so the ghost is not painted under later cells
-    onDraggingChanged: parent.z = dragging ? 10 : 0
+    opacity: lifted ? 0.25 : 1
 
     Rectangle {
         anchors.fill: parent
         radius: Theme.capsule ? 8 : Theme.outlined ? 0 : 4
-        color: Colours.surfaceContainerHighest
+        color: "transparent"
         border.width: 1
         border.color: hover.hovered ? Theme.accent : Colours.alpha(Colours.outline, 0.6)
         clip: true
@@ -64,44 +56,9 @@ Item {
         id: hover
     }
 
-    MouseArea {
-        property point pressPos
-        property point offset
-
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
-        onPressed: m => {
-            pressPos = mapToItem(root.overview.content, m.x, m.y);
-            offset = Qt.point(m.x, m.y);
-        }
-        onPositionChanged: m => {
-            if (!pressed || !(m.buttons & Qt.LeftButton))
-                return;
-            const p = mapToItem(root.overview.content, m.x, m.y);
-            if (!root.dragging && Math.hypot(p.x - pressPos.x, p.y - pressPos.y) > 6)
-                root.dragging = true;
-            if (root.dragging) {
-                const local = root.parent.mapFromItem(root.overview.content, p.x - offset.x, p.y - offset.y);
-                root.dragX = local.x;
-                root.dragY = local.y;
-            }
-        }
-        onReleased: m => {
-            if (root.dragging) {
-                root.dragging = false;
-                const p = mapToItem(root.overview.content, m.x, m.y);
-                root.overview.dropWindow(root.win, p.x, p.y);
-            } else if (m.button === Qt.MiddleButton) {
-                Hyprland.dispatch(`hl.dsp.window.close({ window = "address:${root.win.address}" })`);
-            } else {
-                root.overview.focusWindow(root.win);
-            }
-        }
-    }
-
     // title tooltip
     Rectangle {
-        visible: hover.hovered && !root.dragging
+        visible: hover.hovered && !root.overview.dragWin
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.top
         anchors.bottomMargin: 4

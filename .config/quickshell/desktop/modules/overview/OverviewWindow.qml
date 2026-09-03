@@ -9,7 +9,7 @@ import "../../components"
 
 // Full-screen overlay on the focused monitor showing one activity's cell
 // grid with live window previews. Keyboard: arrows select, Enter/Space go,
-// Tab / letters change activity, Esc closes.
+// Tab / letters change activity (also mid-drag), Esc closes.
 PanelWindow {
     id: root
 
@@ -34,6 +34,14 @@ PanelWindow {
     // windows of the shown activity, keyed "x,y"
     property var cells: ({})
 
+    // drag state lives here, not in the previews, so switching activity
+    // mid-drag (which rebuilds every cell) keeps the window on the pointer
+    property var dragWin: null
+    property real dragX: 0
+    property real dragY: 0
+    property point dragOffset: Qt.point(0, 0)
+    property var dropCell: null   // { x, y } under the pointer while dragging
+
     visible: active
     WlrLayershell.namespace: "desktop-overview"
     WlrLayershell.layer: WlrLayer.Overlay
@@ -49,6 +57,8 @@ PanelWindow {
     }
 
     onActiveChanged: {
+        dragWin = null;
+        dropCell = null;
         if (active) {
             rebuild();
             keys.forceActiveFocus();
@@ -87,7 +97,7 @@ PanelWindow {
                 out[key] = [];
             out[key].push({
                 toplevel: t,
-                address: t.address,
+                address: ipc.address ?? ("0x" + t.address),   // KGrid's Lua expects the 0x form
                 title: t.title,
                 cls: ipc.class ?? "",
                 x: ipc.at[0] - (mon?.x ?? 0),
@@ -102,18 +112,52 @@ PanelWindow {
         cells = out;
     }
 
+    // grid coordinates; null in the gaps and outside
     function cellAt(px: real, py: real): var {
-        const p = grid.mapFromItem(content, px, py);
-        const cx = Math.floor(p.x / (cellW + gap)) + 1;
-        const cy = Math.floor(p.y / (cellH + gap)) + 1;
-        if (cx < 1 || cx > KGrid.columns || cy < 1 || cy > KGrid.rows)
+        const cx = Math.floor(px / (cellW + gap)) + 1;
+        const cy = Math.floor(py / (cellH + gap)) + 1;
+        if (cx < 1 || cx > KGrid.columns || cy < 1 || cy > KGrid.rows || px < 0 || py < 0)
+            return null;
+        if (px - (cx - 1) * (cellW + gap) > cellW || py - (cy - 1) * (cellH + gap) > cellH)
             return null;
         return { x: cx, y: cy };
     }
 
-    function dropWindow(win, px: real, py: real): void {
+    // same clamping as WindowPreview, in grid coordinates
+    function previewRect(win, cell): var {
+        const w = Math.max(12, Math.min(Math.round(win.w * previewScale), cellW));
+        const h = Math.max(8, Math.min(Math.round(win.h * previewScale), cellH));
+        const x = Math.max(0, Math.min(Math.round(win.x * previewScale), cellW - w));
+        const y = Math.max(0, Math.min(Math.round(win.y * previewScale), cellH - h));
+        return { x: (cell.x - 1) * (cellW + gap) + x, y: (cell.y - 1) * (cellH + gap) + y, w: w, h: h };
+    }
+
+    // topmost preview under a grid point (later entries are drawn on top)
+    function winAt(px: real, py: real): var {
+        const cell = cellAt(px, py);
+        if (!cell)
+            return null;
+        const wins = cells[cell.x + "," + cell.y] ?? [];
+        for (let i = wins.length - 1; i >= 0; i--) {
+            const r = previewRect(wins[i], cell);
+            if (px >= r.x && px < r.x + r.w && py >= r.y && py < r.y + r.h)
+                return wins[i];
+        }
+        return null;
+    }
+
+    function chipAt(px: real, py: real): var {
+        const p = chips.mapFromItem(gridBox, px, py);
+        const c = chips.childAt(p.x, p.y);
+        return c && c.modelData ? c.modelData.id : null;
+    }
+
+    function endDrag(px: real, py: real): void {
         const target = cellAt(px, py);
-        if (!target)
+        const win = dragWin;
+        dragWin = null;
+        dropCell = null;
+        if (!target || !win)
             return;
         KGrid.moveWindow(win.address, Overview.activity, target.x, target.y);
         refreshLater.restart();
@@ -164,17 +208,23 @@ PanelWindow {
                 Layout.preferredHeight: root.headerH - root.gap
                 spacing: 8
 
-                Repeater {
-                    model: KGrid.activities
+                RowLayout {
+                    id: chips
 
-                    Chip {
-                        required property var modelData
+                    spacing: 8
 
-                        text: modelData.label
-                        checked: Overview.activity === modelData.id
-                        accent: root.currentCell?.activity === modelData.id ? Theme.accent : Colours.secondaryContainer
-                        accentText: root.currentCell?.activity === modelData.id ? Theme.accentText : Colours.secondaryContainerText
-                        onClicked: Overview.activity = modelData.id
+                    Repeater {
+                        model: KGrid.activities
+
+                        Chip {
+                            required property var modelData
+
+                            text: modelData.label
+                            checked: Overview.activity === modelData.id
+                            accent: root.currentCell?.activity === modelData.id ? Theme.accent : Colours.secondaryContainer
+                            accentText: root.currentCell?.activity === modelData.id ? Theme.accentText : Colours.secondaryContainerText
+                            onClicked: Overview.activity = modelData.id
+                        }
                     }
                 }
 
@@ -189,22 +239,122 @@ PanelWindow {
                 }
             }
 
-            Grid {
-                id: grid
+            Item {
+                id: gridBox
 
-                columns: KGrid.columns
-                spacing: root.gap
+                implicitWidth: grid.width
+                implicitHeight: grid.height
 
-                Repeater {
-                    model: KGrid.columns * KGrid.rows
+                Grid {
+                    id: grid
 
-                    WorkspaceCell {
-                        required property int index
+                    columns: KGrid.columns
+                    spacing: root.gap
 
-                        cx: index % KGrid.columns + 1
-                        cy: Math.floor(index / KGrid.columns) + 1
-                        overview: root
-                        windows: root.cells[cx + "," + cy] ?? []
+                    Repeater {
+                        model: KGrid.columns * KGrid.rows
+
+                        WorkspaceCell {
+                            required property int index
+
+                            cx: index % KGrid.columns + 1
+                            cy: Math.floor(index / KGrid.columns) + 1
+                            overview: root
+                            windows: root.cells[cx + "," + cy] ?? []
+                        }
+                    }
+                }
+
+                // the window being dragged, drawn above every cell
+                Item {
+                    id: ghost
+
+                    visible: !!root.dragWin
+                    x: root.dragX - root.dragOffset.x
+                    y: root.dragY - root.dragOffset.y
+                    width: root.dragWin ? Math.max(12, Math.min(Math.round(root.dragWin.w * root.previewScale), root.cellW)) : 0
+                    height: root.dragWin ? Math.max(8, Math.min(Math.round(root.dragWin.h * root.previewScale), root.cellH)) : 0
+                    z: 100
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: Theme.capsule ? 8 : Theme.outlined ? 0 : 4
+                        color: Colours.surfaceContainerHighest
+                        border.width: 2
+                        border.color: Theme.accent
+                        clip: true
+
+                        ScreencopyView {
+                            anchors.fill: parent
+                            anchors.margins: 2
+                            captureSource: root.dragWin ? root.dragWin.toplevel.wayland : null
+                            live: !!root.dragWin
+                            paintCursor: false
+                        }
+                    }
+                }
+
+                // one input surface for the whole grid: click a cell to go
+                // there, click a preview to focus it, middle-click to close,
+                // drag a preview onto a cell (hover an activity chip to
+                // change activity mid-drag) to move the window
+                MouseArea {
+                    id: gridInput
+
+                    property var pressWin: null
+                    property point pressPos: Qt.point(0, 0)
+
+                    anchors.fill: parent
+                    z: 101
+                    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+                    onPressed: m => {
+                        pressPos = Qt.point(m.x, m.y);
+                        pressWin = root.winAt(m.x, m.y);
+                    }
+                    onPositionChanged: m => {
+                        if (!pressed || !(m.buttons & Qt.LeftButton))
+                            return;
+                        if (!root.dragWin) {
+                            if (!pressWin || Math.hypot(m.x - pressPos.x, m.y - pressPos.y) <= 6)
+                                return;
+                            const cell = root.cellAt(pressPos.x, pressPos.y);
+                            const r = root.previewRect(pressWin, cell ?? { x: 1, y: 1 });
+                            root.dragOffset = Qt.point(pressPos.x - r.x, pressPos.y - r.y);
+                            root.dragWin = pressWin;
+                        }
+                        root.dragX = m.x;
+                        root.dragY = m.y;
+                        root.dropCell = root.cellAt(m.x, m.y);
+                        const chip = root.chipAt(m.x, m.y);
+                        if (chip && chip !== Overview.activity)
+                            Overview.activity = chip;
+                    }
+                    onReleased: m => {
+                        const win = pressWin;
+                        pressWin = null;
+                        if (root.dragWin) {
+                            root.endDrag(m.x, m.y);
+                            return;
+                        }
+                        if (win) {
+                            if (m.button === Qt.MiddleButton)
+                                Hyprland.dispatch(`hl.dsp.window.close({ window = "address:${win.address}" })`);
+                            else
+                                root.focusWindow(win);
+                            return;
+                        }
+                        const cell = root.cellAt(m.x, m.y);
+                        if (cell) {
+                            KGrid.switchTo(Overview.activity, cell.x, cell.y);
+                            Overview.hide();
+                        } else {
+                            Overview.hide();
+                        }
+                    }
+                    onCanceled: {
+                        pressWin = null;
+                        root.dragWin = null;
+                        root.dropCell = null;
                     }
                 }
             }
