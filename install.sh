@@ -194,6 +194,7 @@ PACKAGES=(
     # ----- Networking & VPN -----
     networkmanager
     network-manager-applet
+    nm-connection-editor
     networkmanager-openvpn
     clash-verge-rev-bin
     vopono-bin

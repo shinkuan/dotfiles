@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Networking
 import "../../config"
 import "../../services"
@@ -7,9 +8,6 @@ import "../../components"
 
 ColumnLayout {
     id: root
-
-    property var pskTarget: null
-    readonly property bool needsKeyboard: pskTarget !== null
 
     width: Config.popouts.width
     spacing: 6
@@ -79,15 +77,19 @@ ColumnLayout {
                 width: parent.width
                 icon: Net.signalIcon(modelData.signalStrength)
                 title: modelData.name
-                subtitle: modelData.connected ? "Connected" + (Net.addressOf(Net.wifi) ? ` · ${Net.addressOf(Net.wifi)}` : "") : modelData.stateChanging ? "Connecting…" : modelData.known ? "Saved" : Net.secured(modelData) ? "Secured" : "Open"
+                subtitle: modelData.connected ? "Connected" + (Net.addressOf(Net.wifi) ? ` · ${Net.addressOf(Net.wifi)}` : "") : modelData.stateChanging ? "Connecting…" : modelData.known ? "Saved" : Net.secured(modelData) ? "Secured · opens NetworkManager" : "Open"
                 active: modelData.connected
+                // No password prompt here: unknown secured networks are set up
+                // in NetworkManager's own editor.
                 onClicked: {
                     if (modelData.connected)
                         modelData.disconnect();
                     else if (modelData.known || !Net.secured(modelData))
                         modelData.connect();
-                    else
-                        root.pskTarget = root.pskTarget === modelData ? null : modelData;
+                    else {
+                        Quickshell.execDetached(["nm-connection-editor"]);
+                        Requests.closePopouts();
+                    }
                 }
 
                 MaterialIcon {
@@ -103,53 +105,6 @@ ColumnLayout {
                     size: 26
                     iconSize: Config.iconSize - 5
                     onClicked: entry.modelData.forget()
-                }
-            }
-
-            RowLayout {
-                width: parent.width
-                visible: root.pskTarget === modelData
-                spacing: 6
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 34
-                    radius: Config.radius
-                    color: Colours.surfaceContainerHighest
-
-                    TextInput {
-                        id: psk
-
-                        anchors.fill: parent
-                        anchors.margins: 8
-                        verticalAlignment: TextInput.AlignVCenter
-                        color: Colours.surfaceText
-                        font.family: Config.fontFamily
-                        font.pixelSize: Config.fontSize
-                        echoMode: TextInput.Password
-                        focus: root.pskTarget === modelData
-                        onAccepted: {
-                            modelData.connectWithPsk(text);
-                            root.pskTarget = null;
-                        }
-
-                        StyledText {
-                            anchors.fill: parent
-                            verticalAlignment: Text.AlignVCenter
-                            visible: !psk.text
-                            text: "Password"
-                            color: Colours.outline
-                        }
-                    }
-                }
-
-                Chip {
-                    text: "Connect"
-                    checked: true
-                    onClicked: {
-                        modelData.connectWithPsk(psk.text);
-                        root.pskTarget = null;
-                    }
                 }
             }
         }

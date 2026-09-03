@@ -35,22 +35,6 @@ Grid {
     }
 
     BarItem {
-        id: micItem
-
-        popout: "audio"
-
-        MaterialIcon {
-            text: Audio.sourceMuted ? "mic_off" : "mic"
-            color: Audio.sourceMuted ? micItem.fgDim : micItem.fg
-        }
-
-        onClicked: m => {
-            if (m.button === Qt.MiddleButton)
-                Audio.toggleMute(Audio.source);
-        }
-    }
-
-    BarItem {
         id: netItem
 
         popout: "network"

@@ -23,27 +23,49 @@ ColumnLayout {
             selected = cell.activity;
     }
 
-    Flow {
+    // One row, exactly as wide as the grid: the multi-letter label is a pill,
+    // single letters are compact squares sized to fit.
+    Row {
         id: chips
 
-        Layout.fillWidth: true
-        spacing: 6
+        readonly property int gridWidth: KGrid.columns * 52 + (KGrid.columns - 1) * 6
+        readonly property int gap: 4
+        readonly property int wideCount: KGrid.activities.filter(a => a.label.length > 1).length
+        readonly property int wideWidth: 48
+        readonly property int narrowCount: Math.max(1, KGrid.activities.length - wideCount)
+        readonly property int narrowWidth: Math.max(18, Math.min(30, Math.floor((gridWidth - wideCount * wideWidth - gap * (KGrid.activities.length - 1)) / narrowCount)))
+
+        Layout.alignment: Qt.AlignHCenter
+        spacing: gap
 
         Repeater {
             model: KGrid.activities
 
-            Chip {
-                required property var modelData
+            Clickable {
+                id: chip
 
-                text: modelData.label
-                checked: root.selected === modelData.id
-                accent: root.cell?.activity === modelData.id ? Theme.accent : Colours.secondaryContainer
-                accentText: root.cell?.activity === modelData.id ? Theme.accentText : Colours.secondaryContainerText
+                required property var modelData
+                readonly property bool current: root.cell?.activity === modelData.id
+                readonly property bool selected: root.selected === modelData.id
+
+                width: modelData.label.length > 1 ? chips.wideWidth : chips.narrowWidth
+                height: 26
+                radius: Config.radius
+                baseColor: selected ? (current ? Theme.accent : Colours.secondaryContainer) : Colours.alpha(Colours.surfaceContainerHighest, 0.4)
+                hoverColor: selected ? Colours.mix(baseColor, current ? Theme.accentText : Colours.secondaryContainerText, 0.1) : Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.1)
                 onClicked: {
                     if (root.selected === modelData.id)
                         KGrid.switchActivity(modelData.id);
                     else
                         root.selected = modelData.id;
+                }
+
+                StyledText {
+                    anchors.centerIn: parent
+                    text: chip.modelData.label
+                    color: chip.selected ? (chip.current ? Theme.accentText : Colours.secondaryContainerText) : Colours.surfaceVariantText
+                    font.pixelSize: Config.fontSize - 2
+                    font.weight: Font.DemiBold
                 }
             }
         }

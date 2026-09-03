@@ -36,6 +36,8 @@ agent and idle inhibitor. Run with `qs -c desktop` (normally via
 - `modules/bar/` — bar entries (`BarItem` marks hoverable entries with a
   `popout` id).
 - `modules/popouts/` — `Popouts` container plus one file per popout.
+  The network popout connects to saved or open Wi-Fi itself; a secured
+  network it does not know opens `nm-connection-editor` instead of prompting.
 - `modules/osd/`, `modules/notifications/`, `modules/launcher/`,
   `modules/areapicker/`, `modules/overview/`, `modules/polkit/` — the
   remaining windows.
