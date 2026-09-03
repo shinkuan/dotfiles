@@ -99,6 +99,7 @@ Singleton {
                 property int width: 44
                 property int pinThreshold: 20
                 property bool autoHide: true   // false keeps the bar out permanently
+                property bool trayCompact: true   // tray icons fold behind a chevron
                 property bool showResources: true
                 property string position: "left"   // left | right | top
                 // order of bar entries; unknown ids are skipped
