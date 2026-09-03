@@ -138,6 +138,8 @@ DashTile {
             }
 
             TextInput {
+
+                renderType: Text.NativeRendering
                 id: input
 
                 anchors.left: plus.right

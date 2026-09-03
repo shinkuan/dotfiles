@@ -199,6 +199,8 @@ Surface {
                 color: Colours.surfaceContainerHighest
 
                 TextInput {
+
+                    renderType: Text.NativeRendering
                     id: replyField
 
                     anchors.fill: parent

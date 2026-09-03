@@ -126,6 +126,8 @@ PanelWindow {
                     }
 
                     TextInput {
+
+                        renderType: Text.NativeRendering
                         id: input
 
                         Layout.fillWidth: true

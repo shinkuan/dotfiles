@@ -137,6 +137,8 @@ PanelWindow {
                 border.color: input.activeFocus ? Theme.accent : Colours.outlineVariant
 
                 TextInput {
+
+                    renderType: Text.NativeRendering
                     id: input
 
                     anchors.fill: parent
