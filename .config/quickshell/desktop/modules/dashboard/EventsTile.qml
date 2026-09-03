@@ -69,12 +69,27 @@ DashTile {
         }
 
         EventList {
+            id: nextList
+
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumHeight: rowHeight * 2
             events: root.next
             grouped: true
             emptyText: "Nothing scheduled"
+
+            // a cut row reads as a bug; fade the overflow instead
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: 28
+                visible: nextList.implicitHeight > nextList.height
+                gradient: Gradient {
+                    GradientStop { position: 0; color: "transparent" }
+                    GradientStop { position: 1; color: Colours.surfaceContainer }
+                }
+            }
         }
 
         SectionLabel {

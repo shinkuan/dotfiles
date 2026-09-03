@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell.Widgets
 import Quickshell.Services.Mpris
 import "../../config"
@@ -20,18 +21,51 @@ DashTile {
         onTriggered: root.player.positionChanged()
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 6
+    // the album's own colours wash the empty lower part of the tile
+    Item {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: -root.pad
+        height: root.height * 0.55
+        visible: art.status === Image.Ready
+        opacity: 0.35
 
-        Item {
-            Layout.preferredHeight: 4
+        Image {
+            anchors.fill: parent
+            source: art.source
+            fillMode: Image.PreserveAspectCrop
+            asynchronous: true
+            sourceSize: Qt.size(64, 64)
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                blurEnabled: true
+                blur: 1
+                blurMax: 64
+            }
         }
+
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                GradientStop { position: 0; color: Colours.surfaceContainer }
+                GradientStop { position: 0.7; color: Colours.alpha(Colours.surfaceContainer, 0.2) }
+                GradientStop { position: 1; color: Colours.alpha(Colours.surfaceContainer, 0.6) }
+            }
+        }
+    }
+
+    ColumnLayout {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        spacing: 4
 
         Ring {
             Layout.alignment: Qt.AlignHCenter
-            implicitWidth: 144
-            implicitHeight: 144
+            Layout.topMargin: 6
+            implicitWidth: 128
+            implicitHeight: 128
             thickness: 4
             value: root.has && root.player.lengthSupported && root.player.length > 0 ? root.player.position / root.player.length : 0
             track: Colours.surfaceContainerHighest
@@ -39,9 +73,9 @@ DashTile {
 
             ClippingRectangle {
                 anchors.centerIn: parent
-                width: 116
-                height: 116
-                radius: 40
+                width: 104
+                height: 104
+                radius: 34
                 color: Colours.surfaceContainerHighest
 
                 Image {
@@ -64,12 +98,9 @@ DashTile {
             }
         }
 
-        Item {
-            Layout.preferredHeight: 6
-        }
-
         StyledText {
             Layout.fillWidth: true
+            Layout.topMargin: 12
             horizontalAlignment: Text.AlignHCenter
             text: root.has ? (root.player.trackTitle || "Unknown title") : "Nothing playing"
             font.pixelSize: Config.fontSize + 2
@@ -84,36 +115,51 @@ DashTile {
             Layout.fillWidth: true
             visible: root.has
             horizontalAlignment: Text.AlignHCenter
-            text: root.player?.trackAlbum || "Unknown album"
+            text: [root.player?.trackArtist, root.player?.trackAlbum].filter(t => t).join("  ·  ") || "Unknown artist"
             color: Colours.surfaceVariantText
+            font.pixelSize: Config.fontSize - 1
             elide: Text.ElideRight
         }
 
-        StyledText {
+        // thin position bar with the times at its ends
+        RowLayout {
             Layout.fillWidth: true
-            visible: root.has
-            horizontalAlignment: Text.AlignHCenter
-            text: root.player?.trackArtist || "Unknown artist"
-            color: Colours.surfaceVariantText
-            elide: Text.ElideRight
-        }
-
-        StyledText {
-            Layout.fillWidth: true
+            Layout.topMargin: 10
             visible: root.has && root.player.lengthSupported
-            horizontalAlignment: Text.AlignHCenter
-            text: root.has ? `${root.fmt(root.player.position)} / ${root.fmt(root.player.length)}` : ""
-            font.family: Config.fontFamilyMono
-            font.pixelSize: Config.fontSize - 2
-            color: Colours.outline
-        }
+            spacing: 8
 
-        Item {
-            Layout.fillHeight: true
+            StyledText {
+                text: root.has ? root.fmt(root.player.position) : ""
+                font.family: Config.fontFamilyMono
+                font.pixelSize: Config.fontSize - 3
+                color: Colours.outline
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 3
+                radius: 1.5
+                color: Colours.surfaceContainerHighest
+
+                Rectangle {
+                    width: root.has && root.player.length > 0 ? parent.width * Math.min(1, root.player.position / root.player.length) : 0
+                    height: parent.height
+                    radius: parent.radius
+                    color: Theme.accent
+                }
+            }
+
+            StyledText {
+                text: root.has ? root.fmt(root.player.length) : ""
+                font.family: Config.fontFamilyMono
+                font.pixelSize: Config.fontSize - 3
+                color: Colours.outline
+            }
         }
 
         RowLayout {
             Layout.alignment: Qt.AlignHCenter
+            Layout.topMargin: 10
             spacing: 10
 
             IconButton {
@@ -175,9 +221,6 @@ DashTile {
             }
         }
 
-        Item {
-            Layout.preferredHeight: 2
-        }
     }
 
     function fmt(secs: real): string {

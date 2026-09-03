@@ -23,7 +23,7 @@ Item {
     readonly property vector4d blobRect: frame && (shown || sliding) ? Qt.vector4d(x, y - 40, width, height + 40) : Qt.vector4d(0, 0, 0, 0)
 
     readonly property int topRow: 150
-    readonly property int bottomRow: 410
+    readonly property int bottomRow: 384
     readonly property int mediaWidth: 250
     readonly property int calendarWidth: 380
 
@@ -138,7 +138,10 @@ Item {
                     id: cal
 
                     width: parent.width
+                    height: parent.height
                     centeredHeader: true
+                    // header + weekday row + spacings, the rest is six equal rows
+                    rowHeight: Math.floor((parent.height - 32 - 6 - 20 - 6 - 5 * gap) / 6)
                     onSelectedChanged: events.selected = selected
                 }
             }

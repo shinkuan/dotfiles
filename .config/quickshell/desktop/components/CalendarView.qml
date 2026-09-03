@@ -17,6 +17,8 @@ ColumnLayout {
     readonly property int firstDow: Qt.locale().firstDayOfWeek % 7   // 0 = Sunday
     readonly property int gap: 2
     readonly property int cell: Math.max(24, Math.floor((width - 6 * gap) / 7))
+    property int rowHeight: 0   // 0 = from the cell width; the dashboard fills its tile
+    readonly property int cellH: rowHeight > 0 ? rowHeight : Math.round(cell * 0.82)
     readonly property var cells: {
         const first = new Date(year, month, 1);
         const offset = (first.getDay() - firstDow + 7) % 7;
@@ -139,8 +141,8 @@ ColumnLayout {
                 width: root.cell
                 horizontalAlignment: Text.AlignHCenter
                 text: Qt.locale().dayName((root.firstDow + index) % 7, Locale.ShortFormat)
-                color: Colours.surfaceVariantText
-                font.pixelSize: Config.fontSize - 2
+                color: Theme.accent
+                font.pixelSize: Config.fontSize - 1
                 font.weight: Font.DemiBold
             }
         }
@@ -159,8 +161,8 @@ ColumnLayout {
                 readonly property var evs: Calendar.eventMap[Calendar.dayKey(modelData)] ?? []
 
                 width: root.cell
-                height: Math.round(root.cell * 0.9)
-                radius: Theme.capsule ? height / 2 : Theme.outlined ? 0 : Theme.radiusItem
+                height: root.cellH
+                radius: Theme.capsule ? height / 2 : Theme.outlined ? 0 : Math.min(Theme.radiusItem + 4, height / 2)
                 color: isToday && !Theme.outlined ? Theme.accent : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
                 border.width: (isToday && Theme.signal) || (isSelected && !isToday) ? 1 : 0
                 border.color: isSelected && !isToday ? Colours.alpha(Theme.accent, 0.8) : Theme.accent
@@ -180,12 +182,13 @@ ColumnLayout {
                     anchors.verticalCenterOffset: day.evs.length > 0 ? -3 : 0
                     text: day.modelData.getDate()
                     color: day.isToday ? (Theme.outlined ? Theme.accent : Theme.accentText) : !day.inMonth ? Colours.alpha(Colours.surfaceVariantText, 0.35) : day.weekend ? Colours.tertiary : Colours.surfaceText
-                    font.weight: day.isToday ? Font.Bold : Font.Normal
+                    font.pixelSize: Config.fontSize + 2
+                    font.weight: day.isToday ? Font.Bold : Font.Medium
                 }
 
                 Row {
                     anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 4
+                    anchors.bottomMargin: 5
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 2
                     opacity: day.inMonth ? 1 : 0.4
