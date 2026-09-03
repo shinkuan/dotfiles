@@ -10,6 +10,7 @@ import "../../components"
 // tones around a lifted colon, a short vertical rule, then month / day /
 // weekday stacked beside it. `desktopClock.size` is the time's pixel size;
 // everything else scales with it. A soft shadow keeps it legible on light art.
+// Native glyph rendering keeps the big digits crisp instead of distance-field soft.
 Item {
     id: root
 
@@ -22,8 +23,9 @@ Item {
 
     width: face.implicitWidth
     height: face.implicitHeight
-    x: alignRight ? parent.width - width - margin : alignCenter ? (parent.width - width) / 2 : margin
-    y: position.startsWith("top") ? margin : parent.height - height - margin
+    // whole pixels: the shadow layer resamples anything drawn at a fraction
+    x: Math.round(alignRight ? parent.width - width - margin : alignCenter ? (parent.width - width) / 2 : margin)
+    y: Math.round(position.startsWith("top") ? margin : parent.height - height - margin)
 
     SystemClock {
         id: clock
@@ -47,6 +49,8 @@ Item {
             spacing: Math.round(4 * root.k)
 
             Text {
+
+                renderType: Text.NativeRendering
                 text: Qt.formatDateTime(clock.date, "HH")
                 color: Colours.primary
                 font.family: "Rubik"
@@ -55,6 +59,8 @@ Item {
             }
 
             Text {
+
+                renderType: Text.NativeRendering
                 Layout.topMargin: -Math.round(root.size * 0.16)
                 text: ":"
                 color: Colours.tertiary
@@ -64,6 +70,8 @@ Item {
             }
 
             Text {
+
+                renderType: Text.NativeRendering
                 text: Qt.formatDateTime(clock.date, "mm")
                 color: Colours.secondary
                 font.family: "Rubik"
@@ -86,6 +94,8 @@ Item {
             spacing: 0
 
             Text {
+
+                renderType: Text.NativeRendering
                 text: Qt.formatDateTime(clock.date, "MMMM").toUpperCase()
                 color: Colours.secondary
                 font.family: "Rubik"
@@ -95,6 +105,8 @@ Item {
             }
 
             Text {
+
+                renderType: Text.NativeRendering
                 text: Qt.formatDateTime(clock.date, "dd")
                 color: Colours.primary
                 font.family: "Rubik"
@@ -104,6 +116,8 @@ Item {
             }
 
             Text {
+
+                renderType: Text.NativeRendering
                 text: Qt.formatDateTime(clock.date, "dddd")
                 color: Colours.secondary
                 font.family: "Rubik"
