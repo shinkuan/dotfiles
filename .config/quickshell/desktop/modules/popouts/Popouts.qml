@@ -26,13 +26,12 @@ Item {
     readonly property bool mirrored: Theme.barRight
     readonly property bool frame: Theme.frame
 
-    // frame: the panel never travels along the bar. Another entry hovered
-    // while it is out retracts it first (after a short dwell, so sliding
-    // across entries does not flicker) and re-emerges at the new position.
+    // frame: an entry hovered while the panel is out morphs it there with
+    // the spring (caelestia style); one hovered while it slides back under
+    // the band is queued so it never re-emerges at the old position
     property string pendingId: ""
     property real pendingY: 0
     property bool snapping: false   // geometry writes that must not animate
-    property bool swapping: false   // retracting only to re-emerge elsewhere
     readonly property bool retracting: frame && !shown && loaded !== "" && panel.x > -panel.width + 0.5
 
     // frame: a panel closer to the top/bottom band than the shader's blend
@@ -60,9 +59,9 @@ Item {
         }
     }
 
-    // frame never animates y (see above); other styles glide between entries
+    // position only animates while the panel is out; a hidden panel snaps
     Behavior on y {
-        enabled: !root.horizontal && !root.frame
+        enabled: !root.horizontal && (!root.frame || root.shown)
         NumberAnimation {
             duration: Theme.spatialDuration
             easing.type: Theme.spatialType
@@ -76,39 +75,17 @@ Item {
             return;
         }
         closeGrace.stop();
-        if (frame) {
-            if (shown && id === current) {
-                dwell.stop();
-                pendingId = "";
-                return;
-            }
-            if (shown || retracting) {
-                pendingId = id;
-                pendingY = y;
-                if (shown)
-                    dwell.restart();
-                return;
-            }
+        if (retracting && id !== loaded) {
+            pendingId = id;
+            pendingY = y;
+            return;
         }
         pendingId = "";
-        swapping = false;
         snapping = !shown;
         anchorY = y;
         loaded = id;
         snapping = false;
         current = id;
-    }
-
-    Timer {
-        id: dwell
-
-        interval: 120
-        onTriggered: {
-            if (root.pendingId === "" || !root.shown)
-                return;
-            root.swapping = true;
-            root.current = "";   // retract; the x animation reopens pendingId when done
-        }
     }
 
     function openShortcut(id: string, y: real, keyboard: bool): void {
@@ -123,16 +100,14 @@ Item {
 
     function close(): void {
         closeGrace.stop();
-        dwell.stop();
         pendingId = "";
-        swapping = false;
         current = "";
         shortcutActive = false;
         keyboardOpened = false;
     }
 
-    // the pointer left an entry but is still on the bar: keep the panel out
-    // for a moment so the next entry morphs it instead of reopening it
+    // the pointer left an entry but is still on the bar: survive the 1 px
+    // gap to the next entry, but crossing a spacer retracts the panel
     function closeSoon(): void {
         if (shown)
             closeGrace.restart();
@@ -145,7 +120,7 @@ Item {
     Timer {
         id: closeGrace
 
-        interval: 400
+        interval: 120
         onTriggered: root.close()
     }
 
@@ -205,7 +180,7 @@ Item {
             enabled: root.frame && !root.snapping
             // the spring is for coming out; going back under the band is plain
             NumberAnimation {
-                duration: root.shown ? Theme.spatialDuration : root.swapping ? Config.animDurationFast : Config.animDuration
+                duration: root.shown ? Theme.spatialDuration : Config.animDuration
                 easing.type: root.shown ? Theme.spatialType : Easing.OutCubic
                 easing.bezierCurve: Theme.spatialCurve
                 onRunningChanged: {
@@ -252,6 +227,22 @@ Item {
             x: Config.padding
             y: Config.padding
             sourceComponent: root.loaded !== "" ? root.registry[root.loaded] : null
+            // content swapped while the panel is out fades in as it morphs
+            onLoaded: {
+                if (root.shown)
+                    contentFade.restart();
+            }
+        }
+
+        NumberAnimation {
+            id: contentFade
+
+            target: loader
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: Config.animDuration
+            easing.type: Easing.OutCubic
         }
     }
 }
