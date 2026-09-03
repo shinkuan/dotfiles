@@ -39,14 +39,17 @@ Item {
     // of the band or pushed flush into it
     readonly property real bandT: frame ? Config.borderThickness : margin
     readonly property int bandGap: 28
-    readonly property real rawY: Math.max(bandT, Math.min(parent.height - panel.height - bandT, anchorY - panel.height / 2))
+    // placement uses the content's final size, not the animating panel size,
+    // so the move and the resize run as one spring instead of one after the other
+    readonly property real targetH: loader.item ? loader.item.height + Config.padding * 2 : 0
+    readonly property real rawY: Math.max(bandT, Math.min(parent.height - targetH - bandT, anchorY - targetH / 2))
     readonly property bool snapTop: frame && rawY - bandT < bandGap
-    readonly property bool snapBottom: frame && !snapTop && parent.height - bandT - (rawY + panel.height) < bandGap
+    readonly property bool snapBottom: frame && !snapTop && parent.height - bandT - (rawY + targetH) < bandGap
     // slot handed to the frame shader, in the surface's coordinates
     readonly property vector4d blobRect: frame && loaded !== "" ? Qt.vector4d(x + panel.x - 40, y - (snapTop ? 40 : 0), panel.width + 40, panel.height + (snapTop ? 40 : 0) + (snapBottom ? 40 : 0)) : Qt.vector4d(0, 0, 0, 0)
 
     x: horizontal ? Math.max(margin, Math.min(parent.width - panel.width - margin, anchorY - panel.width / 2)) : mirrored ? parent.width - barEdge - width : barEdge
-    y: horizontal ? barEdge : snapTop ? bandT : snapBottom ? parent.height - bandT - panel.height : rawY
+    y: horizontal ? barEdge : snapTop ? bandT : snapBottom ? parent.height - bandT - targetH : rawY
     width: frame ? Math.max(0, panel.width + panel.x) : shown ? (horizontal ? panel.width : gap + panel.width) : 0
     height: frame ? panel.height : shown ? (horizontal ? gap + panel.height : panel.height) : 0
     clip: frame
