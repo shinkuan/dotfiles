@@ -7,7 +7,7 @@ import "../../components"
 BarItem {
     id: root
 
-    popout: "calendar"
+    popout: ""   // the dashboard is the calendar view
     spacing: 0
 
     SystemClock {
