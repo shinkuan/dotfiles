@@ -33,6 +33,7 @@ Singleton {
     readonly property alias appearance: adapter.appearance
     readonly property alias popouts: adapter.popouts
     readonly property alias dashboard: adapter.dashboard
+    readonly property alias weather: adapter.weather
     readonly property alias osd: adapter.osd
     readonly property alias kgrid: adapter.kgrid
     readonly property alias desktopClock: adapter.desktopClock
@@ -110,7 +111,12 @@ Singleton {
             property JsonObject dashboard: JsonObject {
                 property bool showOnHover: true   // top-centre edge reveals it
                 property int hotspot: 480          // width of that edge strip
-                property int width: 1040
+                property int width: 1120
+            }
+            property JsonObject weather: JsonObject {
+                property string location: ""   // empty: wttr.in guesses from the IP
+                property string unit: "c"      // c or f
+                property int refreshMinutes: 20
             }
             property JsonObject popouts: JsonObject {
                 property bool showOnHover: true

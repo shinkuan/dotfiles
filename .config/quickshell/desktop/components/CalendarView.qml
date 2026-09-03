@@ -12,6 +12,7 @@ ColumnLayout {
     property int month: today.getMonth()
     property date selected: today
     property bool showHeader: true
+    property bool centeredHeader: false   // "<  Month yyyy  >" with the arrows at the ends
     readonly property bool atToday: month === today.getMonth() && year === today.getFullYear()
     readonly property int firstDow: Qt.locale().firstDayOfWeek % 7   // 0 = Sunday
     readonly property int gap: 2
@@ -56,7 +57,37 @@ ColumnLayout {
     }
 
     RowLayout {
-        visible: root.showHeader
+        visible: root.showHeader && root.centeredHeader
+        Layout.fillWidth: true
+
+        IconButton {
+            icon: "chevron_left"
+            onClicked: root.shift(-1)
+        }
+
+        Clickable {
+            Layout.fillWidth: true
+            implicitHeight: 32
+            radius: Config.radius
+            onClicked: root.goToday()   // the title doubles as the "today" jump
+
+            StyledText {
+                anchors.centerIn: parent
+                text: Qt.formatDate(new Date(root.year, root.month, 1), "MMMM yyyy")
+                color: root.atToday ? Colours.surfaceText : Theme.accent
+                font.pixelSize: Config.fontSize + 3
+                font.weight: Font.DemiBold
+            }
+        }
+
+        IconButton {
+            icon: "chevron_right"
+            onClicked: root.shift(1)
+        }
+    }
+
+    RowLayout {
+        visible: root.showHeader && !root.centeredHeader
         Layout.fillWidth: true
 
         ColumnLayout {

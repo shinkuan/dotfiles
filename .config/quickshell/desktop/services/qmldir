@@ -19,3 +19,4 @@ singleton Overview 1.0 Overview.qml
 singleton Battery 1.0 Battery.qml
 singleton Summon 1.0 Summon.qml
 singleton Calendar 1.0 Calendar.qml
+singleton Weather 1.0 Weather.qml

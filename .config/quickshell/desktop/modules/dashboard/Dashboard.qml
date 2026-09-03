@@ -4,12 +4,10 @@ import Quickshell.Hyprland
 import "../../config"
 import "../../services"
 import "../../components"
-import "../popouts"
-import "../notifications"
 
-// Top-centre panel: calendar, what is next, notifications, media and usage.
-// Frame style grows it out of the top band (a shader slot); other styles
-// slide a Surface down from the edge.
+// Top-centre panel laid out as tiles: weather and usage on top, calendar and
+// the day's agenda below, media down the right side. Frame style grows it
+// out of the top band (a shader slot); other styles slide a Surface down.
 Item {
     id: root
 
@@ -17,16 +15,22 @@ Item {
     property bool shown: false
     property bool shortcutActive: false   // opened by key / IPC: stays until Esc or a click outside
     readonly property bool frame: Theme.frame
-    readonly property int pad: Config.padding + 4
+    readonly property int pad: 16
+    readonly property int gap: 14
     readonly property real edge: frame ? Config.borderThickness : 8
     readonly property bool sliding: y > -height + 1
     // slot for the frame shader, extended into the band so the join is straight
     readonly property vector4d blobRect: frame && (shown || sliding) ? Qt.vector4d(x, y - 40, width, height + 40) : Qt.vector4d(0, 0, 0, 0)
 
+    readonly property int topRow: 150
+    readonly property int bottomRow: 410
+    readonly property int mediaWidth: 250
+    readonly property int calendarWidth: 380
+
     x: Math.round((parent.width - width) / 2)
     y: shown ? edge : -height
     width: Config.dashboard.width
-    height: body.implicitHeight + pad * 2
+    height: topRow + gap + bottomRow + pad * 2
     visible: shown || sliding
 
     Behavior on y {
@@ -39,8 +43,11 @@ Item {
 
     function open(): void {
         closeGrace.stop();
-        if (!shown)
+        if (!shown) {
             Notifs.markAllRead();
+            Calendar.refresh();
+            Weather.refresh(false);
+        }
         shown = true;
     }
 
@@ -80,13 +87,17 @@ Item {
         color: root.frame ? "transparent" : Theme.panel
         shadow: !root.frame
 
-        RowLayout {
+        GridLayout {
             id: body
 
             x: root.pad
             y: root.pad
             width: root.width - root.pad * 2
-            spacing: Config.padding + 8
+            height: root.height - root.pad * 2
+            columns: 3
+            rows: 2
+            columnSpacing: root.gap
+            rowSpacing: root.gap
             // content settles in after the panel has come out
             opacity: root.shown ? 1 : 0
 
@@ -102,95 +113,41 @@ Item {
                 }
             }
 
-            Loader {
-                id: calendarColumn
-
-                Layout.preferredWidth: 340
-                Layout.alignment: Qt.AlignTop
-                source: "CalendarColumn.qml"
-                onLoaded: item.active = Qt.binding(() => root.shown)
+            WeatherTile {
+                Layout.preferredWidth: root.calendarWidth
+                Layout.preferredHeight: root.topRow
             }
 
-            ColumnLayout {
-                Layout.preferredWidth: 340
-                Layout.alignment: Qt.AlignTop
-                spacing: 8
+            UsageTile {
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.topRow
+                active: root.shown
+            }
 
-                Loader {
-                    Layout.fillWidth: true
-                    source: "UpNext.qml"
-                }
+            MediaTile {
+                Layout.preferredWidth: root.mediaWidth
+                Layout.rowSpan: 2
+                Layout.fillHeight: true
+            }
 
-                SectionLabel {
-                    Layout.topMargin: 6
-                    text: "Notifications"
+            DashTile {
+                Layout.preferredWidth: root.calendarWidth
+                Layout.preferredHeight: root.bottomRow
 
-                    Chip {
-                        visible: Notifs.list.length > 0
-                        icon: "clear_all"
-                        text: "Clear"
-                        onClicked: Notifs.clearAll()
-                    }
+                CalendarView {
+                    id: cal
 
-                    Chip {
-                        icon: ShellState.dnd ? "do_not_disturb_on" : "do_not_disturb_off"
-                        text: "Do not disturb"
-                        checked: ShellState.dnd
-                        onClicked: ShellState.toggle("dnd")
-                    }
-                }
-
-                StyledText {
-                    visible: Notifs.list.length === 0
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.topMargin: 12
-                    Layout.bottomMargin: 12
-                    text: "No notifications"
-                    color: Colours.surfaceVariantText
-                }
-
-                Repeater {
-                    model: Notifs.list.slice(0, 4)
-
-                    NotifCard {
-                        required property var modelData
-
-                        Layout.fillWidth: true
-                        entry: modelData
-                        compact: true
-                        onDismissed: Notifs.remove(entry.key)
-                    }
-                }
-
-                StyledText {
-                    visible: Notifs.list.length > 4
-                    Layout.alignment: Qt.AlignRight
-                    text: `+${Notifs.list.length - 4} more`
-                    color: Colours.outline
-                    font.pixelSize: Config.fontSize - 2
+                    width: parent.width
+                    centeredHeader: true
+                    onSelectedChanged: events.selected = selected
                 }
             }
 
-            ColumnLayout {
-                Layout.preferredWidth: 300
-                Layout.alignment: Qt.AlignTop
-                spacing: 8
+            EventsTile {
+                id: events
 
-                SectionLabel {
-                    text: "Now playing"
-                }
-
-                MediaPopout {
-                    Layout.fillWidth: true
-                }
-
-                Item {
-                    Layout.preferredHeight: 4
-                }
-
-                ResourcesPopout {
-                    Layout.fillWidth: true
-                }
+                Layout.fillWidth: true
+                Layout.preferredHeight: root.bottomRow
             }
         }
     }
