@@ -26,11 +26,13 @@ Item {
     readonly property bool mirrored: Theme.barRight
     readonly property bool frame: Theme.frame
 
-    // frame: an entry hovered while the panel slides back under the band is
-    // queued until it is hidden, so it never re-emerges at the old position
+    // frame: the panel never travels along the bar. Another entry hovered
+    // while it is out retracts it first (after a short dwell, so sliding
+    // across entries does not flicker) and re-emerges at the new position.
     property string pendingId: ""
     property real pendingY: 0
     property bool snapping: false   // geometry writes that must not animate
+    property bool swapping: false   // retracting only to re-emerge elsewhere
     readonly property bool retracting: frame && !shown && loaded !== "" && panel.x > -panel.width + 0.5
 
     // frame: a panel closer to the top/bottom band than the shader's blend
@@ -58,9 +60,9 @@ Item {
         }
     }
 
-    // position only animates while the panel is out; a hidden panel snaps
+    // frame never animates y (see above); other styles glide between entries
     Behavior on y {
-        enabled: !root.horizontal && (!root.frame || root.shown)
+        enabled: !root.horizontal && !root.frame
         NumberAnimation {
             duration: Theme.spatialDuration
             easing.type: Theme.spatialType
@@ -74,25 +76,39 @@ Item {
             return;
         }
         closeGrace.stop();
-        if (retracting && id !== loaded) {
-            pendingId = id;
-            pendingY = y;
-            return;
-        }
-        // a jump further than the panel is tall reads as travel, not as the
-        // same panel morphing: retract here and re-emerge at the new entry
-        if (frame && shown && id !== current && Math.abs(y - anchorY) > panel.height) {
-            pendingId = id;
-            pendingY = y;
-            current = "";
-            return;
+        if (frame) {
+            if (shown && id === current) {
+                dwell.stop();
+                pendingId = "";
+                return;
+            }
+            if (shown || retracting) {
+                pendingId = id;
+                pendingY = y;
+                if (shown)
+                    dwell.restart();
+                return;
+            }
         }
         pendingId = "";
+        swapping = false;
         snapping = !shown;
         anchorY = y;
         loaded = id;
         snapping = false;
         current = id;
+    }
+
+    Timer {
+        id: dwell
+
+        interval: 120
+        onTriggered: {
+            if (root.pendingId === "" || !root.shown)
+                return;
+            root.swapping = true;
+            root.current = "";   // retract; the x animation reopens pendingId when done
+        }
     }
 
     function openShortcut(id: string, y: real, keyboard: bool): void {
@@ -107,7 +123,9 @@ Item {
 
     function close(): void {
         closeGrace.stop();
+        dwell.stop();
         pendingId = "";
+        swapping = false;
         current = "";
         shortcutActive = false;
         keyboardOpened = false;
@@ -187,7 +205,7 @@ Item {
             enabled: root.frame && !root.snapping
             // the spring is for coming out; going back under the band is plain
             NumberAnimation {
-                duration: root.shown ? Theme.spatialDuration : Config.animDuration
+                duration: root.shown ? Theme.spatialDuration : root.swapping ? Config.animDurationFast : Config.animDuration
                 easing.type: root.shown ? Theme.spatialType : Easing.OutCubic
                 easing.bezierCurve: Theme.spatialCurve
                 onRunningChanged: {
@@ -196,8 +214,9 @@ Item {
                     root.snapping = true;
                     root.loaded = "";
                     root.snapping = false;
+                    // reopen outside this handler so the loader's binding is not re-entered
                     if (root.pendingId !== "")
-                        root.open(root.pendingId, root.pendingY);
+                        Qt.callLater(root.open, root.pendingId, root.pendingY);
                 }
             }
         }
