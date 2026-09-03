@@ -32,9 +32,11 @@ Singleton {
     readonly property alias bar: adapter.bar
     readonly property alias appearance: adapter.appearance
     readonly property alias popouts: adapter.popouts
+    readonly property alias dashboard: adapter.dashboard
     readonly property alias osd: adapter.osd
     readonly property alias kgrid: adapter.kgrid
     readonly property alias desktopClock: adapter.desktopClock
+    readonly property alias calendar: adapter.calendar
     readonly property alias notifications: adapter.notifications
     readonly property alias idle: adapter.idle
     readonly property alias launcher: adapter.launcher
@@ -103,7 +105,12 @@ Singleton {
                 property bool showResources: true
                 property string position: "left"   // left | right | top
                 // order of bar entries; unknown ids are skipped
-                property list<string> entries: ["kgrid", "spacer", "media", "resources", "tray", "status", "notifications", "clock", "power"]
+                property list<string> entries: ["kgrid", "spacer", "tray", "status", "clock", "power"]
+            }
+            property JsonObject dashboard: JsonObject {
+                property bool showOnHover: true   // top-centre edge reveals it
+                property int hotspot: 480          // width of that edge strip
+                property int width: 1040
             }
             property JsonObject popouts: JsonObject {
                 property bool showOnHover: true
@@ -121,6 +128,11 @@ Singleton {
                 property string position: "bottom-right"
                 property int margin: 48
                 property int size: 112   // time height in px; the date scales with it
+            }
+            property JsonObject calendar: JsonObject {
+                property string dir: ""   // empty: $XDG_DATA_HOME/desktop-shell/calendar
+                property int refreshMinutes: 10
+                property int upcomingDays: 7
             }
             property JsonObject notifications: JsonObject {
                 property int timeout: 5000

@@ -11,3 +11,5 @@ Chip 1.0 Chip.qml
 Surface 1.0 Surface.qml
 Collapsible 1.0 Collapsible.qml
 DisclosureRow 1.0 DisclosureRow.qml
+CalendarView 1.0 CalendarView.qml
+EventList 1.0 EventList.qml

@@ -1,0 +1,368 @@
+#!/usr/bin/env python3
+"""Dump calendar events as JSON for the desktop shell.
+
+    desktop-calendar dump --from YYYY-MM-DD --to YYYY-MM-DD --dir DIR [--dir DIR2]
+
+Each DIR holds vdirsyncer-style collections (one directory per calendar with one
+.ics file per event, optionally a `color` file) and/or an `events.json` with
+quick hand-written entries. Timestamps are printed in local time.
+"""
+import argparse
+import json
+import os
+import re
+import sys
+from datetime import date, datetime, time, timedelta, timezone
+
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:  # pragma: no cover
+    ZoneInfo = None
+
+WEEKDAYS = {"MO": 0, "TU": 1, "WE": 2, "TH": 3, "FR": 4, "SA": 5, "SU": 6}
+
+
+def warn(msg):
+    print(f"desktop-calendar: {msg}", file=sys.stderr)
+
+
+# ---------------------------------------------------------------- ICS parsing
+
+def unfold(text):
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    out = []
+    for line in lines:
+        if line[:1] in (" ", "\t") and out:
+            out[-1] += line[1:]
+        else:
+            out.append(line)
+    return out
+
+
+def split_property(line):
+    """'DTSTART;TZID=X;VALUE=DATE-TIME:2026...' -> (name, {params}, value)"""
+    if ":" not in line:
+        return None, {}, ""
+    head, _, value = line.partition(":")
+    # a ':' may sit inside a quoted parameter value
+    while head.count('"') % 2 == 1 and ":" in value:
+        more, _, value = value.partition(":")
+        head = head + ":" + more
+    parts = head.split(";")
+    name = parts[0].upper()
+    params = {}
+    for p in parts[1:]:
+        k, _, v = p.partition("=")
+        params[k.upper()] = v.strip('"')
+    return name, params, value
+
+
+def unescape(value):
+    return (value.replace("\\n", "\n").replace("\\N", "\n").replace("\\,", ",")
+            .replace("\\;", ";").replace("\\\\", "\\"))
+
+
+def parse_dt(value, params):
+    """Return (datetime-or-date, all_day). Datetimes are converted to local naive."""
+    value = value.strip()
+    if params.get("VALUE") == "DATE" or re.fullmatch(r"\d{8}", value):
+        return date(int(value[:4]), int(value[4:6]), int(value[6:8])), True
+    m = re.fullmatch(r"(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z?)", value)
+    if not m:
+        raise ValueError(f"bad date-time {value!r}")
+    y, mo, d, h, mi = (int(m.group(i)) for i in range(1, 6))
+    s = int(m.group(6) or 0)
+    dt = datetime(y, mo, d, h, mi, s)
+    if m.group(7) == "Z":
+        dt = dt.replace(tzinfo=timezone.utc)
+    elif "TZID" in params and ZoneInfo is not None:
+        try:
+            dt = dt.replace(tzinfo=ZoneInfo(params["TZID"]))
+        except Exception:
+            warn(f"unknown TZID {params['TZID']!r}, treating as local")
+    if dt.tzinfo is not None:
+        dt = dt.astimezone().replace(tzinfo=None)
+    return dt, False
+
+
+def parse_duration(value):
+    m = re.fullmatch(r"([+-])?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?", value.strip())
+    if not m:
+        raise ValueError(f"bad duration {value!r}")
+    sign = -1 if m.group(1) == "-" else 1
+    w, d, h, mi, s = (int(x or 0) for x in m.groups()[1:])
+    return sign * timedelta(weeks=w, days=d, hours=h, minutes=mi, seconds=s)
+
+
+def parse_rrule(value):
+    rule = {}
+    for part in value.split(";"):
+        k, _, v = part.partition("=")
+        rule[k.upper()] = v
+    return rule
+
+
+def parse_vevents(text):
+    """Yield dicts of raw properties per VEVENT."""
+    inside = False
+    props = None
+    for line in unfold(text):
+        if line.upper() == "BEGIN:VEVENT":
+            inside = True
+            props = []
+            continue
+        if line.upper() == "END:VEVENT":
+            inside = False
+            if props is not None:
+                yield props
+            props = None
+            continue
+        if inside and line:
+            name, params, value = split_property(line)
+            if name:
+                props.append((name, params, value))
+
+
+def first(props, name):
+    for n, p, v in props:
+        if n == name:
+            return p, v
+    return None, None
+
+
+def expand(start, end, rule, exdates, range_from, range_to):
+    """Occurrence start datetimes within the range (plus the first one)."""
+    freq = rule.get("FREQ", "").upper()
+    interval = max(1, int(rule.get("INTERVAL", "1") or 1))
+    count = int(rule["COUNT"]) if rule.get("COUNT") else None
+    until = None
+    if rule.get("UNTIL"):
+        u, all_day = parse_dt(rule["UNTIL"], {})
+        until = datetime.combine(u, time.max) if all_day else u
+    duration = end - start
+    limit_hi = datetime.combine(range_to, time.max)
+    byday = [WEEKDAYS[d[-2:]] for d in rule.get("BYDAY", "").split(",") if d[-2:] in WEEKDAYS] if freq == "WEEKLY" else []
+
+    out = []
+    n = 0
+    cursor = start
+    guard = 0
+    while guard < 5000:
+        guard += 1
+        candidates = [cursor]
+        if byday:
+            week_start = cursor - timedelta(days=cursor.weekday())
+            candidates = sorted(week_start + timedelta(days=wd) for wd in byday)
+            candidates = [c.replace(hour=start.hour, minute=start.minute, second=start.second) for c in candidates]
+            candidates = [c for c in candidates if c >= start]
+        stop = False
+        for c in candidates:
+            if until is not None and c > until:
+                stop = True
+                break
+            if count is not None and n >= count:
+                stop = True
+                break
+            n += 1
+            if c > limit_hi:
+                stop = True
+                break
+            if c.date() not in exdates and c + duration >= datetime.combine(range_from, time.min):
+                out.append(c)
+        if stop:
+            break
+        if freq == "DAILY":
+            cursor = cursor + timedelta(days=interval)
+        elif freq == "WEEKLY":
+            cursor = cursor + timedelta(weeks=interval)
+        elif freq == "MONTHLY":
+            m = cursor.month - 1 + interval
+            y = cursor.year + m // 12
+            m = m % 12 + 1
+            day = min(cursor.day, [31, 29 if y % 4 == 0 and (y % 100 != 0 or y % 400 == 0) else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][m - 1])
+            cursor = cursor.replace(year=y, month=m, day=day)
+        elif freq == "YEARLY":
+            try:
+                cursor = cursor.replace(year=cursor.year + interval)
+            except ValueError:
+                cursor = cursor.replace(year=cursor.year + interval, day=28)
+        else:
+            break
+        if cursor > limit_hi:
+            break
+    return out
+
+
+def event_json(uid, title, start, end, all_day, location, calendar, colour):
+    if all_day:
+        s, e = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+    else:
+        s, e = start.strftime("%Y-%m-%dT%H:%M"), end.strftime("%Y-%m-%dT%H:%M")
+    return {
+        "id": f"{uid}@{s}",
+        "title": title,
+        "start": s,
+        "end": e,
+        "allDay": all_day,
+        "location": location,
+        "calendar": calendar,
+        "colour": colour,
+    }
+
+
+def events_from_ics(text, calendar, colour, range_from, range_to):
+    out = []
+    overrides = {}   # uid -> set of recurrence-id dates
+    parsed = []
+    for props in parse_vevents(text):
+        p, rid = first(props, "RECURRENCE-ID")
+        uid = (first(props, "UID")[1] or "").strip()
+        if rid:
+            try:
+                r, _ = parse_dt(rid, p)
+                overrides.setdefault(uid, set()).add(r if isinstance(r, date) and not isinstance(r, datetime) else r.date())
+            except ValueError as e:
+                warn(str(e))
+        parsed.append((uid, props))
+    for uid, props in parsed:
+        p, v = first(props, "DTSTART")
+        if v is None:
+            continue
+        start, all_day = parse_dt(v, p)
+        pe, ve = first(props, "DTEND")
+        pd, vd = first(props, "DURATION")
+        if ve is not None:
+            end, _ = parse_dt(ve, pe)
+        elif vd is not None:
+            end = start + parse_duration(vd)
+        else:
+            end = start + timedelta(days=1) if all_day else start
+        title = unescape(first(props, "SUMMARY")[1] or "(untitled)")
+        location = unescape(first(props, "LOCATION")[1] or "")
+        exdates = set()
+        for n, pp, vv in props:
+            if n == "EXDATE":
+                for part in vv.split(","):
+                    try:
+                        d, _ = parse_dt(part, pp)
+                        exdates.add(d if not isinstance(d, datetime) else d.date())
+                    except ValueError:
+                        pass
+        if first(props, "RECURRENCE-ID")[1] is None:
+            exdates |= overrides.get(uid, set())
+        _, rr = first(props, "RRULE")
+        if all_day:
+            sdt, edt = datetime.combine(start, time.min), datetime.combine(end, time.min)
+        else:
+            sdt, edt = start, end
+        if rr:
+            starts = expand(sdt, edt, parse_rrule(rr), exdates, range_from, range_to)
+        else:
+            starts = [sdt]
+        dur = edt - sdt
+        lo, hi = datetime.combine(range_from, time.min), datetime.combine(range_to + timedelta(days=1), time.min)
+        for s in starts:
+            e = s + dur
+            if s < hi and e > lo or (s == e and lo <= s < hi):
+                if all_day:
+                    out.append(event_json(uid, title, s.date(), e.date(), True, location, calendar, colour))
+                else:
+                    out.append(event_json(uid, title, s, e, False, location, calendar, colour))
+    return out
+
+
+# ---------------------------------------------------------------- events.json
+
+def events_from_json(path, range_from, range_to):
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    out = []
+    lo, hi = datetime.combine(range_from, time.min), datetime.combine(range_to + timedelta(days=1), time.min)
+    for i, item in enumerate(data):
+        title = str(item.get("title", "(untitled)"))
+        colour = str(item.get("colour", item.get("color", "")))
+        location = str(item.get("location", ""))
+        uid = str(item.get("id", f"local-{i}"))
+        if "date" in item:
+            d = datetime.strptime(item["date"], "%Y-%m-%d").date()
+            e = datetime.strptime(item["end"], "%Y-%m-%d").date() if item.get("end") else d + timedelta(days=1)
+            if datetime.combine(d, time.min) < hi and datetime.combine(e, time.min) > lo:
+                out.append(event_json(uid, title, d, e, True, location, "local", colour))
+        elif "start" in item:
+            s = datetime.strptime(item["start"], "%Y-%m-%dT%H:%M")
+            e = datetime.strptime(item["end"], "%Y-%m-%dT%H:%M") if item.get("end") else s + timedelta(hours=1)
+            if s < hi and e > lo:
+                out.append(event_json(uid, title, s, e, False, location, "local", colour))
+    return out
+
+
+# ---------------------------------------------------------------- main
+
+def collect(directory, range_from, range_to):
+    out = []
+    if not os.path.isdir(directory):
+        return out
+    for entry in sorted(os.listdir(directory)):
+        path = os.path.join(directory, entry)
+        if entry == "events.json":
+            try:
+                out.extend(events_from_json(path, range_from, range_to))
+            except Exception as e:
+                warn(f"{path}: {e}")
+        elif entry.endswith(".ics") and os.path.isfile(path):
+            try:
+                with open(path, encoding="utf-8", errors="replace") as f:
+                    out.extend(events_from_ics(f.read(), "local", "", range_from, range_to))
+            except Exception as e:
+                warn(f"{path}: {e}")
+        elif os.path.isdir(path):
+            colour = ""
+            cfile = os.path.join(path, "color")
+            if os.path.isfile(cfile):
+                try:
+                    with open(cfile, encoding="utf-8") as f:
+                        colour = f.read().strip()
+                except OSError:
+                    pass
+            name = entry
+            nfile = os.path.join(path, "displayname")
+            if os.path.isfile(nfile):
+                try:
+                    with open(nfile, encoding="utf-8") as f:
+                        name = f.read().strip() or entry
+                except OSError:
+                    pass
+            for fname in sorted(os.listdir(path)):
+                if not fname.endswith(".ics"):
+                    continue
+                fpath = os.path.join(path, fname)
+                try:
+                    with open(fpath, encoding="utf-8", errors="replace") as f:
+                        out.extend(events_from_ics(f.read(), name, colour, range_from, range_to))
+                except Exception as e:
+                    warn(f"{fpath}: {e}")
+    out.sort(key=lambda ev: (ev["start"][:10], not ev["allDay"], ev["start"], ev["title"]))
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="desktop-calendar")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    d = sub.add_parser("dump", help="print events overlapping a date range as JSON")
+    d.add_argument("--from", dest="frm", required=True)
+    d.add_argument("--to", dest="to", required=True)
+    d.add_argument("--dir", dest="dirs", action="append", required=True, help="may be repeated; missing directories are skipped")
+    args = ap.parse_args()
+    if args.cmd == "dump":
+        frm = datetime.strptime(args.frm, "%Y-%m-%d").date()
+        to = datetime.strptime(args.to, "%Y-%m-%d").date()
+        events = []
+        for d in args.dirs:
+            events.extend(collect(os.path.expanduser(d), frm, to))
+        events.sort(key=lambda ev: (ev["start"][:10], not ev["allDay"], ev["start"], ev["title"]))
+        json.dump(events, sys.stdout, ensure_ascii=False)
+        print()
+
+
+if __name__ == "__main__":
+    main()

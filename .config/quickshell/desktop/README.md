@@ -100,6 +100,62 @@ Hot-loaded; every key is optional.
 | `resources.interval` | background poll interval in ms |
 | `brightness.external`, `brightness.step` | use ddcutil for external displays; key step in percent |
 
+## Calendar
+
+Events shown in the calendar views (dashboard, calendar popout) come from
+`services/Calendar.qml`, which runs the `desktop-calendar` helper for the
+months around today and keeps a per-day index. Sources, all optional:
+
+- `$XDG_DATA_HOME/desktop-shell/calendar/` (override with `calendar.dir` in
+  `config.json`): one subdirectory per calendar holding one `.ics` file per
+  event — the layout `vdirsyncer` writes. A `color` file (`#rrggbb`) in a
+  subdirectory colours that calendar's dots and bars; `displayname` names it.
+- `events.json` in that directory for quick hand-written entries:
+
+  ```json
+  [
+    {"date": "2026-09-05", "title": "Mum's birthday", "colour": "#e5c08e"},
+    {"date": "2026-09-19", "end": "2026-09-21", "title": "Trip"},
+    {"start": "2026-09-04T10:00", "end": "2026-09-04T11:30", "title": "Thesis sync", "location": "Lab 402"}
+  ]
+  ```
+
+- `$XDG_STATE_HOME/desktop-shell/calendar/` is read the same way as a
+  scratch source (this is where nested test sessions keep their sample data).
+
+Mirroring Google Calendar: install `vdirsyncer`, create an OAuth client in
+the Google Cloud console, then in `~/.config/vdirsyncer/config`:
+
+```ini
+[pair google]
+a = "google_remote"
+b = "google_local"
+collections = ["from a"]
+conflict_resolution = "a wins"
+
+[storage google_remote]
+type = "google_calendar"
+token_file = "~/.local/state/vdirsyncer/google-token"
+client_id = "…"
+client_secret = "…"
+
+[storage google_local]
+type = "filesystem"
+path = "~/.local/share/desktop-shell/calendar"
+fileext = ".ics"
+```
+
+`vdirsyncer discover google && vdirsyncer sync` once, then a systemd user
+timer running `vdirsyncer sync` every few minutes; the shell re-reads the
+directory every `calendar.refreshMinutes` (default 10) and on
+`qs -c desktop ipc call calendar refresh`. The helper can be used on its own:
+`desktop-calendar dump --from 2026-09-01 --to 2026-09-30 --dir DIR` prints
+the events overlapping the range as JSON (`--dir` may be repeated). It
+expands DAILY/WEEKLY/MONTHLY/YEARLY rules with INTERVAL/COUNT/UNTIL and
+weekly BYDAY, honours EXDATE and RECURRENCE-ID overrides, and converts
+TZID/UTC times to local time. `calendar.upcomingDays` (default 7) is how far
+the "up next" lists look ahead.
+
 ## IPC targets
 
 `bar` (toggle/pin/unpin/isPinned), `desktopClock`, `audio`, `brightness`,
@@ -107,7 +163,7 @@ Hot-loaded; every key is optional.
 (clear/toggleDnd/dnd), `launcher` (toggle/open/close/search/clipboard),
 `overview` (toggle/open/close), `popout` (open <id>/close), `screenshot`
 (region/regionCopy/cancel/capture), `session` (lock/suspend/logout),
-`media` (playPause/next/previous/stop), `wallpaper` (set/get), `theme`
+`media` (playPause/next/previous/stop), `wallpaper` (set/get), `calendar` (refresh/count/setDir <path>/getDir), `theme`
 (set <style>/get/cycle — rewrites config.json through the adapter, so keys it does not know are dropped),
 `summon` (toggle/open/center/hide — a deck with clock, workspaces, volume,
 brightness, media and a search shortcut that scales out of the pointer
