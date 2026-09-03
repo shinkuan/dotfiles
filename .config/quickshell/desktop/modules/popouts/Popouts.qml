@@ -25,11 +25,27 @@ Item {
     readonly property bool horizontal: Theme.barTop
     readonly property bool mirrored: Theme.barRight
     readonly property bool frame: Theme.frame
+
+    // frame: an entry hovered while the panel slides back under the band is
+    // queued until it is hidden, so it never re-emerges at the old position
+    property string pendingId: ""
+    property real pendingY: 0
+    property bool snapping: false   // geometry writes that must not animate
+    readonly property bool retracting: frame && !shown && loaded !== "" && panel.x > -panel.width + 0.5
+
+    // frame: a panel closer to the top/bottom band than the shader's blend
+    // distance would bridge to it with a fillet, so it is either kept clear
+    // of the band or pushed flush into it
+    readonly property real bandT: frame ? Config.borderThickness : margin
+    readonly property int bandGap: 28
+    readonly property real rawY: Math.max(bandT, Math.min(parent.height - panel.height - bandT, anchorY - panel.height / 2))
+    readonly property bool snapTop: frame && rawY - bandT < bandGap
+    readonly property bool snapBottom: frame && !snapTop && parent.height - bandT - (rawY + panel.height) < bandGap
     // slot handed to the frame shader, in the surface's coordinates
-    readonly property vector4d blobRect: frame && loaded !== "" ? Qt.vector4d(x + panel.x - 40, y, panel.width + 40, panel.height) : Qt.vector4d(0, 0, 0, 0)
+    readonly property vector4d blobRect: frame && loaded !== "" ? Qt.vector4d(x + panel.x - 40, y - (snapTop ? 40 : 0), panel.width + 40, panel.height + (snapTop ? 40 : 0) + (snapBottom ? 40 : 0)) : Qt.vector4d(0, 0, 0, 0)
 
     x: horizontal ? Math.max(margin, Math.min(parent.width - panel.width - margin, anchorY - panel.width / 2)) : mirrored ? parent.width - barEdge - width : barEdge
-    y: horizontal ? barEdge : Math.max(margin, Math.min(parent.height - panel.height - margin, anchorY - panel.height / 2))
+    y: horizontal ? barEdge : snapTop ? bandT : snapBottom ? parent.height - bandT - panel.height : rawY
     width: frame ? Math.max(0, panel.width + panel.x) : shown ? (horizontal ? panel.width : gap + panel.width) : 0
     height: frame ? panel.height : shown ? (horizontal ? gap + panel.height : panel.height) : 0
     clip: frame
@@ -42,8 +58,9 @@ Item {
         }
     }
 
+    // position only animates while the panel is out; a hidden panel snaps
     Behavior on y {
-        enabled: !root.horizontal
+        enabled: !root.horizontal && (!root.frame || root.shown)
         NumberAnimation {
             duration: Theme.spatialDuration
             easing.type: Theme.spatialType
@@ -52,12 +69,29 @@ Item {
     }
 
     function open(id: string, y: real): void {
-        anchorY = y;
         if (registry[id] === undefined) {
             console.warn("Popouts: unknown popout", id);
             return;
         }
+        closeGrace.stop();
+        if (retracting && id !== loaded) {
+            pendingId = id;
+            pendingY = y;
+            return;
+        }
+        // a jump further than the panel is tall reads as travel, not as the
+        // same panel morphing: retract here and re-emerge at the new entry
+        if (frame && shown && id !== current && Math.abs(y - anchorY) > panel.height) {
+            pendingId = id;
+            pendingY = y;
+            current = "";
+            return;
+        }
+        pendingId = "";
+        snapping = !shown;
+        anchorY = y;
         loaded = id;
+        snapping = false;
         current = id;
     }
 
@@ -72,13 +106,29 @@ Item {
     }
 
     function close(): void {
+        closeGrace.stop();
+        pendingId = "";
         current = "";
         shortcutActive = false;
         keyboardOpened = false;
     }
 
+    // the pointer left an entry but is still on the bar: keep the panel out
+    // for a moment so the next entry morphs it instead of reopening it
+    function closeSoon(): void {
+        if (shown)
+            closeGrace.restart();
+    }
+
     function contains(px: real, py: real): bool {
         return shown && px >= x && px < x + width && py >= y && py < y + height;
+    }
+
+    Timer {
+        id: closeGrace
+
+        interval: 400
+        onTriggered: root.close()
     }
 
     readonly property var registry: ({
@@ -134,14 +184,20 @@ Item {
         }
 
         Behavior on x {
-            enabled: root.frame
+            enabled: root.frame && !root.snapping
+            // the spring is for coming out; going back under the band is plain
             NumberAnimation {
-                duration: Theme.spatialDuration
-                easing.type: Theme.spatialType
+                duration: root.shown ? Theme.spatialDuration : Config.animDuration
+                easing.type: root.shown ? Theme.spatialType : Easing.OutCubic
                 easing.bezierCurve: Theme.spatialCurve
                 onRunningChanged: {
-                    if (!running && !root.shown && root.frame)
-                        root.loaded = "";
+                    if (running || root.shown || !root.frame)
+                        return;
+                    root.snapping = true;
+                    root.loaded = "";
+                    root.snapping = false;
+                    if (root.pendingId !== "")
+                        root.open(root.pendingId, root.pendingY);
                 }
             }
         }
@@ -154,6 +210,7 @@ Item {
         }
 
         Behavior on width {
+            enabled: !root.frame || root.shown
             NumberAnimation {
                 duration: Theme.spatialDuration
                 easing.type: Theme.spatialType
@@ -162,6 +219,7 @@ Item {
         }
 
         Behavior on height {
+            enabled: !root.frame || root.shown
             NumberAnimation {
                 duration: Theme.spatialDuration
                 easing.type: Theme.spatialType

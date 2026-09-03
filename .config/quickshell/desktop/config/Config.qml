@@ -98,6 +98,7 @@ Singleton {
             property JsonObject bar: JsonObject {
                 property int width: 44
                 property int pinThreshold: 20
+                property bool persistent: false   // never hide the bar
                 property bool showResources: true
                 property string position: "left"   // left | right | top
                 // order of bar entries; unknown ids are skipped

@@ -130,7 +130,7 @@ PanelWindow {
             if (hit && Config.popouts.showOnHover && !popouts.shortcutActive)
                 popouts.open(hit.id, hit.y);
             else if (!hit && !popouts.shortcutActive)
-                popouts.close();
+                popouts.closeSoon();
         } else if (!popouts.contains(x, y) && !popouts.shortcutActive) {
             popouts.close();
         }

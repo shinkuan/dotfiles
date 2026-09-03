@@ -51,15 +51,17 @@ Item {
 
     Behavior on x {
         NumberAnimation {
-            duration: Config.animDuration
-            easing.type: Easing.OutCubic
+            duration: Theme.spatialDuration
+            easing.type: Theme.spatialType
+            easing.bezierCurve: Theme.spatialCurve
         }
     }
 
     Behavior on y {
         NumberAnimation {
-            duration: Config.animDuration
-            easing.type: Easing.OutCubic
+            duration: Theme.spatialDuration
+            easing.type: Theme.spatialType
+            easing.bezierCurve: Theme.spatialCurve
         }
     }
 
