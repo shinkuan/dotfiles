@@ -3,7 +3,7 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-// One grid cell: a flat miniature of the monitor. Click to go there; while a
+// One grid cell: a translucent miniature of the monitor. Click to go there; while a
 // window is dragged it is a drop target. The windows themselves are drawn
 // over the whole grid by the overview.
 Rectangle {
@@ -19,7 +19,7 @@ Rectangle {
     width: overview.cellW
     height: overview.cellH
     radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
-    color: dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow
+    color: Colours.alpha(dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow, overview.translucency)
     border.width: current || selected || dropTarget ? (Theme.outlined ? 1 : 2) : 1
     border.color: dropTarget || current ? Theme.accent : selected ? Colours.secondary : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
 

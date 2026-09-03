@@ -153,9 +153,18 @@ hl.window_rule({
 -- Desktop shell surfaces (namespaces are set in the shell's QML).
 hl.layer_rule({
     name         = "layerrule-desktop-shell",
-    match        = { namespace = "^(desktop-shell|desktop-launcher|desktop-polkit|desktop-overview)$" },
+    match        = { namespace = "^(desktop-shell|desktop-launcher|desktop-polkit)$" },
     blur         = true,
     ignore_alpha = 0.5,
+})
+
+-- the overview is a translucent card over the desktop; blur everything it paints
+hl.layer_rule({
+    name         = "layerrule-desktop-overview",
+    match        = { namespace = "desktop-overview" },
+    blur         = true,
+    ignore_alpha = 0,
+    animation    = "fadeLayers",
 })
 
 hl.layer_rule({
