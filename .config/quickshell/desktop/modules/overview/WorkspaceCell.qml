@@ -13,15 +13,15 @@ Rectangle {
     required property int cy
     required property var overview   // OverviewWindow
     readonly property bool current: overview.currentCell && overview.currentCell.activity === Overview.activity && overview.currentCell.x === cx && overview.currentCell.y === cy
-    readonly property bool selected: Overview.selX === cx && Overview.selY === cy
     readonly property bool dropTarget: overview.dropCell ? (overview.dropCell.x === cx && overview.dropCell.y === cy) : false
 
     width: overview.cellW
     height: overview.cellH
     radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
     color: Colours.alpha(dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow, overview.translucency)
-    border.width: current || selected || dropTarget ? (Theme.outlined ? 1 : 2) : 1
-    border.color: dropTarget || current ? Theme.accent : selected ? Colours.secondary : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
+    // the selection frame is drawn by the overview and glides between cells
+    border.width: current || dropTarget ? (Theme.outlined ? 1 : 2) : 1
+    border.color: dropTarget || current ? Theme.accent : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
 
     Behavior on color {
         ColorAnimation {

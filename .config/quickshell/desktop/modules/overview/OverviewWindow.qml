@@ -7,10 +7,11 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-// Full-screen transparent layer on the focused monitor; a translucent card
-// (blurred by the compositor) holds one activity's cell grid with live
-// window previews drawn over it. Keyboard: arrows select, Enter/Space go,
-// Tab / letters change activity (also mid-drag), Esc closes.
+// Full-screen translucent layer on the focused monitor (the compositor blurs
+// the desktop behind it) showing one activity's cell grid with live window
+// previews drawn over it and a selection frame that glides between cells.
+// Keyboard: arrows select, Enter/Space go, Tab / letters change activity
+// (also mid-drag), Esc closes.
 PanelWindow {
     id: root
 
@@ -22,12 +23,11 @@ PanelWindow {
     readonly property real logicalH: root.height > 0 ? root.height : (monitor ? monitor.height / monitor.scale : 1080)
     readonly property int gap: 10
     readonly property int margin: 48
-    readonly property int cardPad: 16
-    readonly property real translucency: 0.55   // card and cells; the layer rule blurs behind them
+    readonly property real translucency: 0.55   // layer and cells; the layer rule blurs behind them
     readonly property int headerH: 64
     readonly property real cellW: {
-        const byWidth = (root.width - (margin + cardPad) * 2 - gap * (KGrid.columns - 1)) / KGrid.columns;
-        const byHeight = ((root.height - (margin + cardPad) * 2 - headerH - gap * (KGrid.rows - 1)) / KGrid.rows) * logicalW / logicalH;
+        const byWidth = (root.width - margin * 2 - gap * (KGrid.columns - 1)) / KGrid.columns;
+        const byHeight = ((root.height - margin * 2 - headerH - gap * (KGrid.rows - 1)) / KGrid.rows) * logicalW / logicalH;
         return Math.floor(Math.min(byWidth, byHeight, 460));
     }
     readonly property real cellH: Math.round(cellW * logicalH / logicalW)
@@ -47,7 +47,7 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-    color: "transparent"
+    color: Colours.alpha(Colours.surface, translucency)
 
     anchors {
         top: true
@@ -152,25 +152,7 @@ PanelWindow {
 
         anchors.fill: parent
 
-        Rectangle {
-            id: card
-
-            anchors.centerIn: parent
-            width: column.implicitWidth + root.cardPad * 2
-            height: column.implicitHeight + root.cardPad * 2
-            radius: Theme.radius + root.cardPad
-            color: Colours.alpha(Colours.surface, root.translucency)
-            border.width: 1
-            border.color: Colours.alpha(Colours.outlineVariant, 0.5)
-
-            // a click on the card's own padding stays on the card
-            MouseArea {
-                anchors.fill: parent
-            }
-
         ColumnLayout {
-            id: column
-
             anchors.centerIn: parent
             spacing: root.gap
 
@@ -240,6 +222,35 @@ PanelWindow {
                     }
                 }
 
+                // keyboard / hover selection: one frame that glides between cells
+                Rectangle {
+                    x: (Overview.selX - 1) * (root.cellW + root.gap)
+                    y: (Overview.selY - 1) * (root.cellH + root.gap)
+                    z: 2000
+                    width: root.cellW
+                    height: root.cellH
+                    radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
+                    color: "transparent"
+                    border.width: 2
+                    border.color: Colours.secondary
+
+                    Behavior on x {
+                        enabled: root.active
+                        NumberAnimation {
+                            duration: Config.animDuration
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
+                    Behavior on y {
+                        enabled: root.active
+                        NumberAnimation {
+                            duration: Config.animDuration
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+
                 // previews over the whole grid, so a drag can cross cells
                 Item {
                     anchors.fill: grid
@@ -255,7 +266,6 @@ PanelWindow {
                     }
                 }
             }
-        }
         }
     }
 
