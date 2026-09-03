@@ -5,7 +5,7 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-// Top-centre panel laid out as tiles: clock and notifications down the left,
+// Top-centre panel laid out as tiles: clock over notifications down the left,
 // calendar over now-playing and usage in the middle, agenda over tasks on the
 // right. Frame style grows it out of the top band (a shader slot); other
 // styles slide a Surface down.
@@ -24,6 +24,7 @@ Item {
     readonly property vector4d blobRect: frame && (shown || sliding) ? Qt.vector4d(x, y - 40, width, height + 40) : Qt.vector4d(0, 0, 0, 0)
 
     readonly property int infoWidth: 250
+    readonly property int clockRow: 124
     readonly property int calendarWidth: 372
     readonly property int tallRow: 324
     readonly property int shortRow: 112
@@ -123,14 +124,27 @@ Item {
                 }
             }
 
-            InfoTile {
+            ColumnLayout {
                 Layout.row: 0
                 Layout.column: 0
                 Layout.rowSpan: 3
                 Layout.preferredWidth: root.infoWidth
+                Layout.maximumWidth: root.infoWidth
+                Layout.fillWidth: false   // a nested layout fills by default and would starve the right column
                 Layout.fillHeight: true
-                outerTL: true
-                outerBL: true
+                spacing: root.gap
+
+                ClockTile {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: root.clockRow
+                    outerTL: true
+                }
+
+                NotifsTile {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    outerBL: true
+                }
             }
 
             DashTile {

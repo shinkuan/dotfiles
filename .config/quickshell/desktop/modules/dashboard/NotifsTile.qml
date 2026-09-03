@@ -1,47 +1,21 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell
 import Quickshell.Widgets
 import "../../config"
 import "../../services"
 import "../../components"
 
-// Clock, date, the latest notifications and the do-not-disturb switch.
+// The latest notifications and the do-not-disturb switch.
 DashTile {
     id: root
 
     readonly property int shown: 4
 
-    SystemClock {
-        id: clock
-
-        precision: SystemClock.Minutes
-    }
-
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        StyledText {
-            text: Qt.formatDateTime(clock.date, "HH:mm")
-            font.pixelSize: 52
-            font.weight: Font.DemiBold
-            font.letterSpacing: -1.5
-            lineHeight: 0.9
-            lineHeightMode: Text.ProportionalHeight
-        }
-
-        StyledText {
-            Layout.topMargin: 8
-            Layout.fillWidth: true
-            text: Qt.formatDate(clock.date, "dddd, d MMMM")
-            color: Colours.surfaceVariantText
-            font.pixelSize: Config.fontSize + 1
-            elide: Text.ElideRight
-        }
-
         RowLayout {
-            Layout.topMargin: 18
             Layout.fillWidth: true
             spacing: 8
 

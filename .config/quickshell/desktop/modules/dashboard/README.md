@@ -4,10 +4,13 @@ The top-centre panel. `Dashboard.qml` owns the reveal (hover hotspot, `SUPER+G`,
 IPC `dashboard`) and lays the tiles out on a 3 × 3 `GridLayout`:
 
 ```
-InfoTile   | calendar (CalendarView in a DashTile) | EventsTile
-InfoTile   | MediaTile                             | TodoTile
-InfoTile   | UsageTile                             | TodoTile
+ClockTile  | calendar (CalendarView in a DashTile) | EventsTile
+NotifsTile | MediaTile                             | TodoTile
+NotifsTile | UsageTile                             | TodoTile
 ```
+
+The left column is one `ColumnLayout` spanning the three rows (`clockRow` for
+the clock, the rest for notifications).
 
 Column widths and row heights are the `infoWidth` / `calendarWidth` /
 `tallRow` / `shortRow` constants on `Dashboard.qml`; the panel height follows
@@ -27,4 +30,4 @@ from them and the width from `Config.dashboard.width`.
   expensive should gate it on `Dashboard.shown` the way `UsageTile.active`
   bumps `Resources.watchers`.
 - Section headings are `SectionLabel`; small counts are the accent pills in
-  `InfoTile` / `TodoTile`. `Ring` draws the arc gauges.
+  `NotifsTile` / `TodoTile`. `Ring` draws the arc gauges.

@@ -1,18 +1,17 @@
 import QtQuick
-import Quickshell.Widgets
 import "../../config"
 import "../../services"
 import "../../components"
 
-// One grid cell: a scaled miniature of the monitor on a flat opaque fill.
-// Clicks and drags are handled by the overview's grid-level MouseArea.
-ClippingRectangle {
+// One grid cell: a flat miniature of the monitor. Click to go there; while a
+// window is dragged it is a drop target. The windows themselves are drawn
+// over the whole grid by the overview.
+Rectangle {
     id: root
 
     required property int cx
     required property int cy
     required property var overview   // OverviewWindow
-    required property list<var> windows
     readonly property bool current: overview.currentCell && overview.currentCell.activity === Overview.activity && overview.currentCell.x === cx && overview.currentCell.y === cy
     readonly property bool selected: Overview.selX === cx && Overview.selY === cy
     readonly property bool dropTarget: overview.dropCell ? (overview.dropCell.x === cx && overview.dropCell.y === cy) : false
@@ -20,18 +19,13 @@ ClippingRectangle {
     width: overview.cellW
     height: overview.cellH
     radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
-    color: Colours.surfaceContainerLow
+    color: dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow
     border.width: current || selected || dropTarget ? (Theme.outlined ? 1 : 2) : 1
     border.color: dropTarget || current ? Theme.accent : selected ? Colours.secondary : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
 
-    Rectangle {
-        anchors.fill: parent
-        color: root.dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : root.current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow
-
-        Behavior on color {
-            ColorAnimation {
-                duration: Config.animDurationFast
-            }
+    Behavior on color {
+        ColorAnimation {
+            duration: Config.animDurationFast
         }
     }
 
@@ -46,6 +40,25 @@ ClippingRectangle {
         }
     }
 
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
+            if (root.overview.dragWin)
+                return;
+            KGrid.switchTo(Overview.activity, root.cx, root.cy);
+            Overview.hide();
+        }
+    }
+
+    DropArea {
+        anchors.fill: parent
+        onEntered: root.overview.dropCell = { x: root.cx, y: root.cy }
+        onExited: {
+            if (root.dropTarget)
+                root.overview.dropCell = null;
+        }
+    }
+
     StyledText {
         anchors.left: parent.left
         anchors.top: parent.top
@@ -54,16 +67,5 @@ ClippingRectangle {
         color: root.current ? Theme.accent : Colours.alpha(Colours.surfaceText, 0.75)
         font.pixelSize: Config.fontSize - 2
         font.family: Config.fontFamilyMono
-    }
-
-    Repeater {
-        model: root.windows
-
-        WindowPreview {
-            required property var modelData
-
-            win: modelData
-            overview: root.overview
-        }
     }
 }
