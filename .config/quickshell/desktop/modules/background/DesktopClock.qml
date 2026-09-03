@@ -1,12 +1,15 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Layouts
 import Quickshell
 import "../../config"
 import "../../services"
 import "../../components"
 
-// Wallpaper clock: condensed time with a short accent rule and a spaced
-// mono date underneath; a soft blurred shadow keeps it legible on light art.
+// Wallpaper clock in the caelestia manner: hours and minutes in two palette
+// tones around a lifted colon, a short vertical rule, then month / day /
+// weekday stacked beside it. `desktopClock.size` is the time's pixel size;
+// everything else scales with it. A soft shadow keeps it legible on light art.
 Item {
     id: root
 
@@ -15,9 +18,10 @@ Item {
     readonly property bool alignCenter: position.endsWith("center")
     readonly property int margin: Config.desktopClock.margin
     readonly property int size: Config.desktopClock.size
+    readonly property real k: size / 112
 
-    width: face.width
-    height: face.height
+    width: face.implicitWidth
+    height: face.implicitHeight
     x: alignRight ? parent.width - width - margin : alignCenter ? (parent.width - width) / 2 : margin
     y: position.startsWith("top") ? margin : parent.height - height - margin
 
@@ -27,57 +31,84 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    Item {
+    RowLayout {
         id: face
 
-        width: Math.max(time.implicitWidth, dateRow.width)
-        height: time.implicitHeight + 6 + dateRow.height
+        spacing: Math.round(14 * root.k)
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
-            shadowBlur: 1.0
-            shadowOpacity: 0.55
+            shadowBlur: 0.46
+            shadowOpacity: 0.62
             shadowColor: Colours.scrim
-            shadowVerticalOffset: 3
         }
 
-        Text {
-            id: time
+        RowLayout {
+            spacing: Math.round(4 * root.k)
 
-            x: root.alignRight ? parent.width - implicitWidth : root.alignCenter ? (parent.width - implicitWidth) / 2 : 0
-            text: Qt.formatDateTime(clock.date, "HH:mm")
-            color: Colours.surfaceText
-            font.family: "IBM Plex Sans Condensed"
-            font.pixelSize: root.size
-            font.weight: Font.Medium
-            font.letterSpacing: -root.size * 0.03
-            font.features: ({ "tnum": 1 })
-            lineHeight: 0.82
-            lineHeightMode: Text.ProportionalHeight
-        }
-
-        Row {
-            id: dateRow
-
-            x: root.alignRight ? parent.width - width : root.alignCenter ? (parent.width - width) / 2 : 0
-            y: time.implicitHeight + 6
-            spacing: 12
-
-            Rectangle {
-                width: root.size * 0.32
-                height: 2
-                radius: 1
-                anchors.verticalCenter: parent.verticalCenter
-                color: Theme.accent
+            Text {
+                text: Qt.formatDateTime(clock.date, "HH")
+                color: Colours.primary
+                font.family: "Rubik"
+                font.pixelSize: root.size
+                font.weight: Font.Bold
             }
 
             Text {
-                text: Qt.formatDateTime(clock.date, "ddd d MMM").toUpperCase()
-                color: Colours.surfaceText
-                font.family: Theme.fontMono
-                font.pixelSize: Math.round(root.size * 0.16)
+                Layout.topMargin: -Math.round(root.size * 0.16)
+                text: ":"
+                color: Colours.tertiary
+                opacity: 0.8
+                font.family: "Rubik"
+                font.pixelSize: root.size
+            }
+
+            Text {
+                text: Qt.formatDateTime(clock.date, "mm")
+                color: Colours.secondary
+                font.family: "Rubik"
+                font.pixelSize: root.size
+                font.weight: Font.Bold
+            }
+        }
+
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.topMargin: Math.round(14 * root.k)
+            Layout.bottomMargin: Math.round(14 * root.k)
+            Layout.preferredWidth: Math.max(2, Math.round(4 * root.k))
+            radius: width / 2
+            color: Colours.primary
+            opacity: 0.8
+        }
+
+        ColumnLayout {
+            spacing: 0
+
+            Text {
+                text: Qt.formatDateTime(clock.date, "MMMM").toUpperCase()
+                color: Colours.secondary
+                font.family: "Rubik"
+                font.pixelSize: Math.round(root.size * 0.19)
+                font.weight: Font.Bold
+                font.letterSpacing: 4 * root.k
+            }
+
+            Text {
+                text: Qt.formatDateTime(clock.date, "dd")
+                color: Colours.primary
+                font.family: "Rubik"
+                font.pixelSize: Math.round(root.size / 3)
                 font.weight: Font.Medium
-                font.letterSpacing: root.size * 0.03
+                font.letterSpacing: 2 * root.k
+            }
+
+            Text {
+                text: Qt.formatDateTime(clock.date, "dddd")
+                color: Colours.secondary
+                font.family: "Rubik"
+                font.pixelSize: Math.round(root.size * 0.19)
+                font.letterSpacing: 2 * root.k
             }
         }
     }
