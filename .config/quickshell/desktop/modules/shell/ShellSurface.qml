@@ -8,6 +8,7 @@ import "../bar"
 import "../popouts"
 import "../osd"
 import "../notifications"
+import "../dashboard"
 
 // Full-screen top layer that never reserves space. Input only lands on the
 // left edge band, the bar and whatever is currently expanded; everything
@@ -40,7 +41,7 @@ PanelWindow {
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     // keyboard-opened popouts own the keyboard (Esc closes them); clicked or
     // hovered ones only take it on demand for their text fields
-    WlrLayershell.keyboardFocus: popouts.keyboardOpened ? WlrKeyboardFocus.Exclusive : popouts.shortcutActive || (popouts.needsKeyboard && popouts.shown) || (notifPopups.visible && notifPopups.needsKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: popouts.keyboardOpened || dashboard.shortcutActive ? WlrKeyboardFocus.Exclusive : popouts.shortcutActive || (popouts.needsKeyboard && popouts.shown) || (notifPopups.visible && notifPopups.needsKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true
@@ -57,6 +58,7 @@ PanelWindow {
         if (hasFullscreen) {
             barHovered = false;
             popouts.close();
+            dashboard.close();
         }
     }
 
@@ -104,7 +106,26 @@ PanelWindow {
             height: notifPopups.visible ? notifPopups.height : 0
             intersection: Intersection.Combine
         }
+
+        // top-centre hotspot that reveals the dashboard, and the panel itself
+        Region {
+            x: Math.round((root.width - Config.dashboard.hotspot) / 2)
+            y: 0
+            width: root.barTop || !Config.dashboard.showOnHover ? 0 : Config.dashboard.hotspot
+            height: root.dashHotY
+            intersection: Intersection.Combine
+        }
+
+        Region {
+            x: dashboard.x
+            y: Math.max(0, dashboard.y)
+            width: dashboard.visible ? dashboard.width : 0
+            height: dashboard.visible ? dashboard.height + dashboard.y - y : 0
+            intersection: Intersection.Combine
+        }
     }
+
+    readonly property real dashHotY: Math.max(Config.borderThickness, 4)
 
     // press / delta are measured from the bar's own edge inward
     function handleDrag(press: real, delta: real): void {
@@ -125,6 +146,11 @@ PanelWindow {
         leaveGrace.stop();
         const inBar = root.barTop ? y <= root.interactiveTop : root.barRight ? x >= root.width - root.interactiveLeft : x <= root.interactiveLeft;
         root.barHovered = inBar;
+        const inHot = !root.barTop && Config.dashboard.showOnHover && y <= root.dashHotY && Math.abs(x - root.width / 2) <= Config.dashboard.hotspot / 2;
+        if (inHot)
+            dashboard.open();
+        else if (!dashboard.contains(x, y))
+            dashboard.closeSoon();
         if (inBar) {
             const hit = bar.popoutAt(root.barTop ? x : y);
             if (hit && Config.popouts.showOnHover && !popouts.shortcutActive)
@@ -164,6 +190,7 @@ PanelWindow {
             root.barHovered = false;
             if (!popouts.shortcutActive)
                 popouts.close();
+            dashboard.closeSoon();
         }
     }
 
@@ -187,6 +214,7 @@ PanelWindow {
         rounding: Config.borderRounding * (root.frameThickness / Math.max(1, Config.borderThickness))
         p0: popouts.blobRect
         p1: osd.blobRect
+        p2: dashboard.blobRect
         radii: Qt.vector4d(Theme.radius, osd.height / 2, Theme.radius, Theme.radius)
     }
 
@@ -205,6 +233,12 @@ PanelWindow {
 
         monitor: root.monitor
         barEdge: bar.exposedWidth
+    }
+
+    Dashboard {
+        id: dashboard
+
+        monitor: root.monitor
     }
 
     Osd {
@@ -228,8 +262,11 @@ PanelWindow {
     // shortcut-opened popouts stay until Esc or a click outside the shell
     Shortcut {
         sequences: ["Escape"]
-        enabled: popouts.shortcutActive
-        onActivated: popouts.close()
+        enabled: popouts.shortcutActive || dashboard.shortcutActive
+        onActivated: {
+            popouts.close();
+            dashboard.close();
+        }
     }
 
     // the grab is armed a moment after the layer takes keyboard focus;
@@ -238,7 +275,7 @@ PanelWindow {
         id: grabDelay
 
         interval: 150
-        onTriggered: grab.active = popouts.shortcutActive
+        onTriggered: grab.active = popouts.shortcutActive || dashboard.shortcutActive
     }
 
     Connections {
@@ -248,7 +285,18 @@ PanelWindow {
             if (popouts.shortcutActive)
                 grabDelay.restart();
             else
-                grab.active = false;
+                grab.active = dashboard.shortcutActive;
+        }
+    }
+
+    Connections {
+        target: dashboard
+
+        function onShortcutActiveChanged(): void {
+            if (dashboard.shortcutActive)
+                grabDelay.restart();
+            else
+                grab.active = popouts.shortcutActive;
         }
     }
 
@@ -259,6 +307,8 @@ PanelWindow {
         onCleared: {
             if (popouts.shortcutActive)
                 popouts.close();
+            if (dashboard.shortcutActive)
+                dashboard.close();
         }
     }
 
@@ -277,6 +327,18 @@ PanelWindow {
 
         function onClosePopouts(): void {
             popouts.close();
+        }
+
+        function onDashboard(action: string): void {
+            if (!(root.monitor?.focused) || root.hasFullscreen)
+                return;
+            if (action === "open") {
+                dashboard.open();
+                dashboard.shortcutActive = true;
+            } else if (action === "close")
+                dashboard.close();
+            else
+                dashboard.toggle();
         }
     }
 }

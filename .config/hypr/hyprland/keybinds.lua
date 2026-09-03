@@ -68,6 +68,7 @@ bind("CTRL + SUPER + SHIFT + E",     function() KGrid.switch_activity("E", true)
     
 -- Overview
 bind("SUPER + Tab", dsp.global("desktop:overview"))
+bind("SUPER + G",   dsp.global("desktop:dashboard"))
 -- quickvoice (SUPER + S) is machine-specific — lives in local.lua
 
 -- Workspace movement within the current activity grid

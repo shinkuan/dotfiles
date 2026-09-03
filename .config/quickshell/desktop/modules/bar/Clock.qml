@@ -31,13 +31,6 @@ BarItem {
     }
 
     StyledText {
-        visible: root.horizontal
-        text: Qt.formatDateTime(clock.date, "ddd d/M")
-        color: root.filled ? root.fgDim : Colours.surfaceVariantText
-        font.pixelSize: Config.fontSize - 2
-    }
-
-    StyledText {
         visible: !root.horizontal
         text: Qt.formatDateTime(clock.date, "HH")
         font.family: root.face
@@ -52,20 +45,5 @@ BarItem {
         font.family: root.face
         font.pixelSize: Config.fontSize + 2
         color: Theme.signal ? root.fgAccent : root.fg
-    }
-
-    StyledText {
-        visible: !root.horizontal
-        topPadding: 4
-        text: Qt.formatDateTime(clock.date, "ddd")
-        color: root.filled ? root.fgDim : Colours.surfaceVariantText
-        font.pixelSize: Config.fontSize - 3
-    }
-
-    StyledText {
-        visible: !root.horizontal
-        text: Qt.formatDateTime(clock.date, "d/M")
-        color: root.filled ? root.fgDim : Colours.surfaceVariantText
-        font.pixelSize: Config.fontSize - 3
     }
 }

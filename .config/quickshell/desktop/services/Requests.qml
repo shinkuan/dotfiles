@@ -14,6 +14,7 @@ Singleton {
     signal popout(string id)
     signal closePopouts()
     signal session()
+    signal dashboard(string action)
 
     GlobalShortcut {
         appid: "desktop"
@@ -76,9 +77,32 @@ Singleton {
 
     GlobalShortcut {
         appid: "desktop"
+        name: "dashboard"
+        description: "Toggle the top-centre dashboard"
+        onPressed: root.dashboard("toggle")
+    }
+
+    GlobalShortcut {
+        appid: "desktop"
         name: "overview"
         description: "Toggle the workspace overview"
         onPressed: Overview.toggle()
+    }
+
+    IpcHandler {
+        target: "dashboard"
+
+        function toggle(): void {
+            root.dashboard("toggle");
+        }
+
+        function open(): void {
+            root.dashboard("open");
+        }
+
+        function close(): void {
+            root.dashboard("close");
+        }
     }
 
     IpcHandler {

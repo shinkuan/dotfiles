@@ -6,20 +6,19 @@
         "style": "frame"
     },
     "bar": {
+        "autoHide": true,
         "entries": [
             "kgrid",
             "spacer",
-            "media",
-            "resources",
             "tray",
             "status",
-            "notifications",
             "clock",
             "power"
         ],
         "pinThreshold": 20,
         "position": "left",
         "showResources": true,
+        "trayCompact": true,
         "width": 44
     },
     "border": {
@@ -30,9 +29,20 @@
         "external": true,
         "step": 5
     },
+    "calendar": {
+        "dir": "",
+        "refreshMinutes": 10,
+        "upcomingDays": 7
+    },
+    "dashboard": {
+        "hotspot": 480,
+        "showOnHover": true,
+        "width": 1040
+    },
     "desktopClock": {
         "margin": 48,
-        "position": "bottom-right"
+        "position": "bottom-right",
+        "size": 112
     },
     "idle": {
         "inhibitWhenAudio": true,
