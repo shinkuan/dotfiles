@@ -24,10 +24,12 @@ Item {
     height: Math.max(8, Math.min(Math.round(win.h * scale), parent.height))
     opacity: lifted ? 0.25 : 1
 
+    // opaque backing: a translucent window's clear areas read as a flat
+    // colour, never as whatever sits under the preview
     Rectangle {
         anchors.fill: parent
         radius: Theme.capsule ? 8 : Theme.outlined ? 0 : 4
-        color: "transparent"
+        color: Colours.surfaceContainerLowest
         border.width: 1
         border.color: hover.hovered ? Theme.accent : Colours.alpha(Colours.outline, 0.6)
         clip: true

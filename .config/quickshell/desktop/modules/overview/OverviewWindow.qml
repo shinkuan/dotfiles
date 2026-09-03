@@ -279,7 +279,7 @@ PanelWindow {
                     Rectangle {
                         anchors.fill: parent
                         radius: Theme.capsule ? 8 : Theme.outlined ? 0 : 4
-                        color: Colours.surfaceContainerHighest
+                        color: Colours.surfaceContainerLowest   // same opaque backing as the cell previews
                         border.width: 2
                         border.color: Theme.accent
                         clip: true

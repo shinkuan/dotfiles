@@ -4,9 +4,8 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-// One grid cell: a scaled miniature of the monitor (wallpaper included, so
-// translucent windows composite the way they do on screen). Clicks and
-// drags are handled by the overview's grid-level MouseArea.
+// One grid cell: a scaled miniature of the monitor on a flat opaque fill.
+// Clicks and drags are handled by the overview's grid-level MouseArea.
 ClippingRectangle {
     id: root
 
@@ -25,19 +24,9 @@ ClippingRectangle {
     border.width: current || selected || dropTarget ? (Theme.outlined ? 1 : 2) : 1
     border.color: dropTarget || current ? Theme.accent : selected ? Colours.secondary : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
 
-    Image {
-        anchors.fill: parent
-        source: Wallpaper.path ? "file://" + Wallpaper.path : ""
-        fillMode: Image.PreserveAspectCrop
-        sourceSize.width: root.width
-        sourceSize.height: root.height
-        asynchronous: true
-        visible: status === Image.Ready
-    }
-
     Rectangle {
         anchors.fill: parent
-        color: root.dropTarget ? Colours.alpha(Theme.accent, 0.28) : root.current ? Colours.alpha(Theme.accent, 0.16) : hover.hovered ? Colours.alpha(Colours.surface, 0.3) : Colours.alpha(Colours.surface, 0.5)
+        color: root.dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : root.current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow
 
         Behavior on color {
             ColorAnimation {
