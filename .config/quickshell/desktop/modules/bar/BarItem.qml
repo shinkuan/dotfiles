@@ -18,7 +18,21 @@ Rectangle {
             p = p.parent;
         return p;
     }
-    readonly property bool active: popout !== "" && bar !== null && bar.activePopout === popout
+    // several entries may share a popout id (audio: speaker + mic); only the
+    // one that opened it, or the first one for IPC/keyboard opens, is active
+    readonly property bool primary: {
+        const e = ShellState.activeEntry;
+        if (e === root)
+            return true;
+        if (e && e.popout === popout)
+            return false;
+        if (!bar)
+            return true;
+        const c = root.mapToItem(bar, 0, 0);
+        const mine = horizontal ? c.x + width / 2 : c.y + height / 2;
+        return Math.abs(bar.anchorFor(popout) - mine) < 1;
+    }
+    readonly property bool active: popout !== "" && bar !== null && bar.activePopout === popout && primary
     readonly property bool horizontal: bar?.horizontal ?? false
     // solid directions invert the entry's foreground while it is active
     readonly property bool filled: active && Theme.barItemFilled
@@ -76,6 +90,11 @@ Rectangle {
 
     HoverHandler {
         id: hover
+
+        onHoveredChanged: {
+            if (hovered && root.popout !== "")
+                ShellState.activeEntry = root;
+        }
     }
 
     MouseArea {
@@ -99,8 +118,10 @@ Rectangle {
         onClicked: m => {
             root.clicked(m);
             // left click keeps the popout open until Esc / a click elsewhere
-            if (m.button === Qt.LeftButton && root.popout !== "" && root.bar)
+            if (m.button === Qt.LeftButton && root.popout !== "" && root.bar) {
+                ShellState.activeEntry = root;
                 root.bar.itemClicked(root.popout, root.horizontal ? root.mapToItem(root.bar, root.width / 2, 0).x : root.mapToItem(root.bar, 0, root.height / 2).y);
+            }
         }
     }
 }

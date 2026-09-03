@@ -15,6 +15,7 @@ Singleton {
     readonly property bool desktopClock: adapter.desktopClock ?? true
     property bool ready: false
     property var queued: ({})
+    property Item activeEntry: null   // bar entry that last opened a popout (not persisted)
 
     function set(key: string, value): void {
         adapter[key] = value;

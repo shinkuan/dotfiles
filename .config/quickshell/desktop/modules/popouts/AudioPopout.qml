@@ -8,6 +8,9 @@ import "../../components"
 ColumnLayout {
     id: root
 
+    property bool outputOpen: false
+    property bool inputOpen: false
+
     width: Config.popouts.width
     spacing: 6
 
@@ -57,6 +60,101 @@ ColumnLayout {
         }
     }
 
+    // current device row; the full list folds out below it
+    component DevicePicker: ColumnLayout {
+        id: picker
+
+        property list<PwNode> nodes: []
+        property PwNode current: null
+        property string fallbackIcon: ""
+        property string emptyText: ""
+        property bool open: false
+
+        signal picked(PwNode node)
+
+        Layout.fillWidth: true
+        spacing: 2
+
+        function scrollToCurrent(): void {
+            for (let i = 0; i < nodes.length; i++)
+                if (nodes[i] === current)
+                    list.positionViewAtIndex(i, ListView.Contain);
+        }
+
+        onOpenChanged: {
+            if (open)
+                scrollToCurrent();
+        }
+
+        DisclosureRow {
+            icon: picker.current ? Audio.iconFor(picker.current) : picker.fallbackIcon
+            title: picker.current ? Audio.displayName(picker.current) : picker.emptyText
+            detail: picker.nodes.length > 1 ? `${picker.nodes.length}` : ""
+            open: picker.open
+            disabled: picker.nodes.length < 2
+            onClicked: picker.open = !picker.open
+        }
+
+        Collapsible {
+            open: picker.open
+
+            ListView {
+                id: list
+
+                Layout.fillWidth: true
+                implicitHeight: Math.min(count, 6) * 30
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                model: picker.nodes
+                onCountChanged: {
+                    if (picker.open)
+                        picker.scrollToCurrent();
+                }
+
+                delegate: Clickable {
+                    id: row
+
+                    required property PwNode modelData
+                    readonly property bool active: modelData === picker.current
+
+                    width: ListView.view.width
+                    height: 30
+                    radius: Theme.radiusItem
+                    baseColor: active ? Theme.activeFill : "transparent"
+                    onClicked: picker.picked(modelData)
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 10
+                        anchors.rightMargin: 10
+                        spacing: 10
+
+                        MaterialIcon {
+                            text: Audio.iconFor(row.modelData)
+                            font.pixelSize: Config.iconSize - 4
+                            color: row.active ? Theme.activeIcon : Colours.surfaceVariantText
+                        }
+
+                        StyledText {
+                            Layout.fillWidth: true
+                            text: Audio.displayName(row.modelData)
+                            font.pixelSize: Config.fontSize - 1
+                            font.weight: row.active ? Font.DemiBold : Font.Normal
+                            color: row.active ? Theme.activeText : Colours.surfaceText
+                        }
+
+                        MaterialIcon {
+                            visible: row.active
+                            text: "check"
+                            font.pixelSize: Config.iconSize - 4
+                            color: Theme.activeIcon
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     SectionLabel {
         text: "Output"
     }
@@ -66,26 +164,16 @@ ColumnLayout {
         icon: Audio.muted ? "volume_off" : "volume_up"
     }
 
-    Repeater {
-        model: Audio.sinks
-
-        ListItem {
-            id: sinkItem
-
-            required property PwNode modelData
-
-            Layout.fillWidth: true
-            icon: Audio.iconFor(modelData)
-            title: Audio.displayName(modelData)
-            active: modelData === Audio.sink
-            onClicked: Audio.setSink(modelData)
-
-            MaterialIcon {
-                visible: sinkItem.active
-                text: "check"
-                color: Theme.accent
-                font.pixelSize: Config.iconSize - 4
-            }
+    DevicePicker {
+        nodes: Audio.sinks
+        current: Audio.sink
+        fallbackIcon: "speaker"
+        emptyText: "No output"
+        open: root.outputOpen
+        onOpenChanged: root.outputOpen = open
+        onPicked: node => {
+            Audio.setSink(node);
+            root.outputOpen = false;
         }
     }
 
@@ -99,26 +187,16 @@ ColumnLayout {
         icon: Audio.sourceMuted ? "mic_off" : "mic"
     }
 
-    Repeater {
-        model: Audio.sources
-
-        ListItem {
-            id: sourceItem
-
-            required property PwNode modelData
-
-            Layout.fillWidth: true
-            icon: Audio.iconFor(modelData)
-            title: Audio.displayName(modelData)
-            active: modelData === Audio.source
-            onClicked: Audio.setSource(modelData)
-
-            MaterialIcon {
-                visible: sourceItem.active
-                text: "check"
-                color: Theme.accent
-                font.pixelSize: Config.iconSize - 4
-            }
+    DevicePicker {
+        nodes: Audio.sources
+        current: Audio.source
+        fallbackIcon: "mic"
+        emptyText: "No input"
+        open: root.inputOpen
+        onOpenChanged: root.inputOpen = open
+        onPicked: node => {
+            Audio.setSource(node);
+            root.inputOpen = false;
         }
     }
 

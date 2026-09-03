@@ -7,6 +7,10 @@ import "../../components"
 ColumnLayout {
     id: root
 
+    readonly property var rootDisk: Resources.disks.find(d => d.mount === "/") ?? Resources.disks[0] ?? null
+    readonly property list<var> otherDisks: Resources.disks.filter(d => d.mount !== (rootDisk?.mount ?? ""))
+    property bool disksOpen: false
+
     width: Config.popouts.width
     spacing: 10
 
@@ -58,18 +62,71 @@ ColumnLayout {
     SectionLabel {
         visible: Resources.disks.length > 0
         text: "Storage"
+
+        // only "/" by default; the other mounts fold out
+        Clickable {
+            visible: root.otherDisks.length > 0
+            implicitWidth: moreRow.implicitWidth + 12
+            implicitHeight: 18
+            radius: 9
+            onClicked: root.disksOpen = !root.disksOpen
+
+            Row {
+                id: moreRow
+
+                anchors.centerIn: parent
+                spacing: 2
+
+                StyledText {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: root.disksOpen ? "less" : `+${root.otherDisks.length} more`
+                    color: Theme.labelColor
+                    font.family: Theme.fontLabel
+                    font.pixelSize: Theme.labelSize
+                    font.letterSpacing: Theme.labelSpacing
+                }
+
+                MaterialIcon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: "expand_more"
+                    font.pixelSize: Config.iconSize - 6
+                    color: Theme.labelColor
+                    rotation: root.disksOpen ? 180 : 0
+
+                    Behavior on rotation {
+                        NumberAnimation {
+                            duration: Config.animDuration
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    Repeater {
-        model: Resources.disks
+    Meter {
+        visible: root.rootDisk !== null
+        icon: "hard_drive"
+        label: root.rootDisk?.mount ?? ""
+        value: root.rootDisk ? `${Resources.fmtBytes(root.rootDisk.used, 0)} / ${Resources.fmtBytes(root.rootDisk.size, 0)}` : ""
+        ratio: root.rootDisk && root.rootDisk.size > 0 ? root.rootDisk.used / root.rootDisk.size : 0
+    }
 
-        Meter {
-            required property var modelData
+    Collapsible {
+        open: root.disksOpen
 
-            icon: "hard_drive"
-            label: modelData.mount
-            value: `${Resources.fmtBytes(modelData.used, 0)} / ${Resources.fmtBytes(modelData.size, 0)}`
-            ratio: modelData.size > 0 ? modelData.used / modelData.size : 0
+        Repeater {
+            model: root.otherDisks
+
+            Meter {
+                required property var modelData
+
+                spacing: 2
+                icon: "hard_drive"
+                label: modelData.mount
+                value: `${Resources.fmtBytes(modelData.used, 0)} / ${Resources.fmtBytes(modelData.size, 0)}`
+                ratio: modelData.size > 0 ? modelData.used / modelData.size : 0
+            }
         }
     }
 

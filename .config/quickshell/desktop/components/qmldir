@@ -9,3 +9,5 @@ SectionLabel 1.0 SectionLabel.qml
 Meter 1.0 Meter.qml
 Chip 1.0 Chip.qml
 Surface 1.0 Surface.qml
+Collapsible 1.0 Collapsible.qml
+DisclosureRow 1.0 DisclosureRow.qml
