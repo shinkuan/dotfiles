@@ -73,7 +73,7 @@ Singleton {
     readonly property bool barTop: Config.bar.position === "top"
     readonly property bool barRight: Config.bar.position === "right"
     readonly property int barWidth: Config.bar.width + (ledger ? -4 : (capsule || poster) ? 4 : 0)
-    readonly property bool barAlways: Config.bar.persistent    // never hides
+    readonly property bool barAlways: !Config.bar.autoHide    // never hides
     readonly property int barMargin: capsule ? 10 : 0           // detached from the screen edge
     readonly property int barSpan: barWidth + barMargin * 2
     readonly property int barRadius: capsule ? 24 : rim ? 22 : (ledger || signal || poster || frame) ? 0 : 25

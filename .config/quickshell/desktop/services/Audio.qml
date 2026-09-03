@@ -8,8 +8,13 @@ import Quickshell.Services.Pipewire
 Singleton {
     id: root
 
-    readonly property PwNode sink: Pipewire.defaultAudioSink
-    readonly property PwNode source: Pipewire.defaultAudioSource
+    // Quickshell loses the default node when the default changes while the
+    // old one disappears (e.g. a streaming sink going away); fall back to
+    // the name WirePlumber publishes in its metadata
+    property string defaultSinkName: ""
+    property string defaultSourceName: ""
+    readonly property PwNode sink: Pipewire.defaultAudioSink ?? sinks.find(n => n.name === defaultSinkName) ?? null
+    readonly property PwNode source: Pipewire.defaultAudioSource ?? sources.find(n => n.name === defaultSourceName) ?? null
     readonly property list<PwNode> sinks: Pipewire.nodes.values.filter(n => n.isSink && !n.isStream && (n.type & PwNodeType.Audio))
     readonly property list<PwNode> sources: Pipewire.nodes.values.filter(n => !n.isSink && !n.isStream && (n.type & PwNodeType.Audio))
     readonly property list<PwNode> streams: Pipewire.nodes.values.filter(n => n.type === PwNodeType.AudioOutStream)
@@ -23,6 +28,55 @@ Singleton {
 
     PwObjectTracker {
         objects: [...root.sinks, ...root.sources, ...root.streams, ...Pipewire.links.values]
+    }
+
+    function metadataName(text: string): string {
+        const m = text.match(/"name"\s*:\s*"([^"]+)"/);
+        return m ? m[1] : "";
+    }
+
+    Process {
+        id: metaSink
+
+        command: ["pw-metadata", "0", "default.audio.sink"]
+        stdout: StdioCollector {
+            onStreamFinished: root.defaultSinkName = root.metadataName(text)
+        }
+    }
+
+    Process {
+        id: metaSource
+
+        command: ["pw-metadata", "0", "default.audio.source"]
+        stdout: StdioCollector {
+            onStreamFinished: root.defaultSourceName = root.metadataName(text)
+        }
+    }
+
+    Timer {
+        id: refreshDefaults
+
+        interval: 300
+        running: true
+        onTriggered: {
+            metaSink.running = true;
+            metaSource.running = true;
+        }
+    }
+
+    onSinksChanged: refreshDefaults.restart()
+    onSourcesChanged: refreshDefaults.restart()
+
+    Connections {
+        target: Pipewire
+
+        function onDefaultAudioSinkChanged(): void {
+            refreshDefaults.restart();
+        }
+
+        function onDefaultAudioSourceChanged(): void {
+            refreshDefaults.restart();
+        }
     }
 
     function displayName(node: PwNode): string {
@@ -89,6 +143,10 @@ Singleton {
 
         function setVolume(value: real): void {
             root.setVolume(root.sink, value);
+        }
+
+        function get(): string {
+            return `${root.displayName(root.sink) || "(no sink)"} ${Math.round(root.volume * 100)}% ${root.muted ? "muted" : ""} | sinks: ${root.sinks.map(n => root.displayName(n)).join(", ")}`;
         }
     }
 }

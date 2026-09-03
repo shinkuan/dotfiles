@@ -372,7 +372,8 @@ Singleton {
     function move(delta: int): void {
         if (results.length === 0)
             return;
-        selected = (selected + delta + results.length) % results.length;
+        // no wrap-around: overshooting the ends must not jump to the other end
+        selected = Math.max(0, Math.min(results.length - 1, selected + delta));
     }
 
     Timer {
