@@ -14,7 +14,7 @@ DashTile {
     readonly property bool isToday: Qt.formatDate(selected, "yyyy-MM-dd") === Qt.formatDate(Calendar.today, "yyyy-MM-dd")
     readonly property list<var> dayEvents: Calendar.eventMap ? Calendar.eventsOn(selected) : []
     // what the day section already shows is not repeated under "Up next"
-    readonly property list<var> next: Calendar.eventMap ? Calendar.upcoming(Config.calendar.upcomingDays).filter(e => !root.dayEvents.some(d => d.id === e.id && d.start === e.start)) : []
+    readonly property list<var> next: Calendar.eventMap ? Calendar.upcoming(Config.calendar.upcomingDays).filter(e => !root.dayEvents.some(d => d.id === e.id && Calendar.dayKey(d.s) === Calendar.dayKey(e.s))) : []
     readonly property int notifShown: 2
 
     SystemClock {
