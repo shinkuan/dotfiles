@@ -91,7 +91,7 @@ Hot-loaded; every key is optional.
 | `bar.width`, `bar.pinThreshold`, `bar.autoHide`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it (a drag on the bar pins it until dragged back or `bar unpin`); hide the bar until hovered (default `true`; `false` keeps it out); CPU/memory meters entry; `left`, `right` or `top`; entry order; available ids `kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power` (`window` is not in the default list) |
 | `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
 | `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |
-| `desktopClock.position`, `desktopClock.margin` | `top-left` … `bottom-right` / `bottom-center` |
+| `desktopClock.position`, `desktopClock.margin`, `desktopClock.size` | `top-left` … `bottom-right` / `bottom-center` |
 | `notifications.timeout`, `criticalTimeout`, `maxHistory`, `width`, `position` | popup timeouts (0 = never), history size, popup width, corner (`top-right` … `bottom-left`) |
 | `idle.inhibitWhenAudio`, `idle.joystickHold` | inhibit while audio plays; seconds to hold after controller input |
 | `launcher.position` | `top` (upper third) or `center` |

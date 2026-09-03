@@ -42,6 +42,11 @@ Item {
             captureSource: root.active ? root.win.toplevel.wayland : null
             live: root.active
             paintCursor: false
+            // the capture is shrunk 5-6x; without mipmaps text turns to noise
+            smooth: true
+            layer.enabled: true
+            layer.smooth: true
+            layer.mipmap: true
         }
 
         IconImage {

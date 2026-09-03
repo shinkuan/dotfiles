@@ -2,6 +2,7 @@ pragma Singleton
 
 import QtQuick
 import Quickshell
+import Quickshell.Services.SystemTray
 import Quickshell.Io
 
 // User toggles that must survive shell restarts (not just reloads).
@@ -80,6 +81,10 @@ Singleton {
 
         function isPinned(): bool {
             return adapter.barPinned;
+        }
+
+        function trayCount(): int {
+            return SystemTray.items.values.length;
         }
     }
 

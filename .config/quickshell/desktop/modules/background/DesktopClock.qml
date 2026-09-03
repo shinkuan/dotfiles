@@ -1,10 +1,12 @@
 import QtQuick
-import QtQuick.Layouts
+import QtQuick.Effects
 import Quickshell
 import "../../config"
 import "../../services"
 import "../../components"
 
+// Wallpaper clock: condensed time with a short accent rule and a spaced
+// mono date underneath; a soft blurred shadow keeps it legible on light art.
 Item {
     id: root
 
@@ -12,10 +14,10 @@ Item {
     readonly property bool alignRight: position.endsWith("right")
     readonly property bool alignCenter: position.endsWith("center")
     readonly property int margin: Config.desktopClock.margin
-    readonly property int align: alignRight ? Qt.AlignRight : alignCenter ? Qt.AlignHCenter : Qt.AlignLeft
+    readonly property int size: Config.desktopClock.size
 
-    width: column.implicitWidth
-    height: column.implicitHeight
+    width: face.width
+    height: face.height
     x: alignRight ? parent.width - width - margin : alignCenter ? (parent.width - width) / 2 : margin
     y: position.startsWith("top") ? margin : parent.height - height - margin
 
@@ -25,38 +27,58 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    // an offset copy in scrim keeps the clock legible on light wallpapers
-    component ClockColumn: ColumnLayout {
-        property bool shadow: false
+    Item {
+        id: face
 
-        x: shadow ? 2 : 0
-        y: shadow ? 3 : 0
-        opacity: shadow ? 0.5 : 1
-        spacing: 0
+        width: Math.max(time.implicitWidth, dateRow.width)
+        height: time.implicitHeight + 6 + dateRow.height
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowBlur: 1.0
+            shadowOpacity: 0.55
+            shadowColor: Colours.scrim
+            shadowVerticalOffset: 3
+        }
 
-        StyledText {
-            Layout.alignment: root.align
+        Text {
+            id: time
+
+            x: root.alignRight ? parent.width - implicitWidth : root.alignCenter ? (parent.width - implicitWidth) / 2 : 0
             text: Qt.formatDateTime(clock.date, "HH:mm")
-            color: parent.shadow ? Colours.scrim : Colours.surfaceText
-            font.pixelSize: 84
-            font.weight: Font.Light
-            font.letterSpacing: 2
+            color: Colours.surfaceText
+            font.family: "IBM Plex Sans Condensed"
+            font.pixelSize: root.size
+            font.weight: Font.Medium
+            font.letterSpacing: -root.size * 0.03
+            font.features: ({ "tnum": 1 })
+            lineHeight: 0.82
+            lineHeightMode: Text.ProportionalHeight
         }
 
-        StyledText {
-            Layout.alignment: root.align
-            text: Qt.formatDateTime(clock.date, "dddd, d MMMM")
-            color: parent.shadow ? Colours.scrim : Colours.surfaceVariantText
-            font.pixelSize: 22
+        Row {
+            id: dateRow
+
+            x: root.alignRight ? parent.width - width : root.alignCenter ? (parent.width - width) / 2 : 0
+            y: time.implicitHeight + 6
+            spacing: 12
+
+            Rectangle {
+                width: root.size * 0.32
+                height: 2
+                radius: 1
+                anchors.verticalCenter: parent.verticalCenter
+                color: Theme.accent
+            }
+
+            Text {
+                text: Qt.formatDateTime(clock.date, "ddd d MMM").toUpperCase()
+                color: Colours.surfaceText
+                font.family: Theme.fontMono
+                font.pixelSize: Math.round(root.size * 0.16)
+                font.weight: Font.Medium
+                font.letterSpacing: root.size * 0.03
+            }
         }
     }
-
-    ClockColumn {
-        shadow: true
-    }
-
-    ClockColumn {
-        id: column
-    }
-
 }

@@ -119,6 +119,7 @@ Singleton {
             property JsonObject desktopClock: JsonObject {
                 property string position: "bottom-right"
                 property int margin: 48
+                property int size: 112   // time height in px; the date scales with it
             }
             property JsonObject notifications: JsonObject {
                 property int timeout: 5000
