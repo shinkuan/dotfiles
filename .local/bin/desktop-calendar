@@ -1,17 +1,43 @@
 #!/usr/bin/env python3
-"""Dump calendar events as JSON for the desktop shell.
+"""Calendar and task feed for the desktop shell.
 
-    desktop-calendar dump --from YYYY-MM-DD --to YYYY-MM-DD --dir DIR [--dir DIR2]
+    desktop-calendar dump --from YYYY-MM-DD --to YYYY-MM-DD [--dir DIR]... [SERVER] [--cache FILE]
+    desktop-calendar todo toggle UID [SERVER] [--cache FILE]
+    desktop-calendar todo add TEXT [--list NAME] [--due YYYY-MM-DD] [SERVER] [--cache FILE]
+    desktop-calendar set-password [--cred FILE] [SERVER]
 
-Each DIR holds vdirsyncer-style collections (one directory per calendar with one
-.ics file per event, optionally a `color` file) and/or an `events.json` with
-quick hand-written entries. Timestamps are printed in local time.
+    SERVER = --url URL --user NAME [--password-command CMD] [--collections A,B] [--done-days N]
+
+Local sources: each DIR holds vdirsyncer-style collections (one directory per
+calendar with one .ics file per event, optionally `color` / `displayname`
+files) and/or an `events.json` with quick hand-written entries.
+
+Server source: a CalDAV server such as Radicale. Every calendar collection
+under URL is read; events (VEVENT) overlapping the range and tasks (VTODO)
+are returned, and task completion / new tasks are written back. The password
+comes from `--password-command` (run through sh) or, by default, from the
+systemd-creds file written by `set-password`; it never appears on a command
+line. The last good server answer is kept in the cache file so a dead
+network still shows something, flagged in `error`.
+
+`dump` prints one JSON object: {"events": [...], "todos": [...],
+"lists": [...], "error": "", "cached": false, "synced": "..."}.
+Timestamps are local time.
 """
 import argparse
+import base64
+import getpass
 import json
 import os
 import re
+import shlex
+import subprocess
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+import xml.etree.ElementTree as ET
 from datetime import date, datetime, time, timedelta, timezone
 
 try:
@@ -20,10 +46,21 @@ except ImportError:  # pragma: no cover
     ZoneInfo = None
 
 WEEKDAYS = {"MO": 0, "TU": 1, "WE": 2, "TH": 3, "FR": 4, "SA": 5, "SU": 6}
+NS_D = "DAV:"
+NS_C = "urn:ietf:params:xml:ns:caldav"
+NS_I = "http://apple.com/ns/ical/"
 
 
 def warn(msg):
     print(f"desktop-calendar: {msg}", file=sys.stderr)
+
+
+def state_dir():
+    return os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state")
+
+
+def default_cred_path():
+    return os.path.join(state_dir(), "desktop-shell", "radicale.cred")
 
 
 # ---------------------------------------------------------------- ICS parsing
@@ -102,16 +139,16 @@ def parse_rrule(value):
     return rule
 
 
-def parse_vevents(text):
-    """Yield dicts of raw properties per VEVENT."""
+def parse_components(text, kind="VEVENT"):
+    """Yield the raw (name, params, value) properties of every `kind` block."""
     inside = False
     props = None
     for line in unfold(text):
-        if line.upper() == "BEGIN:VEVENT":
+        if line.upper() == f"BEGIN:{kind}":
             inside = True
             props = []
             continue
-        if line.upper() == "END:VEVENT":
+        if line.upper() == f"END:{kind}":
             inside = False
             if props is not None:
                 yield props
@@ -214,7 +251,7 @@ def events_from_ics(text, calendar, colour, range_from, range_to):
     out = []
     overrides = {}   # uid -> set of recurrence-id dates
     parsed = []
-    for props in parse_vevents(text):
+    for props in parse_components(text, "VEVENT"):
         p, rid = first(props, "RECURRENCE-ID")
         uid = (first(props, "UID")[1] or "").strip()
         if rid:
@@ -296,7 +333,286 @@ def events_from_json(path, range_from, range_to):
     return out
 
 
-# ---------------------------------------------------------------- main
+# ---------------------------------------------------------------- VTODO
+
+def todo_json(props, href, etag, list_name, colour):
+    uid = (first(props, "UID")[1] or "").strip()
+    status = (first(props, "STATUS")[1] or "").strip().upper()
+    if status == "CANCELLED":
+        return None
+    due, all_day = "", True
+    p, v = first(props, "DUE")
+    if v:
+        try:
+            d, all_day = parse_dt(v, p)
+            due = d.strftime("%Y-%m-%d") if all_day else d.strftime("%Y-%m-%dT%H:%M")
+        except ValueError as e:
+            warn(str(e))
+    completed = ""
+    p, v = first(props, "COMPLETED")
+    if v:
+        try:
+            completed = parse_dt(v, p)[0].strftime("%Y-%m-%dT%H:%M")
+        except ValueError:
+            pass
+    try:
+        percent = int(first(props, "PERCENT-COMPLETE")[1] or 0)
+    except ValueError:
+        percent = 0
+    try:
+        priority = int(first(props, "PRIORITY")[1] or 0)
+    except ValueError:
+        priority = 0
+    return {
+        "id": uid,
+        "href": href,
+        "etag": etag,
+        "title": unescape(first(props, "SUMMARY")[1] or "(untitled)"),
+        "description": unescape(first(props, "DESCRIPTION")[1] or ""),
+        "due": due,
+        "allDay": all_day,
+        "priority": priority,
+        "high": 1 <= priority <= 4,
+        "done": status == "COMPLETED" or percent >= 100 or completed != "",
+        "completed": completed,
+        "list": list_name,
+        "colour": colour,
+    }
+
+
+def todos_from_ics(text, href, etag, list_name, colour):
+    out = []
+    for props in parse_components(text, "VTODO"):
+        t = todo_json(props, href, etag, list_name, colour)
+        if t is not None:
+            out.append(t)
+    return out
+
+
+def sort_todos(todos):
+    def key(t):
+        return (t["done"], t["due"] == "", t["due"] if not t["done"] else "", t["priority"] or 10, t["title"].lower())
+    todos.sort(key=key)
+    return todos
+
+
+# ---------------------------------------------------------------- CalDAV
+
+class DavError(Exception):
+    pass
+
+
+class Dav:
+    """Minimal CalDAV client over urllib with basic auth."""
+
+    def __init__(self, url, user, password, timeout=20):
+        self.base = url if url.endswith("/") else url + "/"
+        parts = urllib.parse.urlsplit(self.base)
+        if parts.scheme not in ("http", "https") or not parts.netloc:
+            raise DavError(f"bad server url {url!r}")
+        self.origin = f"{parts.scheme}://{parts.netloc}"
+        self.path = parts.path or "/"
+        self.timeout = timeout
+        token = base64.b64encode(f"{user}:{password}".encode()).decode()
+        self.auth = f"Basic {token}"
+
+    def request(self, method, href, body=None, headers=None):
+        url = href if href.startswith("http") else self.origin + href
+        data = body.encode() if isinstance(body, str) else body
+        req = urllib.request.Request(url, data=data, method=method)
+        req.add_header("Authorization", self.auth)
+        req.add_header("User-Agent", "desktop-calendar")
+        for k, v in (headers or {}).items():
+            req.add_header(k, v)
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as r:
+                return r.status, r.headers, r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            if e.code == 401:
+                raise DavError("login rejected (check username / password)")
+            return e.code, e.headers, e.read().decode("utf-8", "replace")
+        except urllib.error.URLError as e:
+            raise DavError(f"cannot reach server: {e.reason}")
+        except (TimeoutError, OSError) as e:
+            raise DavError(f"cannot reach server: {e}")
+
+    def propfind(self, href, props, depth):
+        body = ('<D:propfind xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav" xmlns:I="http://apple.com/ns/ical/">'
+                f"<D:prop>{props}</D:prop></D:propfind>")
+        st, _, text = self.request("PROPFIND", href, body, {"Depth": str(depth), "Content-Type": "application/xml"})
+        if st != 207:
+            raise DavError(f"PROPFIND {href}: HTTP {st}")
+        try:
+            return ET.fromstring(text)
+        except ET.ParseError as e:
+            raise DavError(f"PROPFIND {href}: bad XML ({e})")
+
+    def calendars(self):
+        """Collections that hold calendar data, found under the url, its principal or its home set."""
+        found = self._list_calendars(self.path)
+        if found:
+            return found
+        root = self.propfind(self.path, "<D:current-user-principal/><C:calendar-home-set/>", 0)
+        principal = root.findtext(f".//{{{NS_D}}}current-user-principal/{{{NS_D}}}href")
+        home = root.findtext(f".//{{{NS_C}}}calendar-home-set/{{{NS_D}}}href")
+        if not home and principal:
+            proot = self.propfind(principal, "<C:calendar-home-set/>", 0)
+            home = proot.findtext(f".//{{{NS_C}}}calendar-home-set/{{{NS_D}}}href")
+        for href in (home, principal):
+            if href and href != self.path:
+                found = self._list_calendars(href)
+                if found:
+                    return found
+        return []
+
+    def _list_calendars(self, href):
+        root = self.propfind(href, "<D:resourcetype/><D:displayname/><I:calendar-color/><C:supported-calendar-component-set/>", 1)
+        out = []
+        for resp in root.iter(f"{{{NS_D}}}response"):
+            h = resp.findtext(f"{{{NS_D}}}href") or ""
+            if resp.find(f".//{{{NS_D}}}resourcetype/{{{NS_C}}}calendar") is None:
+                continue
+            comps = {c.get("name", "").upper() for c in resp.iter(f"{{{NS_C}}}comp")}
+            name = (resp.findtext(f".//{{{NS_D}}}displayname") or "").strip() or h.rstrip("/").rsplit("/", 1)[-1]
+            colour = (resp.findtext(f".//{{{NS_I}}}calendar-color") or "").strip()
+            if re.fullmatch(r"#[0-9a-fA-F]{8}", colour):
+                colour = colour[:7]   # Apple-style #rrggbbaa
+            out.append({"href": h, "name": name, "colour": colour,
+                        "events": not comps or "VEVENT" in comps,
+                        "todos": not comps or "VTODO" in comps})
+        out.sort(key=lambda c: c["name"].lower())
+        return out
+
+    def query(self, href, comp, start=None, end=None):
+        """Yield (href, etag, calendar-data) for every `comp` object, optionally within [start, end)."""
+        tr = f'<C:time-range start="{start}" end="{end}"/>' if start else ""
+        body = ('<C:calendar-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">'
+                "<D:prop><D:getetag/><C:calendar-data/></D:prop>"
+                f'<C:filter><C:comp-filter name="VCALENDAR"><C:comp-filter name="{comp}">{tr}</C:comp-filter></C:comp-filter></C:filter>'
+                "</C:calendar-query>")
+        st, _, text = self.request("REPORT", href, body, {"Depth": "1", "Content-Type": "application/xml"})
+        if st != 207:
+            raise DavError(f"REPORT {href}: HTTP {st}")
+        try:
+            root = ET.fromstring(text)
+        except ET.ParseError as e:
+            raise DavError(f"REPORT {href}: bad XML ({e})")
+        for resp in root.iter(f"{{{NS_D}}}response"):
+            h = resp.findtext(f"{{{NS_D}}}href") or ""
+            etag = (resp.findtext(f".//{{{NS_D}}}getetag") or "").strip()
+            data = resp.findtext(f".//{{{NS_C}}}calendar-data") or ""
+            if data.strip():
+                yield h, etag, data
+
+    def get(self, href):
+        st, headers, text = self.request("GET", href)
+        if st != 200:
+            raise DavError(f"GET {href}: HTTP {st}")
+        return (headers.get("ETag") or "").strip(), text
+
+    def put(self, href, text, etag=None, new=False):
+        headers = {"Content-Type": "text/calendar; charset=utf-8"}
+        if new:
+            headers["If-None-Match"] = "*"
+        elif etag:
+            headers["If-Match"] = etag
+        st, headers_out, body = self.request("PUT", href, text, headers)
+        if st == 412:
+            raise DavError("changed on the server meanwhile, try again")
+        if st not in (200, 201, 204):
+            raise DavError(f"PUT {href}: HTTP {st} {body[:120].strip()}")
+        return (headers_out.get("ETag") or "").strip()
+
+
+def resolve_password(command):
+    """Run the password command (or the systemd-creds default) and return its first line."""
+    if command:
+        argv = ["sh", "-c", command]
+        what = "password command"
+    else:
+        cred = default_cred_path()
+        if not os.path.isfile(cred):
+            raise DavError("no password stored; run `desktop-calendar set-password`")
+        argv = ["systemd-creds", "--user", "decrypt", "--name=radicale", cred, "-"]
+        what = "systemd-creds"
+    try:
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise DavError(f"{what} failed: {e}")
+    if r.returncode != 0:
+        raise DavError(f"{what} failed: {(r.stderr or '').strip().splitlines()[-1] if r.stderr.strip() else 'exit ' + str(r.returncode)}")
+    pw = r.stdout.split("\n", 1)[0].rstrip("\r")
+    if pw == "":
+        raise DavError(f"{what} printed nothing")
+    return pw
+
+
+def connect(args):
+    if not args.url:
+        return None
+    if not args.user:
+        raise DavError("server needs --user")
+    return Dav(args.url, args.user, resolve_password(args.password_command))
+
+
+def selected(calendars, wanted):
+    if not wanted:
+        return calendars
+    names = {w.strip().lower() for w in wanted.split(",") if w.strip()}
+    return [c for c in calendars if c["name"].lower() in names or c["href"].rstrip("/").rsplit("/", 1)[-1].lower() in names]
+
+
+def utc_stamp(d):
+    return d.strftime("%Y%m%dT%H%M%SZ")
+
+
+def fetch(dav, args, range_from, range_to):
+    """Events in range and every task from the selected calendars."""
+    cals = selected(dav.calendars(), args.collections)
+    if not cals:
+        raise DavError("no calendars found on the server")
+    events, todos = [], []
+    start = utc_stamp(datetime.combine(range_from, time.min).astimezone(timezone.utc))
+    end = utc_stamp(datetime.combine(range_to + timedelta(days=1), time.min).astimezone(timezone.utc))
+    for c in cals:
+        if c["events"]:
+            for href, etag, data in dav.query(c["href"], "VEVENT", start, end):
+                try:
+                    events.extend(events_from_ics(data, c["name"], c["colour"], range_from, range_to))
+                except Exception as e:
+                    warn(f"{href}: {e}")
+        if c["todos"]:
+            for href, etag, data in dav.query(c["href"], "VTODO"):
+                try:
+                    todos.extend(todos_from_ics(data, href, etag, c["name"], c["colour"]))
+                except Exception as e:
+                    warn(f"{href}: {e}")
+    cutoff = (datetime.now() - timedelta(days=max(0, args.done_days))).strftime("%Y-%m-%dT%H:%M")
+    todos = [t for t in todos if not t["done"] or not t["completed"] or t["completed"] >= cutoff]
+    lists = [{"name": c["name"], "colour": c["colour"], "href": c["href"], "todos": c["todos"], "events": c["events"]} for c in cals]
+    return events, sort_todos(todos), lists
+
+
+def read_cache(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def write_cache(path, data):
+    try:
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        tmp = path + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False)
+        os.replace(tmp, path)
+    except OSError as e:
+        warn(f"cannot write cache: {e}")
+
+
+# ---------------------------------------------------------------- local dirs
 
 def collect(directory, range_from, range_to):
     out = []
@@ -341,27 +657,250 @@ def collect(directory, range_from, range_to):
                         out.extend(events_from_ics(f.read(), name, colour, range_from, range_to))
                 except Exception as e:
                     warn(f"{fpath}: {e}")
-    out.sort(key=lambda ev: (ev["start"][:10], not ev["allDay"], ev["start"], ev["title"]))
     return out
+
+
+def sort_events(events):
+    events.sort(key=lambda ev: (ev["start"][:10], not ev["allDay"], ev["start"], ev["title"]))
+    return events
+
+
+# ---------------------------------------------------------------- commands
+
+def cmd_dump(args):
+    frm = datetime.strptime(args.frm, "%Y-%m-%d").date()
+    to = datetime.strptime(args.to, "%Y-%m-%d").date()
+    events = []
+    for d in args.dirs or []:
+        events.extend(collect(os.path.expanduser(d), frm, to))
+    out = {"events": events, "todos": [], "lists": [], "error": "", "cached": False, "synced": ""}
+    if args.url:
+        try:
+            dav = connect(args)
+            sev, todos, lists = fetch(dav, args, frm, to)
+            synced = datetime.now().strftime("%Y-%m-%dT%H:%M")
+            out.update(todos=todos, lists=lists, synced=synced)
+            events.extend(sev)
+            if args.cache:
+                write_cache(args.cache, {"synced": synced, "from": args.frm, "to": args.to, "events": sev, "todos": todos, "lists": lists})
+        except DavError as e:
+            out["error"] = str(e)
+            cached = read_cache(args.cache) if args.cache else None
+            if cached:
+                out.update(todos=cached.get("todos", []), lists=cached.get("lists", []), synced=cached.get("synced", ""), cached=True)
+                events.extend(cached.get("events", []))
+    out["events"] = sort_events(events)
+    json.dump(out, sys.stdout, ensure_ascii=False)
+    print()
+
+
+def fold(line):
+    out, enc = [], line.encode("utf-8")
+    while len(enc) > 74:
+        cut = 74
+        while cut > 0 and (enc[cut] & 0xC0) == 0x80:   # do not split a UTF-8 sequence
+            cut -= 1
+        out.append(enc[:cut].decode("utf-8"))
+        enc = b" " + enc[cut:]
+    out.append(enc.decode("utf-8"))
+    return "\r\n".join(out)
+
+
+def escape(value):
+    return value.replace("\\", "\\\\").replace(";", "\\;").replace(",", "\\,").replace("\n", "\\n")
+
+
+def set_todo_done(text, uid, done):
+    """Rewrite the VTODO with this uid; other components and properties are kept as they are."""
+    lines = unfold(text)
+    out, inside, mine, seen = [], False, False, False
+    now = utc_stamp(datetime.now(timezone.utc))
+    for line in lines:
+        u = line.upper()
+        if u == "BEGIN:VTODO":
+            inside, mine, block = True, False, []
+            out.append(line)
+            continue
+        if inside and u == "END:VTODO":
+            if mine:
+                seen = True
+                kept = []
+                seq = 0
+                for l in block:
+                    name = split_property(l)[0]
+                    if name in ("STATUS", "COMPLETED", "PERCENT-COMPLETE", "LAST-MODIFIED", "DTSTAMP"):
+                        continue
+                    if name == "SEQUENCE":
+                        try:
+                            seq = int(split_property(l)[2])
+                        except ValueError:
+                            pass
+                        continue
+                    kept.append(l)
+                kept.append(f"DTSTAMP:{now}")
+                kept.append(f"LAST-MODIFIED:{now}")
+                kept.append(f"SEQUENCE:{seq + 1}")
+                if done:
+                    kept += ["STATUS:COMPLETED", f"COMPLETED:{now}", "PERCENT-COMPLETE:100"]
+                else:
+                    kept += ["STATUS:NEEDS-ACTION", "PERCENT-COMPLETE:0"]
+                out.extend(kept)
+            else:
+                out.extend(block)
+            out.append(line)
+            inside = False
+            continue
+        if inside:
+            name, _, value = split_property(line)
+            if name == "UID" and value.strip() == uid:
+                mine = True
+            block.append(line)
+        else:
+            out.append(line)
+    if not seen:
+        raise DavError(f"task {uid} not in the fetched object")
+    return "".join(fold(l) + "\r\n" for l in out if l != "")
+
+
+def cached_todo(args, uid):
+    cached = read_cache(args.cache) if args.cache else None
+    for t in (cached or {}).get("todos", []):
+        if t["id"] == uid:
+            return t
+    return None
+
+
+def cmd_todo_toggle(args):
+    dav = connect(args)
+    if dav is None:
+        raise DavError("tasks need a server (--url)")
+    t = cached_todo(args, args.uid)
+    if t is None:
+        _, todos, _ = fetch(dav, args, date.today(), date.today())
+        t = next((x for x in todos if x["id"] == args.uid), None)
+    if t is None:
+        raise DavError(f"unknown task {args.uid}")
+    done = False
+    for attempt in (1, 2):
+        # the fresh copy decides the flip; the cache may lag behind
+        etag, text = dav.get(t["href"])
+        current = next((x for x in todos_from_ics(text, t["href"], etag, t["list"], t["colour"]) if x["id"] == args.uid), None)
+        if current is None:
+            raise DavError(f"task {args.uid} is gone from the server")
+        done = (not current["done"]) if args.state == "toggle" else args.state == "done"
+        try:
+            dav.put(t["href"], set_todo_done(text, args.uid, done), etag=etag)
+            break
+        except DavError as e:
+            if attempt == 2 or "meanwhile" not in str(e):
+                raise
+    cached = read_cache(args.cache) if args.cache else None
+    if cached:
+        for x in cached.get("todos", []):
+            if x["id"] == args.uid:
+                x["done"] = done
+                x["completed"] = datetime.now().strftime("%Y-%m-%dT%H:%M") if done else ""
+        sort_todos(cached["todos"])
+        write_cache(args.cache, cached)
+    print(json.dumps({"ok": True, "id": args.uid, "done": done}))
+
+
+def cmd_todo_add(args):
+    dav = connect(args)
+    if dav is None:
+        raise DavError("tasks need a server (--url)")
+    lists = [c for c in selected(dav.calendars(), args.collections) if c["todos"]]
+    target = None
+    if args.list:
+        target = next((c for c in lists if c["name"].lower() == args.list.lower() or c["href"].rstrip("/").rsplit("/", 1)[-1].lower() == args.list.lower()), None)
+        if target is None:
+            raise DavError(f"no task list named {args.list!r}")
+    elif lists:
+        target = lists[0]
+    if target is None:
+        raise DavError("no calendar on the server accepts tasks")
+    uid = str(uuid.uuid4())
+    now = utc_stamp(datetime.now(timezone.utc))
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//desktop-shell//desktop-calendar//EN", "BEGIN:VTODO",
+             f"UID:{uid}", f"DTSTAMP:{now}", f"CREATED:{now}", f"SUMMARY:{escape(args.text.strip())}", "STATUS:NEEDS-ACTION"]
+    if args.due:
+        datetime.strptime(args.due, "%Y-%m-%d")
+        lines.append(f"DUE;VALUE=DATE:{args.due.replace('-', '')}")
+    if args.priority:
+        lines.append(f"PRIORITY:{args.priority}")
+    lines += ["END:VTODO", "END:VCALENDAR"]
+    href = target["href"].rstrip("/") + f"/{uid}.ics"
+    dav.put(href, "".join(fold(l) + "\r\n" for l in lines), new=True)
+    print(json.dumps({"ok": True, "id": uid, "list": target["name"], "href": href}))
+
+
+def cmd_set_password(args):
+    cred = args.cred or default_cred_path()
+    if sys.stdin.isatty():
+        pw = getpass.getpass("Radicale password: ")
+    else:
+        pw = sys.stdin.readline().rstrip("\n").rstrip("\r")
+    if pw == "":
+        raise DavError("empty password")
+    os.makedirs(os.path.dirname(cred), mode=0o700, exist_ok=True)
+    r = subprocess.run(["systemd-creds", "--user", "encrypt", "--name=radicale", "-", cred], input=pw.encode(), capture_output=True)
+    if r.returncode != 0:
+        raise DavError(f"systemd-creds failed: {r.stderr.decode().strip()}")
+    os.chmod(cred, 0o600)
+    print(f"stored (encrypted for this machine and user) in {cred}")
+    if args.url and args.user:
+        args.password_command = ""
+        cals = Dav(args.url, args.user, pw).calendars()
+        print(f"login ok: {len(cals)} calendar(s): " + ", ".join(c["name"] for c in cals))
+
+
+def add_server_args(p):
+    p.add_argument("--url", default="", help="CalDAV server, principal or calendar-home URL (Radicale: https://host/user/)")
+    p.add_argument("--user", default="")
+    p.add_argument("--password-command", default="", help="shell command that prints the password; default: systemd-creds file from set-password")
+    p.add_argument("--collections", default="", help="comma-separated calendar names to use; default all")
+    p.add_argument("--done-days", type=int, default=7, help="keep completed tasks this many days")
+    p.add_argument("--cache", default="", help="JSON file with the last good server answer")
 
 
 def main():
     ap = argparse.ArgumentParser(prog="desktop-calendar")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    d = sub.add_parser("dump", help="print events overlapping a date range as JSON")
+    d = sub.add_parser("dump", help="print events in a date range and all tasks as JSON")
     d.add_argument("--from", dest="frm", required=True)
     d.add_argument("--to", dest="to", required=True)
-    d.add_argument("--dir", dest="dirs", action="append", required=True, help="may be repeated; missing directories are skipped")
+    d.add_argument("--dir", dest="dirs", action="append", help="local source; may be repeated, missing directories are skipped")
+    add_server_args(d)
+    t = sub.add_parser("todo", help="change tasks on the server")
+    tsub = t.add_subparsers(dest="todo_cmd", required=True)
+    tg = tsub.add_parser("toggle", help="flip a task between done and open")
+    tg.add_argument("uid")
+    tg.add_argument("--state", choices=["toggle", "done", "open"], default="toggle")
+    add_server_args(tg)
+    ta = tsub.add_parser("add", help="create a task")
+    ta.add_argument("text")
+    ta.add_argument("--list", default="", help="calendar name that takes the task; default: the first that accepts tasks")
+    ta.add_argument("--due", default="", help="YYYY-MM-DD")
+    ta.add_argument("--priority", type=int, default=0, help="1 (high) .. 9 (low)")
+    add_server_args(ta)
+    sp = sub.add_parser("set-password", help="store the server password with systemd-creds (prompts, or reads stdin)")
+    sp.add_argument("--cred", default="", help="credential file; default $XDG_STATE_HOME/desktop-shell/radicale.cred")
+    add_server_args(sp)
     args = ap.parse_args()
-    if args.cmd == "dump":
-        frm = datetime.strptime(args.frm, "%Y-%m-%d").date()
-        to = datetime.strptime(args.to, "%Y-%m-%d").date()
-        events = []
-        for d in args.dirs:
-            events.extend(collect(os.path.expanduser(d), frm, to))
-        events.sort(key=lambda ev: (ev["start"][:10], not ev["allDay"], ev["start"], ev["title"]))
-        json.dump(events, sys.stdout, ensure_ascii=False)
-        print()
+    try:
+        if args.cmd == "dump":
+            cmd_dump(args)
+        elif args.cmd == "todo" and args.todo_cmd == "toggle":
+            cmd_todo_toggle(args)
+        elif args.cmd == "todo" and args.todo_cmd == "add":
+            cmd_todo_add(args)
+        elif args.cmd == "set-password":
+            cmd_set_password(args)
+    except (DavError, ValueError) as e:
+        if args.cmd == "dump":
+            raise
+        print(json.dumps({"ok": False, "error": str(e)}))
+        sys.exit(1)
 
 
 if __name__ == "__main__":

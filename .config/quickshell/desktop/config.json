@@ -216,10 +216,5 @@
     },
     "screenshot": {
         "directory": "Pictures/Screenshots"
-    },
-    "weather": {
-        "location": "",
-        "refreshMinutes": 20,
-        "unit": "c"
     }
 }

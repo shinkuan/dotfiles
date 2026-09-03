@@ -33,7 +33,6 @@ Singleton {
     readonly property alias appearance: adapter.appearance
     readonly property alias popouts: adapter.popouts
     readonly property alias dashboard: adapter.dashboard
-    readonly property alias weather: adapter.weather
     readonly property alias osd: adapter.osd
     readonly property alias kgrid: adapter.kgrid
     readonly property alias desktopClock: adapter.desktopClock
@@ -111,12 +110,7 @@ Singleton {
             property JsonObject dashboard: JsonObject {
                 property bool showOnHover: true   // top-centre edge reveals it
                 property int hotspot: 480          // width of that edge strip
-                property int width: 1120
-            }
-            property JsonObject weather: JsonObject {
-                property string location: ""   // empty: wttr.in guesses from the IP
-                property string unit: "c"      // c or f
-                property int refreshMinutes: 20
+                property int width: 1160
             }
             property JsonObject popouts: JsonObject {
                 property bool showOnHover: true
@@ -137,8 +131,14 @@ Singleton {
             }
             property JsonObject calendar: JsonObject {
                 property string dir: ""   // empty: $XDG_DATA_HOME/desktop-shell/calendar
+                property string url: ""   // CalDAV server (Radicale): root, principal or calendar-home URL; empty = local sources only
+                property string username: ""
+                property string passwordCommand: ""   // prints the password; empty = the systemd-creds file from `desktop-calendar set-password`
+                property list<string> collections: []   // calendar names to show; empty = all of them
+                property string todoList: ""   // calendar that takes new tasks; empty = the first one accepting tasks
                 property int refreshMinutes: 10
                 property int upcomingDays: 7
+                property int doneDays: 7   // completed tasks stay listed this long
             }
             property JsonObject notifications: JsonObject {
                 property int timeout: 5000

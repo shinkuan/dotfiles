@@ -89,8 +89,7 @@ Hot-loaded; every key is optional.
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
 | `bar.width`, `bar.pinThreshold`, `bar.autoHide`, `bar.trayCompact`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it (a drag on the bar pins it until dragged back or `bar unpin`); hide the bar until hovered (default `true`; `false` keeps it out); fold tray icons behind a chevron (default `true`, state remembered); CPU/memory meters entry; `left`, `right` or `top`; entry order; available ids `kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power` (default: `kgrid`, `spacer`, `tray`, `status`, `clock`, `power`; media, usage and notifications live in the dashboard) |
-| `dashboard.showOnHover`, `dashboard.hotspot`, `dashboard.width` | top-centre panel laid out as tiles: weather and CPU/memory/GPU rings on top, month calendar and the day's agenda (clock, today, up next, latest notifications) below, now playing down the right side. Revealed when the pointer touches the top edge inside a `hotspot` px wide strip (default `true`, 480), or with `SUPER+G` / `qs -c desktop ipc call dashboard toggle`; panel width (default 1120). In frame style it grows out of the top band |
-| `weather.location`, `weather.unit`, `weather.refreshMinutes` | current conditions from wttr.in for the dashboard tile: place name or empty for wttr's IP guess; `c` or `f`; refresh period (default 20, plus on dashboard open when older than 5 min). A failed fetch shows "Weather unavailable" |
+| `dashboard.showOnHover`, `dashboard.hotspot`, `dashboard.width` | top-centre panel laid out as tiles: clock, date, latest notifications and the do-not-disturb switch down the left; month calendar over now-playing and CPU/memory/GPU rings in the middle; the day's agenda over the task list on the right. Revealed when the pointer touches the top edge inside a `hotspot` px wide strip (default `true`, 480), or with `SUPER+G` / `qs -c desktop ipc call dashboard toggle`; panel width (default 1160). In frame style it grows out of the top band |
 | `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
 | `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |
 | `desktopClock.position`, `desktopClock.margin`, `desktopClock.size` | `top-left` … `bottom-right` / `bottom-center` |
@@ -102,12 +101,23 @@ Hot-loaded; every key is optional.
 | `resources.interval` | background poll interval in ms |
 | `brightness.external`, `brightness.step` | use ddcutil for external displays; key step in percent |
 
-## Calendar
+## Calendar and tasks
 
-Events shown in the calendar views (dashboard, calendar popout) come from
+Events and tasks shown in the dashboard (and the calendar popout) come from
 `services/Calendar.qml`, which runs the `desktop-calendar` helper for the
 months around today and keeps a per-day index. Sources, all optional:
 
+- A CalDAV server such as a self-hosted Radicale, set through `calendar.url`
+  (root, principal or calendar-home URL — `https://cal.example.org/alice/`)
+  and `calendar.username`. Every calendar collection found there is read:
+  events (VEVENT) fill the month grid and agenda, tasks (VTODO) fill the
+  task tile; the collection's `calendar-color` colours both. Ticking a task
+  writes `STATUS:COMPLETED` back, typing into "Add a task" creates one in
+  `calendar.todoList` (or the first collection that accepts tasks).
+  `calendar.collections` limits the calendars shown by name. The last good
+  answer is cached under `$XDG_STATE_HOME/desktop-shell/calendar/`, so an
+  unreachable server keeps showing it with a sync-problem mark on the task
+  tile (`qs -c desktop ipc call calendar status` tells why).
 - `$XDG_DATA_HOME/desktop-shell/calendar/` (override with `calendar.dir` in
   `config.json`): one subdirectory per calendar holding one `.ics` file per
   event — the layout `vdirsyncer` writes. A `color` file (`#rrggbb`) in a
@@ -125,38 +135,38 @@ months around today and keeps a per-day index. Sources, all optional:
 - `$XDG_STATE_HOME/desktop-shell/calendar/` is read the same way as a
   scratch source (this is where nested test sessions keep their sample data).
 
-Mirroring Google Calendar: install `vdirsyncer`, create an OAuth client in
-the Google Cloud console, then in `~/.config/vdirsyncer/config`:
+### The server password
 
-```ini
-[pair google]
-a = "google_remote"
-b = "google_local"
-collections = ["from a"]
-conflict_resolution = "a wins"
+`config.json` never holds the password. The helper gets it from one of:
 
-[storage google_remote]
-type = "google_calendar"
-token_file = "~/.local/state/vdirsyncer/google-token"
-client_id = "…"
-client_secret = "…"
+- `desktop-calendar set-password --url … --user …` (the default): prompts
+  once and stores the password with `systemd-creds --user encrypt`, sealed to
+  this machine's TPM and this user, in
+  `$XDG_STATE_HOME/desktop-shell/radicale.cred` (mode 600). Nothing else is
+  needed: no keyring daemon, no unlock prompt, and the file is useless on any
+  other machine or account. Re-run it after changing the password.
+- `calendar.passwordCommand`: any shell command that prints the password,
+  for people who already keep secrets elsewhere — e.g.
+  `secret-tool lookup service radicale` (libsecret; note that a gnome-keyring
+  created with an empty password stores its items unencrypted) or
+  `pass show radicale`. The command runs through `sh -c`, so the password
+  never appears on a command line or in `ps`.
 
-[storage google_local]
-type = "filesystem"
-path = "~/.local/share/desktop-shell/calendar"
-fileext = ".ics"
-```
+Also worth doing on the Radicale side: give the desktop its own user in
+`rights` with access limited to the calendars it needs, so a leaked
+credential cannot touch anything else.
 
-`vdirsyncer discover google && vdirsyncer sync` once, then a systemd user
-timer running `vdirsyncer sync` every few minutes; the shell re-reads the
-directory every `calendar.refreshMinutes` (default 10) and on
-`qs -c desktop ipc call calendar refresh`. The helper can be used on its own:
-`desktop-calendar dump --from 2026-09-01 --to 2026-09-30 --dir DIR` prints
-the events overlapping the range as JSON (`--dir` may be repeated). It
+The shell re-reads its sources every `calendar.refreshMinutes` (default 10),
+whenever the dashboard opens, and on `qs -c desktop ipc call calendar sync`.
+`calendar.upcomingDays` (default 7) is how far "up next" looks ahead;
+`calendar.doneDays` (default 7) is how long completed tasks stay listed.
+The helper works on its own: `desktop-calendar dump --from 2026-09-01
+--to 2026-09-30 --dir DIR` or `… --url URL --user NAME` prints the events
+overlapping the range and every task as JSON; `desktop-calendar todo toggle
+UID` and `todo add "text" --due 2026-09-06` change tasks on the server. It
 expands DAILY/WEEKLY/MONTHLY/YEARLY rules with INTERVAL/COUNT/UNTIL and
 weekly BYDAY, honours EXDATE and RECURRENCE-ID overrides, and converts
-TZID/UTC times to local time. `calendar.upcomingDays` (default 7) is how far
-the "up next" lists look ahead.
+TZID/UTC times to local time.
 
 ## IPC targets
 
@@ -165,7 +175,7 @@ the "up next" lists look ahead.
 (clear/toggleDnd/dnd), `launcher` (toggle/open/close/search/clipboard),
 `overview` (toggle/open/close), `popout` (open <id>/close), `screenshot`
 (region/regionCopy/cancel/capture), `session` (lock/suspend/logout),
-`media` (playPause/next/previous/stop), `wallpaper` (set/get), `calendar` (refresh/count/setDir <path>/getDir), `theme`
+`media` (playPause/next/previous/stop), `wallpaper` (set/get), `calendar` (sync/refresh/status/count/setDir <path>/getDir), `todo` (items/count/toggle <uid>/add <text>), `theme`
 (set <style>/get/cycle — rewrites config.json through the adapter, so keys it does not know are dropped),
 `dashboard` (toggle/open/close), `summon` (toggle/open/center/hide — a deck with clock, workspaces, volume,
 brightness, media and a search shortcut that scales out of the pointer

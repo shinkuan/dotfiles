@@ -41,7 +41,7 @@ PanelWindow {
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     // keyboard-opened popouts own the keyboard (Esc closes them); clicked or
     // hovered ones only take it on demand for their text fields
-    WlrLayershell.keyboardFocus: popouts.keyboardOpened || dashboard.shortcutActive ? WlrKeyboardFocus.Exclusive : popouts.shortcutActive || (popouts.needsKeyboard && popouts.shown) || (notifPopups.visible && notifPopups.needsKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: popouts.keyboardOpened || dashboard.shortcutActive ? WlrKeyboardFocus.Exclusive : popouts.shortcutActive || (popouts.needsKeyboard && popouts.shown) || dashboard.shown || (notifPopups.visible && notifPopups.needsKeyboard) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     anchors {
         top: true

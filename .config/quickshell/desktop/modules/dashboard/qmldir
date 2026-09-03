@@ -1,7 +1,8 @@
 Dashboard 1.0 Dashboard.qml
 DashTile 1.0 DashTile.qml
 Ring 1.0 Ring.qml
-WeatherTile 1.0 WeatherTile.qml
+InfoTile 1.0 InfoTile.qml
 UsageTile 1.0 UsageTile.qml
 MediaTile 1.0 MediaTile.qml
 EventsTile 1.0 EventsTile.qml
+TodoTile 1.0 TodoTile.qml

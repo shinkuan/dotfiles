@@ -3,7 +3,8 @@ import QtQuick.Layouts
 import "../config"
 import "../services"
 
-// Month grid with event dots. The parent sets the width; cells scale to it.
+// Month grid with event dots: quiet numbers, today as a filled disc, the
+// selected day ringed. The parent sets the width; cells scale to it.
 ColumnLayout {
     id: root
 
@@ -15,10 +16,10 @@ ColumnLayout {
     property bool centeredHeader: false   // "<  Month yyyy  >" with the arrows at the ends
     readonly property bool atToday: month === today.getMonth() && year === today.getFullYear()
     readonly property int firstDow: Qt.locale().firstDayOfWeek % 7   // 0 = Sunday
-    readonly property int gap: 2
-    readonly property int cell: Math.max(24, Math.floor((width - 6 * gap) / 7))
+    readonly property int cell: Math.max(24, Math.floor(width / 7))
     property int rowHeight: 0   // 0 = from the cell width; the dashboard fills its tile
-    readonly property int cellH: rowHeight > 0 ? rowHeight : Math.round(cell * 0.82)
+    readonly property int cellH: rowHeight > 0 ? rowHeight : Math.round(cell * 0.8)
+    readonly property int disc: 28
     readonly property var cells: {
         const first = new Date(year, month, 1);
         const offset = (first.getDay() - firstDow + 7) % 7;
@@ -61,15 +62,17 @@ ColumnLayout {
     RowLayout {
         visible: root.showHeader && root.centeredHeader
         Layout.fillWidth: true
+        spacing: 0
 
         IconButton {
             icon: "chevron_left"
+            size: 28
             onClicked: root.shift(-1)
         }
 
         Clickable {
             Layout.fillWidth: true
-            implicitHeight: 32
+            implicitHeight: 28
             radius: Config.radius
             onClicked: root.goToday()   // the title doubles as the "today" jump
 
@@ -77,13 +80,14 @@ ColumnLayout {
                 anchors.centerIn: parent
                 text: Qt.formatDate(new Date(root.year, root.month, 1), "MMMM yyyy")
                 color: root.atToday ? Colours.surfaceText : Theme.accent
-                font.pixelSize: Config.fontSize + 3
-                font.weight: Font.DemiBold
+                font.pixelSize: Config.fontSize + 1
+                font.weight: Font.Medium
             }
         }
 
         IconButton {
             icon: "chevron_right"
+            size: 28
             onClicked: root.shift(1)
         }
     }
@@ -129,8 +133,8 @@ ColumnLayout {
 
     Grid {
         columns: 7
-        columnSpacing: root.gap
-        rowSpacing: root.gap
+        columnSpacing: 0
+        rowSpacing: 0
 
         Repeater {
             model: 7
@@ -139,70 +143,72 @@ ColumnLayout {
                 required property int index
 
                 width: root.cell
+                height: 20
                 horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
                 text: Qt.locale().dayName((root.firstDow + index) % 7, Locale.ShortFormat)
-                color: Theme.accent
-                font.pixelSize: Config.fontSize - 1
-                font.weight: Font.DemiBold
+                color: Colours.alpha(Colours.surfaceText, 0.45)
+                font.pixelSize: Config.fontSize - 3
+                font.weight: Font.Medium
+                font.letterSpacing: 1
+                font.capitalization: Font.AllUppercase
             }
         }
 
         Repeater {
             model: root.cells
 
-            Rectangle {
+            Item {
                 id: day
 
                 required property var modelData
                 readonly property bool inMonth: modelData.getMonth() === root.month
                 readonly property bool isToday: root.sameDay(modelData, root.today)
                 readonly property bool isSelected: root.sameDay(modelData, root.selected)
-                readonly property bool weekend: modelData.getDay() === 0 || modelData.getDay() === 6
                 readonly property var evs: Calendar.eventMap[Calendar.dayKey(modelData)] ?? []
 
                 width: root.cell
                 height: root.cellH
-                radius: Theme.capsule ? height / 2 : Theme.outlined ? 0 : Math.min(Theme.radiusItem + 4, height / 2)
-                color: isToday && !Theme.outlined ? Theme.accent : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
-                border.width: (isToday && Theme.signal) || (isSelected && !isToday) ? 1 : 0
-                border.color: isSelected && !isToday ? Colours.alpha(Theme.accent, 0.8) : Theme.accent
 
-                // Ledger: today is underscored, not filled
-                Rectangle {
-                    visible: day.isToday && Theme.ledger
-                    anchors.bottom: parent.bottom
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    width: 20
-                    height: 2
-                    color: Theme.accent
-                }
-
-                StyledText {
+                Column {
                     anchors.centerIn: parent
-                    anchors.verticalCenterOffset: day.evs.length > 0 ? -3 : 0
-                    text: day.modelData.getDate()
-                    color: day.isToday ? (Theme.outlined ? Theme.accent : Theme.accentText) : !day.inMonth ? Colours.alpha(Colours.surfaceVariantText, 0.35) : day.weekend ? Colours.tertiary : Colours.surfaceText
-                    font.pixelSize: Config.fontSize + 2
-                    font.weight: day.isToday ? Font.Bold : Font.Medium
-                }
-
-                Row {
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: 5
-                    anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 2
-                    opacity: day.inMonth ? 1 : 0.4
 
-                    Repeater {
-                        model: Math.min(3, day.evs.length)
+                    Rectangle {
+                        width: root.disc
+                        height: root.disc
+                        radius: root.disc / 2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        color: day.isToday && !Theme.outlined ? Colours.inverseSurface : hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
+                        border.width: (day.isToday && Theme.outlined) || (day.isSelected && !day.isToday) ? 1 : 0
+                        border.color: Theme.accent
 
-                        Rectangle {
-                            required property int index
+                        StyledText {
+                            anchors.centerIn: parent
+                            text: day.modelData.getDate()
+                            color: day.isToday ? (Theme.outlined ? Theme.accent : Colours.inverseSurfaceText) : day.inMonth ? Colours.surfaceText : Colours.alpha(Colours.surfaceText, 0.3)
+                            font.pixelSize: Config.fontSize
+                            font.weight: day.isToday ? Font.DemiBold : Font.Normal
+                        }
+                    }
 
-                            width: 4
-                            height: 4
-                            radius: 2
-                            color: day.isToday && !Theme.outlined ? Theme.accentText : (day.evs[index].colour || Theme.accent)
+                    Row {
+                        visible: day.evs.length > 0
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        spacing: 2
+                        opacity: day.inMonth ? 1 : 0.3
+
+                        Repeater {
+                            model: Math.min(3, day.evs.length)
+
+                            Rectangle {
+                                required property int index
+
+                                width: 3
+                                height: 3
+                                radius: 1.5
+                                color: day.evs[index].colour || Theme.accent
+                            }
                         }
                     }
                 }
