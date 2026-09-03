@@ -66,6 +66,17 @@ PanelWindow {
         }
     }
 
+    // a workspace change while open (compositor shortcut) is followed: show
+    // that activity and put the selection frame on the new cell
+    onCurrentCellChanged: {
+        if (!active || !currentCell)
+            return;
+        if (currentCell.activity !== Overview.activity)
+            Overview.activity = currentCell.activity;
+        Overview.selX = currentCell.x;
+        Overview.selY = currentCell.y;
+    }
+
     Connections {
         target: Hyprland.toplevels
 
