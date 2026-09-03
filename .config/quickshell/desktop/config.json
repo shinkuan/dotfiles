@@ -3,12 +3,11 @@
         "scale": 0.8
     },
     "appearance": {
-        "style": "rim"
+        "style": "frame"
     },
     "bar": {
         "entries": [
             "kgrid",
-            "window",
             "spacer",
             "media",
             "resources",
@@ -40,7 +39,7 @@
         "joystickHold": 60
     },
     "kgrid": {
-        "hideDelay": 1000,
+        "hideDelay": 250,
         "osd": true
     },
     "launcher": {

@@ -74,8 +74,11 @@ ColumnLayout {
         }
 
         IconButton {
+            readonly property bool atToday: root.month === root.today.getMonth() && root.year === root.today.getFullYear()
+
             icon: "today"
-            visible: root.month !== root.today.getMonth() || root.year !== root.today.getFullYear()
+            disabled: atToday   // keep the slot so the arrows never move
+            opacity: atToday ? 0.35 : 1
             onClicked: {
                 root.month = root.today.getMonth();
                 root.year = root.today.getFullYear();

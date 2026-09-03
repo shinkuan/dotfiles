@@ -101,7 +101,7 @@ Singleton {
                 property bool showResources: true
                 property string position: "left"   // left | right | top
                 // order of bar entries; unknown ids are skipped
-                property list<string> entries: ["kgrid", "window", "spacer", "media", "resources", "tray", "status", "notifications", "clock", "power"]
+                property list<string> entries: ["kgrid", "spacer", "media", "resources", "tray", "status", "notifications", "clock", "power"]
             }
             property JsonObject popouts: JsonObject {
                 property bool showOnHover: true
@@ -113,7 +113,7 @@ Singleton {
             }
             property JsonObject kgrid: JsonObject {
                 property bool osd: true
-                property int hideDelay: 1000
+                property int hideDelay: 250
             }
             property JsonObject desktopClock: JsonObject {
                 property string position: "bottom-right"
