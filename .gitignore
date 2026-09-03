@@ -20,3 +20,6 @@
 # Written by apps run inside nested test sessions
 .config/cava/
 .config/qalculate/
+
+# browser profiles dropped by apps started inside a nested session
+.config/microsoft-edge*/
