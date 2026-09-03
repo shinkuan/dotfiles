@@ -1,7 +1,6 @@
 Popouts 1.0 Popouts.qml
 AudioPopout 1.0 AudioPopout.qml
 NetworkPopout 1.0 NetworkPopout.qml
-VpnPopout 1.0 VpnPopout.qml
 BluetoothPopout 1.0 BluetoothPopout.qml
 CalendarPopout 1.0 CalendarPopout.qml
 ResourcesPopout 1.0 ResourcesPopout.qml

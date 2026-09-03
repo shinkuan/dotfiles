@@ -38,6 +38,9 @@ agent and idle inhibitor. Run with `qs -c desktop` (normally via
 - `modules/popouts/` — `Popouts` container plus one file per popout.
   The network popout connects to saved or open Wi-Fi itself; a secured
   network it does not know opens `nm-connection-editor` instead of prompting.
+  VPN connections (nmcli) live in the same popout; past three, only the
+  active one stays inline and the rest fold. An active VPN shows as a dot on
+  the bar's network icon.
 - `modules/osd/`, `modules/notifications/`, `modules/launcher/`,
   `modules/areapicker/`, `modules/overview/`, `modules/polkit/` — the
   remaining windows.
@@ -82,10 +85,10 @@ Hot-loaded; every key is optional.
 
 | Key | Meaning |
 |---|---|
-| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `frame`, `classic` — tokens live in `config/Theme.qml`. `frame` draws a rounded border around the screen; the bar slides out of its left band on hover (or stays when pinned / `bar.persistent`), and popouts and the OSD grow out of the frame (`modules/shell/frame.frag`, rebuilt with `qsb` after edits) |
+| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `frame`, `classic` — tokens live in `config/Theme.qml`. `frame` draws a rounded border around the screen; the bar slides out of its left band on hover (or stays when pinned / `bar.autoHide: false`), and popouts and the OSD grow out of the frame (`modules/shell/frame.frag`, rebuilt with `qsb` after edits) |
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
-| `bar.width`, `bar.pinThreshold`, `bar.persistent`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it; never hide the bar (default `false`); CPU/memory meters entry; `left`, `right` or `top`; entry order; available ids `kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power` (`window` is not in the default list) |
+| `bar.width`, `bar.pinThreshold`, `bar.autoHide`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it (a drag on the bar pins it until dragged back or `bar unpin`); hide the bar until hovered (default `true`; `false` keeps it out); CPU/memory meters entry; `left`, `right` or `top`; entry order; available ids `kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power` (`window` is not in the default list) |
 | `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
 | `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |
 | `desktopClock.position`, `desktopClock.margin` | `top-left` … `bottom-right` / `bottom-center` |

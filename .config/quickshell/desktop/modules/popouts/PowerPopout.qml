@@ -157,14 +157,6 @@ ColumnLayout {
         }
 
         ToggleTile {
-            icon: "schedule"
-            label: "Desktop clock"
-            detail: ShellState.desktopClock ? "Shown on wallpaper" : "Hidden"
-            checked: ShellState.desktopClock
-            onClicked: ShellState.toggle("desktopClock")
-        }
-
-        ToggleTile {
             icon: Colours.light ? "light_mode" : "dark_mode"
             label: Colours.light ? "Light mode" : "Dark mode"
             detail: "Colour scheme"

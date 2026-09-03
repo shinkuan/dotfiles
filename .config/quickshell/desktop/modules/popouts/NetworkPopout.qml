@@ -9,6 +9,13 @@ import "../../components"
 ColumnLayout {
     id: root
 
+    // VPN lives here too; past three connections only the active (or first)
+    // stay inline and the rest fold, so the popout never grows into a strip
+    readonly property bool foldVpn: Vpn.connections.length > 3
+    readonly property list<var> vpnInline: !foldVpn ? Vpn.connections : Vpn.active.length > 0 ? Vpn.active : Vpn.connections.slice(0, 1)
+    readonly property list<var> vpnRest: foldVpn ? Vpn.connections.filter(c => !vpnInline.includes(c)) : []
+    property bool vpnOpen: false
+
     width: Config.popouts.width
     spacing: 6
 
@@ -105,6 +112,105 @@ ColumnLayout {
                     size: 26
                     iconSize: Config.iconSize - 5
                     onClicked: entry.modelData.forget()
+                }
+            }
+        }
+    }
+    SectionLabel {
+        visible: Vpn.connections.length > 0
+        text: "VPN"
+
+        Chip {
+            visible: Vpn.active.length > 1
+            icon: "link_off"
+            text: "Disconnect all"
+            onClicked: Vpn.disconnectAll()
+        }
+    }
+
+    component VpnRow: ListItem {
+        id: vrow
+
+        required property var modelData
+
+        Layout.fillWidth: true
+        icon: modelData.type === "wireguard" ? "shield" : "vpn_lock"
+        title: modelData.name
+        subtitle: modelData.active ? "Connected" + (modelData.device ? " · " + modelData.device : "") : modelData.type === "wireguard" ? "WireGuard" : "OpenVPN"
+        active: modelData.active
+        accent: Colours.success
+        onClicked: Vpn.toggle(modelData)
+
+        Toggle {
+            checked: vrow.modelData.active
+            onToggled: Vpn.toggle(vrow.modelData)
+        }
+    }
+
+    Repeater {
+        model: root.vpnInline
+
+        VpnRow {}
+    }
+
+    DisclosureRow {
+        visible: root.foldVpn
+        icon: "more_horiz"
+        title: root.vpnOpen ? "Fewer connections" : `${root.vpnRest.length} more`
+        open: root.vpnOpen
+        onClicked: root.vpnOpen = !root.vpnOpen
+    }
+
+    Collapsible {
+        open: root.vpnOpen && root.foldVpn
+
+        // dozens of provider endpoints are common: compact rows, six visible, scroll
+        ListView {
+            id: vpnList
+
+            Layout.fillWidth: true
+            implicitHeight: Math.min(count, 6) * 30
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            model: root.vpnRest
+            spacing: 2
+
+            delegate: Clickable {
+                id: vrest
+
+                required property var modelData
+
+                width: ListView.view.width
+                height: 30
+                radius: Theme.radiusItem
+                baseColor: modelData.active ? Theme.activeFill : "transparent"
+                onClicked: Vpn.toggle(modelData)
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
+                    spacing: 8
+
+                    MaterialIcon {
+                        text: vrest.modelData.type === "wireguard" ? "shield" : "vpn_lock"
+                        font.pixelSize: Config.iconSize - 4
+                        color: vrest.modelData.active ? Theme.activeIcon : Colours.surfaceVariantText
+                    }
+
+                    StyledText {
+                        Layout.fillWidth: true
+                        text: vrest.modelData.name
+                        color: vrest.modelData.active ? Theme.activeText : Colours.surfaceText
+                        font.pixelSize: Config.fontSize - 1
+                    }
+
+                    MaterialIcon {
+                        visible: vrest.modelData.active
+                        text: "check"
+                        font.pixelSize: Config.iconSize - 4
+                        color: Theme.activeIcon
+                    }
                 }
             }
         }

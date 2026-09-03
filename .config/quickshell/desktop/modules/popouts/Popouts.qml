@@ -130,7 +130,6 @@ Item {
     readonly property var registry: ({
         audio: audioComp,
         network: networkComp,
-        vpn: vpnComp,
         bluetooth: bluetoothComp,
         calendar: calendarComp,
         resources: resourcesComp,
@@ -143,7 +142,6 @@ Item {
 
     Component { id: audioComp; AudioPopout {} }
     Component { id: networkComp; NetworkPopout {} }
-    Component { id: vpnComp; VpnPopout {} }
     Component { id: bluetoothComp; BluetoothPopout {} }
     Component { id: calendarComp; CalendarPopout {} }
     Component { id: resourcesComp; ResourcesPopout {} }

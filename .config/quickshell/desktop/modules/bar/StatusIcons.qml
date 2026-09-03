@@ -39,21 +39,27 @@ Grid {
 
         popout: "network"
 
-        MaterialIcon {
-            text: Net.wiredConnected ? "lan" : Net.activeWifi ? Net.signalIcon(Net.activeWifi.signalStrength) : Net.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off"
-            color: Net.connected ? netItem.fg : netItem.fgDim
-        }
-    }
+        Item {
+            width: netIcon.width
+            height: netIcon.height
 
-    BarItem {
-        id: vpnItem
+            MaterialIcon {
+                id: netIcon
 
-        popout: "vpn"
-        visible: Vpn.connections.length > 0
+                text: Net.wiredConnected ? "lan" : Net.activeWifi ? Net.signalIcon(Net.activeWifi.signalStrength) : Net.wifiEnabled ? "signal_wifi_0_bar" : "signal_wifi_off"
+                color: Net.connected ? netItem.fg : netItem.fgDim
+            }
 
-        MaterialIcon {
-            text: Vpn.active.length > 0 ? "vpn_lock" : "vpn_key_off"
-            color: Vpn.active.length > 0 ? vpnItem.fgAccent : vpnItem.fgDim
+            // VPN up: a dot on the network icon, the popout has the details
+            Rectangle {
+                visible: Vpn.active.length > 0
+                x: netIcon.width - 5
+                y: -1
+                width: 7
+                height: 7
+                radius: 3.5
+                color: netItem.fgAccent
+            }
         }
     }
 
