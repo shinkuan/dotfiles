@@ -16,8 +16,9 @@ PanelWindow {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.screen)
     readonly property bool active: Overview.open && (monitor?.focused ?? false)
     readonly property var currentCell: KGrid.parse(monitor?.activeWorkspace?.name ?? "")
-    readonly property real logicalW: monitor ? monitor.width / monitor.scale : root.width
-    readonly property real logicalH: monitor ? monitor.height / monitor.scale : root.height
+    // the overlay spans the monitor, so its own size is the logical screen size (transform included)
+    readonly property real logicalW: root.width > 0 ? root.width : (monitor ? monitor.width / monitor.scale : 1920)
+    readonly property real logicalH: root.height > 0 ? root.height : (monitor ? monitor.height / monitor.scale : 1080)
     readonly property int gap: 10
     readonly property int margin: 48
     readonly property int headerH: 64
@@ -38,7 +39,7 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
     WlrLayershell.keyboardFocus: active ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
-    color: Colours.alpha(Colours.scrim, 0.55)
+    color: Colours.alpha(Colours.surface, 0.97)
 
     anchors {
         top: true

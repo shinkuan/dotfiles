@@ -17,7 +17,7 @@ Rectangle {
     width: overview.cellW
     height: overview.cellH
     radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
-    color: current ? Colours.alpha(Theme.accent, 0.14) : hover.hovered ? Colours.alpha(Colours.surfaceContainerHighest, 0.9) : Colours.alpha(Theme.panel, 0.85)
+    color: current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow
     border.width: current || selected ? (Theme.outlined ? 1 : 2) : 1
     border.color: current ? Theme.accent : selected ? Colours.secondary : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
 

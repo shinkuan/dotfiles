@@ -19,10 +19,11 @@ Item {
     readonly property bool active: overview.active
     readonly property real scale: overview.previewScale
 
-    x: dragging ? dragX : Math.round(win.x * scale)
-    y: dragging ? dragY : Math.round(win.y * scale)
-    width: Math.max(12, Math.round(win.w * scale))
-    height: Math.max(8, Math.round(win.h * scale))
+    // clamped to the cell so partly off-screen windows never spill into neighbours
+    x: dragging ? dragX : Math.max(0, Math.min(Math.round(win.x * scale), parent.width - width))
+    y: dragging ? dragY : Math.max(0, Math.min(Math.round(win.y * scale), parent.height - height))
+    width: Math.max(12, Math.min(Math.round(win.w * scale), parent.width))
+    height: Math.max(8, Math.min(Math.round(win.h * scale), parent.height))
     z: dragging ? 100 : 0
 
     property real dragX: 0
