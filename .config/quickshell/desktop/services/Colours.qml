@@ -7,6 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    readonly property string dir: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/scheme`
     property var palette: ({})
     property var meta: ({})
     readonly property bool light: (meta.mode ?? "dark") === "light"
@@ -63,8 +64,17 @@ Singleton {
         return Qt.rgba(a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, 1);
     }
 
+    // FileView only watches a directory that exists when its path is set; on a
+    // fresh machine the first `scheme` run creates it after the shell starts.
+    Process {
+        command: ["mkdir", "-p", root.dir]
+        running: true
+        onExited: file.path = root.dir + "/colours.json"
+    }
+
     FileView {
-        path: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/scheme/colours.json`
+        id: file
+
         watchChanges: true
         onFileChanged: reload()
         onLoaded: {

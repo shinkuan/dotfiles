@@ -7,6 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
+    readonly property string dir: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/wallpaper`
     property string path: ""
 
     IpcHandler {
@@ -21,8 +22,16 @@ Singleton {
         }
     }
 
+    // see Colours: the directory must exist before the watcher is armed
+    Process {
+        command: ["mkdir", "-p", root.dir]
+        running: true
+        onExited: file.path = root.dir + "/path.txt"
+    }
+
     FileView {
-        path: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/wallpaper/path.txt`
+        id: file
+
         watchChanges: true
         onFileChanged: reload()
         onLoaded: root.path = text().trim()
