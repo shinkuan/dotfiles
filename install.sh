@@ -328,6 +328,12 @@ for group in music gaming containers virtualization; do
     fi
 done
 
+# Applied in Step 6.5 once grub/os-prober are installed; asked here so the rest
+# of the run stays unattended.
+if ask "Configure GRUB for dual boot (os-prober + remember last choice)?"; then
+    SELECTED[grub]=1
+fi
+
 # ---------- Step 3.5: LizardByte repo (sunshine prebuilt) ----------
 if ! grep -q '^\[lizardbyte\]' /etc/pacman.conf; then
     info "Adding lizardbyte pacman repos..."
@@ -408,6 +414,39 @@ if ls /dev/i2c-* &>/dev/null; then
     fi
 else
     warn "no /dev/i2c-* nodes found; external monitor brightness will be unavailable"
+fi
+
+# ---------- Step 6.5: GRUB dual boot ----------
+if [[ -n ${SELECTED[grub]:-} ]]; then
+    if [[ -f /etc/default/grub ]] && command -v grub-mkconfig &>/dev/null; then
+        info "Configuring GRUB (os-prober, saved default)..."
+        # Rewrite the active line if there is one, else uncomment the stock
+        # template line, else append; never touch both and end up with duplicates.
+        set_grub_var() {
+            if grep -qE "^$1=" /etc/default/grub; then
+                sudo sed -i -E "s|^$1=.*|$1=$2|" /etc/default/grub
+            elif grep -qE "^#$1=" /etc/default/grub; then
+                sudo sed -i -E "0,/^#$1=.*/s|^#$1=.*|$1=$2|" /etc/default/grub
+            else
+                echo "$1=$2" | sudo tee -a /etc/default/grub >/dev/null
+            fi
+        }
+        set_grub_var GRUB_DISABLE_OS_PROBER false
+        # GRUB_SAVEDEFAULT writes grubenv at boot time, which only works when /boot is on FAT (the ESP).
+        if [[ $(findmnt -no FSTYPE --target /boot/grub) == vfat ]]; then
+            set_grub_var GRUB_DEFAULT saved
+            set_grub_var GRUB_SAVEDEFAULT true
+        else
+            warn "/boot is not on FAT; skipping GRUB_SAVEDEFAULT (grubenv is not writable there)"
+        fi
+        if sudo grub-mkconfig -o /boot/grub/grub.cfg; then
+            success "GRUB menu regenerated (Windows entries via os-prober)"
+        else
+            warn "grub-mkconfig failed"
+        fi
+    else
+        warn "GRUB not installed on this system; skipping dual-boot setup"
+    fi
 fi
 
 fi  # LINK_ONLY
