@@ -118,7 +118,11 @@ PanelWindow {
         shown = out;
     }
 
+    // the move is already dispatched, so pull the new geometry at once and
+    // again once Hyprland has settled: the preview's bindings come back at
+    // 150 ms and should find the window where it ended up, not where it was
     function refreshSoon(): void {
+        Overview.refresh();
         refreshLater.restart();
         forgetMoved.restart();
     }

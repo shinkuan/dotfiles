@@ -33,6 +33,7 @@ Item {
     readonly property real initX: (cell ? (cell.x - 1) * (overview.cellW + overview.gap) : 0) + Math.max(0, Math.min(Math.round(relX * scale), overview.cellW - targetW))
     readonly property real initY: (cell ? (cell.y - 1) * (overview.cellH + overview.gap) : 0) + Math.max(0, Math.min(Math.round(relY * scale), overview.cellH - targetH))
     readonly property bool dragging: overview.dragWin === root
+    readonly property bool atInit: x === initX && y === initY
     readonly property bool compact: Math.min(targetW, targetH) < Config.fontSize * 4
     readonly property var entry: DesktopEntries.heuristicLookup(cls)
     readonly property string icon: Quickshell.iconPath(entry?.icon ?? cls, "application-x-executable")
@@ -41,36 +42,43 @@ Item {
     y: initY
     width: targetW
     height: targetH
-    z: dragging ? 1000 : index
+    // raised until it is back on its bound position, so one still coasting
+    // home passes over the previews already sitting in their cells
+    z: atInit ? index : 1000
     Drag.active: input.drag.active
 
+    // One motion for position and size, left running while dragging: the
+    // preview trails the pointer and then coasts into its slot on the same
+    // curve, instead of being glued to the cursor and springing off it.
     Behavior on x {
-        enabled: !root.dragging
         NumberAnimation {
-            duration: Theme.spatialDuration
-            easing.type: Theme.spatialType
-            easing.bezierCurve: Theme.spatialCurve
+            duration: Theme.dragDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.dragCurve
         }
     }
 
     Behavior on y {
-        enabled: !root.dragging
         NumberAnimation {
-            duration: Theme.spatialDuration
-            easing.type: Theme.spatialType
-            easing.bezierCurve: Theme.spatialCurve
+            duration: Theme.dragDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.dragCurve
         }
     }
 
     Behavior on width {
         NumberAnimation {
-            duration: Config.animDuration
+            duration: Theme.dragDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.dragCurve
         }
     }
 
     Behavior on height {
         NumberAnimation {
-            duration: Config.animDuration
+            duration: Theme.dragDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.dragCurve
         }
     }
 

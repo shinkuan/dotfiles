@@ -69,6 +69,11 @@ Singleton {
     readonly property int spatialType: frame ? Easing.BezierSpline : Easing.OutCubic
     readonly property list<real> spatialCurve: [0.38, 1.21, 0.22, 1.0, 1, 1]
 
+    // motion: emphasized decelerate, for something the pointer drags and lets
+    // go of — no overshoot, so it coasts to a stop instead of springing back
+    readonly property int dragDuration: Math.round(400 * Config.animSpeed)
+    readonly property list<real> dragCurve: [0.05, 0.7, 0.1, 1.0, 1, 1]
+
     // bar
     readonly property bool barTop: Config.bar.position === "top"
     readonly property bool barRight: Config.bar.position === "right"

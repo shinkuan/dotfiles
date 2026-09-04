@@ -27,8 +27,16 @@ mid-drag shows that activity without moving the desktop.
   scaled by `previewScale` and clamped into its cell), so a window that moves
   glides to its new place. The preview is its own drag source
   (`drag.target`); on release it asks KGrid to move the window, remembers it
-  as `overview.moved` so it stays in the model until the next refresh, and
-  restores the position bindings 150 ms later.
+  as `overview.moved` so it stays in the model until the next refresh, pulls
+  the new geometry straight away, and restores the position bindings 150 ms
+  later.
+- Drag feel, kept as the old standalone overview had it: x, y, width and
+  height share one motion (`Theme.dragDuration` / `dragCurve`, an emphasized
+  decelerate with no overshoot) and it stays *on* during the drag, so the
+  preview trails the pointer and then coasts into its slot on the same curve
+  rather than sticking to the cursor and springing off it. A preview is
+  raised above the others until it is back on its bound position
+  (`atInit`), not just while the button is down.
 - The window list is a `ScriptModel` (`overview.shown`), rebuilt on toplevel
   changes, activity changes and a 700 ms poll while open. `ScriptModel`
   keeps delegates for values that stay in the list, which is what lets a
