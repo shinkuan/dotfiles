@@ -229,9 +229,6 @@ bind("CTRL + ALT + Z", function()
     hl.exec_cmd([[hyprctl eval "hl.config({ binds = { disable_keybind_grabbing = $(hyprctl getoption binds.disable_keybind_grabbing -j | jq -r '.int == 0') } })"]])
 end)
 
--- Game Mode
-bind("SUPER + ALT + G", dsp.exec_cmd(V.gamemode_toggle))
-
 -- Sunshine
 bind("SUPER + ALT + S", dsp.exec_cmd("pkill sunshine || " .. os.getenv("HOME") .. "/.local/bin/sunshine.sh"))
 
