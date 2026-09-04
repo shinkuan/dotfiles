@@ -9,3 +9,4 @@ KGridPopout 1.0 KGridPopout.qml
 NotificationsPopout 1.0 NotificationsPopout.qml
 MediaPopout 1.0 MediaPopout.qml
 WindowPopout 1.0 WindowPopout.qml
+TrayMenuPopout 1.0 TrayMenuPopout.qml

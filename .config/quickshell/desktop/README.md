@@ -36,6 +36,9 @@ agent and idle inhibitor. Run with `qs -c desktop` (normally via
 - `modules/bar/` — bar entries (`BarItem` marks hoverable entries with a
   `popout` id).
 - `modules/popouts/` — `Popouts` container plus one file per popout.
+  Tray icons get one popout each (`tray:<item id>`, `TrayMenuPopout`):
+  hovering an icon shows the app's DBus menu, submenus drill down behind
+  a back row; left click activates the app, right click pins the menu.
   The network popout connects to saved or open Wi-Fi itself; a secured
   network it does not know opens `nm-connection-editor` instead of prompting.
   VPN connections (nmcli) live in the same popout; past three, only the
@@ -88,7 +91,7 @@ Hot-loaded; every key is optional.
 | `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `frame`, `classic` — tokens live in `config/Theme.qml`. `frame` draws a rounded border around the screen; the bar slides out of its left band on hover (or stays when pinned / `bar.autoHide: false`), and popouts and the OSD grow out of the frame (`modules/shell/frame.frag`, rebuilt with `qsb` after edits) |
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
-| `bar.width`, `bar.pinThreshold`, `bar.autoHide`, `bar.trayCompact`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it (a drag on the bar pins it until dragged back or `bar unpin`); hide the bar until hovered (default `true`; `false` keeps it out); fold tray icons behind a chevron that unfolds while hovered (default `true`); CPU/memory meters entry; `left`, `right` or `top`; entry order; available ids `kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power` (default: `kgrid`, `spacer`, `tray`, `status`, `clock`, `power`; media, usage and notifications live in the dashboard) |
+| `bar.width`, `bar.pinThreshold`, `bar.autoHide`, `bar.trayCompact`, `bar.showResources`, `bar.position`, `bar.entries` | bar thickness; drag distance that pins it (a drag on the bar pins it until dragged back or `bar unpin`); hide the bar until hovered (default `true`; `false` keeps it out); fold tray icons behind a chevron that unfolds while hovered or while one of their menus is out (default `true`); CPU/memory meters entry; `left`, `right` or `top`; entry order; available ids `kgrid`, `window`, `spacer`, `media`, `resources`, `tray`, `status`, `notifications`, `clock`, `power` (default: `kgrid`, `spacer`, `tray`, `status`, `clock`, `power`; media, usage and notifications live in the dashboard) |
 | `dashboard.showOnHover`, `dashboard.hotspot`, `dashboard.width` | top-centre panel laid out as tiles: clock, date, latest notifications and the do-not-disturb switch down the left; month calendar over now-playing and CPU/memory/GPU rings in the middle; the day's agenda over the task list on the right. Revealed when the pointer touches the top edge inside a `hotspot` px wide strip (default `true`, 480), or with `SUPER+G` / `qs -c desktop ipc call dashboard toggle`; panel width (default 1160). In frame style it grows out of the top band |
 | `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
 | `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |

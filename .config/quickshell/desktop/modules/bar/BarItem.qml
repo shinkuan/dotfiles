@@ -9,6 +9,7 @@ Rectangle {
 
     property string popout: ""
     property bool shown: true   // entry wants to be in the bar (Item.visible is effective, not own)
+    property bool pinOnClick: true   // left click keeps the popout open until Esc / a click elsewhere
     property int spacing: 2
     default property alias content: grid.data
     readonly property alias hovered: hover.hovered
@@ -41,6 +42,13 @@ Rectangle {
     readonly property color fgAccent: filled ? Theme.accentText : Theme.accent
 
     signal clicked(var mouse)
+
+    function pin(): void {
+        if (popout === "" || !bar)
+            return;
+        ShellState.activeEntry = root;
+        bar.itemClicked(popout, horizontal ? mapToItem(bar, width / 2, 0).x : mapToItem(bar, 0, height / 2).y);
+    }
 
     implicitWidth: horizontal ? Math.max(Theme.barWidth - 8, grid.implicitWidth + 14) : Theme.barWidth - 8
     implicitHeight: horizontal ? Theme.barWidth - 8 : grid.implicitHeight + 10
@@ -117,11 +125,8 @@ Rectangle {
         }
         onClicked: m => {
             root.clicked(m);
-            // left click keeps the popout open until Esc / a click elsewhere
-            if (m.button === Qt.LeftButton && root.popout !== "" && root.bar) {
-                ShellState.activeEntry = root;
-                root.bar.itemClicked(root.popout, root.horizontal ? root.mapToItem(root.bar, root.width / 2, 0).x : root.mapToItem(root.bar, 0, root.height / 2).y);
-            }
+            if (m.button === Qt.LeftButton && root.pinOnClick)
+                root.pin();
         }
     }
 }

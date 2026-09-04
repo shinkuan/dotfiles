@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell.Hyprland
+import Quickshell.Services.SystemTray
 import "../../config"
 import "../../services"
 import "../../components"
@@ -17,6 +18,7 @@ Item {
     property bool shortcutActive: false
     property bool keyboardOpened: false
     property real barEdge: 0
+    property SystemTrayItem trayItem: null   // owner of an open "tray:<id>" popout
     readonly property bool shown: current !== ""
     readonly property bool needsKeyboard: loader.item?.needsKeyboard ?? false
     readonly property int gap: Theme.frame ? 0 : 6
@@ -72,10 +74,21 @@ Item {
         }
     }
 
+    // tray menus are not in the registry: one popout per item, "tray:<item id>"
+    function componentFor(id: string): var {
+        return id.startsWith("tray:") ? trayComp : registry[id];
+    }
+
     function open(id: string, y: real): void {
-        if (registry[id] === undefined) {
+        if (componentFor(id) === undefined) {
             console.warn("Popouts: unknown popout", id);
             return;
+        }
+        if (id.startsWith("tray:")) {
+            const item = SystemTray.items.values.find(i => "tray:" + i.id === id);
+            if (!item)
+                return;
+            trayItem = item;
         }
         closeGrace.stop();
         if (retracting && id !== loaded) {
@@ -150,6 +163,7 @@ Item {
     Component { id: notificationsComp; NotificationsPopout {} }
     Component { id: mediaComp; MediaPopout {} }
     Component { id: windowComp; WindowPopout {} }
+    Component { id: trayComp; TrayMenuPopout { item: root.trayItem } }
 
     Surface {
         id: panel
@@ -227,7 +241,7 @@ Item {
 
             x: Config.padding
             y: Config.padding
-            sourceComponent: root.loaded !== "" ? root.registry[root.loaded] : null
+            sourceComponent: root.loaded !== "" ? root.componentFor(root.loaded) : null
             // content swapped while the panel is out fades in as it morphs
             onLoaded: {
                 if (root.shown)

@@ -6,16 +6,23 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-// Tray icons fold behind a chevron (bar.trayCompact) and unfold while hovered.
+// Tray icons fold behind a chevron (bar.trayCompact) and unfold while hovered;
+// hovering an icon opens its menu as a popout (see TrayMenuPopout).
 Grid {
     id: root
 
     readonly property bool shown: SystemTray.items.values.length > 0
     readonly property bool compact: Config.bar.trayCompact
     readonly property bool horizontal: Theme.barTop
+    readonly property Item bar: {
+        let p = parent;
+        while (p && p.activePopout === undefined)
+            p = p.parent;
+        return p;
+    }
+    readonly property bool menuOut: (bar?.activePopout ?? "").startsWith("tray:")
     property bool open: false
-    property bool menuOpen: false   // an open tray menu keeps the icons out
-    readonly property bool expanded: !compact || open || menuOpen
+    readonly property bool expanded: !compact || open || menuOut
 
     flow: horizontal ? Grid.LeftToRight : Grid.TopToBottom
     columns: horizontal ? 99 : 1
@@ -126,81 +133,32 @@ Grid {
             Repeater {
                 model: SystemTray.items
 
-                Rectangle {
+                BarItem {
                     id: slot
 
                     required property SystemTrayItem modelData
 
-                    width: root.horizontal ? 30 : Theme.barWidth - 8
-                    height: root.horizontal ? Theme.barWidth - 8 : 30
-                    radius: Config.radius
-                    color: hover.hovered ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
+                    // folded icons must not own a popout or the bar's hover hit test would find them
+                    popout: root.expanded && modelData.hasMenu ? "tray:" + modelData.id : ""
+                    pinOnClick: false
 
                     IconImage {
-                        anchors.centerIn: parent
                         implicitSize: Config.iconSize - 2
                         source: slot.modelData.icon
                         asynchronous: true
-                    }
-
-                    HoverHandler {
-                        id: hover
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                        onClicked: mouse => {
-                            if (mouse.button === Qt.LeftButton && !slot.modelData.onlyMenu)
-                                slot.modelData.activate();
-                            else if (mouse.button === Qt.MiddleButton)
-                                slot.modelData.secondaryActivate();
-                            else if (slot.modelData.hasMenu)
-                                menuAnchor.open();
-                        }
                     }
 
                     WheelHandler {
                         onWheel: e => slot.modelData.scroll(e.angleDelta.y, false)
                     }
 
-                    Rectangle {
-                        visible: hover.hovered && (slot.modelData.tooltipTitle || slot.modelData.title)
-                        anchors.left: Theme.barTop || Theme.barRight ? undefined : parent.right
-                        anchors.right: Theme.barRight ? parent.left : undefined
-                        anchors.leftMargin: 10
-                        anchors.rightMargin: 10
-                        anchors.verticalCenter: Theme.barTop ? undefined : parent.verticalCenter
-                        anchors.top: Theme.barTop ? parent.bottom : undefined
-                        anchors.topMargin: 10
-                        anchors.horizontalCenter: Theme.barTop ? parent.horizontalCenter : undefined
-                        width: tip.implicitWidth + 16
-                        height: tip.implicitHeight + 10
-                        radius: 8
-                        color: Colours.alpha(Colours.inverseSurface, 0.95)
-                        z: 10
-
-                        StyledText {
-                            id: tip
-
-                            anchors.centerIn: parent
-                            text: slot.modelData.tooltipTitle || slot.modelData.title
-                            color: Colours.inverseSurfaceText
-                            font.pixelSize: Config.fontSize - 1
-                        }
-                    }
-
-                    QsMenuAnchor {
-                        id: menuAnchor
-
-                        menu: slot.modelData.menu
-                        anchor.item: slot
-                        anchor.edges: Theme.barTop ? Edges.Bottom : Theme.barRight ? Edges.Left : Edges.Right
-                        anchor.gravity: Theme.barTop ? Edges.Bottom : Theme.barRight ? Edges.Left : Edges.Right
-                        anchor.margins.left: Theme.barTop || Theme.barRight ? 0 : 8
-                        anchor.margins.right: Theme.barRight ? 8 : 0
-                        anchor.margins.top: Theme.barTop ? 8 : 0
-                        onVisibleChanged: root.menuOpen = visible
+                    onClicked: m => {
+                        if (m.button === Qt.LeftButton && !slot.modelData.onlyMenu)
+                            slot.modelData.activate();
+                        else if (m.button === Qt.MiddleButton)
+                            slot.modelData.secondaryActivate();
+                        else
+                            slot.pin();
                     }
                 }
             }
