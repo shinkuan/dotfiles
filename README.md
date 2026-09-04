@@ -69,6 +69,13 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
   數學式子直接輸入也會算。
 - **Overview**(`Super+Tab`):目前 activity 的 5×5 格子 + 即時視窗預覽;點格子切換、
   點視窗聚焦、中鍵關閉、拖曳視窗到別的格子;方向鍵 / Enter / Tab / 字母鍵切 activity。
+- **Dashboard**(`Super+G`,或滑鼠碰螢幕上緣中央):時鐘 / 日期 / 最新通知 + 勿擾在左,
+  月曆、正在播放、CPU/記憶體/GPU 環圈在中間,當天議程與待辦清單在右。
+- **Summon deck**(`Super+D` 在滑鼠位置、`Super+Shift+D` 在螢幕中央):時鐘、KGrid 格子、
+  音量 / 亮度、播放控制與 launcher 入口,叫出來時滑鼠正好在正中心。
+- **月曆與待辦**:讀本機 ICS 目錄,設了 `calendar.url` / `calendar.username` 就再接 CalDAV
+  伺服器(自架 Radicale 等);密碼用 `desktop-calendar set-password` 存進 systemd-creds。
+  在 dashboard 勾待辦會寫回伺服器。細節見 `.config/quickshell/desktop/README.md`。
 - **區域截圖**(`Print`、`Super+Shift+S`;`Super+Shift+Alt+S` 直接進剪貼簿):凍結畫面後拖選,
   滑到視窗上會自動吸附,Space 切換 satty / 剪貼簿,Esc 取消。
 - **桌面時鐘**:桌布上的時鐘,電源 popout 或 `qs -c desktop ipc call desktopClock toggle` 開關。
@@ -77,8 +84,10 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 - **Polkit 代理**在 shell 內;shell 掛掉時手動跑 `polkit-fallback`。
 
 設定檔:`.config/quickshell/desktop/config.json`,存檔即時生效。`appearance.style` 切換視覺風格:
-`rim`(預設,深漆面板 + 受光鑲邊)、`ledger`(規線帳冊、等寬標籤)、`capsule`(懸浮膠囊 dock、pill 列)、
-`signal`(HUD 角標、分段量表)、`poster`(實心色塊、粗線標題)、`classic`。
+`frame`(repo 出貨值:整個螢幕一圈圓角外框,bar 從左側帶滑出,popout / OSD / dashboard 直接
+從外框長出來)、`rim`(深漆面板 + 受光鑲邊)、`ledger`(規線帳冊、等寬標籤)、
+`capsule`(懸浮膠囊 dock、pill 列)、`signal`(HUD 角標、分段量表)、
+`poster`(實心色塊、粗線標題)、`classic`。
 `bar.position` 可設 `left`(預設)、`right` 或 `top`(水平 bar,popout 從下方彈出);`bar.entries` 決定模組順序與取捨。
 不想改檔案的話:launcher 打 `>style`,或 `qs -c desktop ipc call theme set rim`(`theme cycle` 輪流切;這會由 shell 回寫 config.json,只保留它認得的鍵)。
 色票由 `scheme` / `wallpaper` 產生,shell 熱載入 `$XDG_STATE_HOME/scheme/colours.json`。
@@ -90,6 +99,8 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 | `Super`(單擊)/ `Super+Space` / `Super+B` | Launcher |
 | `Super+V` | 剪貼簿歷史 |
 | `Super+Tab` | Overview |
+| `Super+G` | Dashboard |
+| `Super+D` / `Super+Shift+D` | Summon deck(滑鼠位置 / 螢幕中央) |
 | `Ctrl+Alt+Delete` / `Super+Esc` | 電源 / session 選單 |
 | `Ctrl+Alt+N` | 通知中心;`Ctrl+Alt+C` 清空通知 |
 | `Ctrl+Super+{Z,X,C,A,S,D,Q,W,E,Space}` | 切換 KGrid activity(`Space` = main) |
