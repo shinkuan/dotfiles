@@ -40,6 +40,18 @@ M.activities = {}
 for i, d in ipairs(M.defs) do M.activities[i] = d.id end
 M.W, M.H = 5, 5
 
+-- Lua's %q escapes for Lua, not JSON: it emits decimal byte escapes that no
+-- JSON parser accepts, which would break any non-ASCII label (a Nerd Font
+-- glyph). UTF-8 bytes are passed through untouched; JSON is UTF-8 already.
+local JSON_ESC = { ['"'] = '\\"', ['\\'] = '\\\\', ['\b'] = '\\b', ['\f'] = '\\f',
+                   ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
+
+local function json_string(s)
+    return '"' .. tostring(s):gsub('[%c"\\]', function(c)
+        return JSON_ESC[c] or string.format('\\u%04x', c:byte())
+    end) .. '"'
+end
+
 -- Single source of truth for the shell: $XDG_RUNTIME_DIR/hypr/<sig>/kgrid.json
 local function export_json()
     local runtime, sig = os.getenv("XDG_RUNTIME_DIR"), os.getenv("HYPRLAND_INSTANCE_SIGNATURE")
@@ -48,7 +60,7 @@ local function export_json()
     if not f then return end
     local parts = {}
     for i, d in ipairs(M.defs) do
-        parts[i] = string.format('{"id":%q,"label":%q}', d.id, d.label)
+        parts[i] = string.format('{"id":%s,"label":%s}', json_string(d.id), json_string(d.label))
     end
     f:write(string.format('{"W":%d,"H":%d,"activities":[%s]}\n', M.W, M.H, table.concat(parts, ",")))
     f:close()
