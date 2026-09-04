@@ -127,6 +127,7 @@ PACKAGES=(
     libqalculate
     unicode-emoji             # launcher emoji picker data
     yad
+    zenity                    # GUI sudo prompt for the hyprpm plugin sync
 
     # ----- File manager / GUI utilities -----
     nautilus
