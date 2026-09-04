@@ -4,8 +4,9 @@ import "../../services"
 import "../../components"
 
 // One grid cell: a translucent miniature of the monitor. Click to go there; while a
-// window is dragged it is a drop target. The windows themselves are drawn
-// over the whole grid by the overview.
+// window is dragged it is a drop target. The pointer never moves the selection —
+// that is the keyboard's job. The windows themselves are drawn over the whole
+// grid by the overview.
 Rectangle {
     id: root
 
@@ -18,7 +19,7 @@ Rectangle {
     width: overview.cellW
     height: overview.cellH
     radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
-    color: Colours.alpha(dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : hover.hovered ? Colours.surfaceContainerHigh : Colours.surfaceContainerLow, overview.translucency)
+    color: Colours.alpha(dropTarget ? Colours.mix(Colours.surfaceContainerHigh, Theme.accent, 0.28) : current ? Colours.mix(Colours.surfaceContainerLow, Theme.accent, 0.14) : Colours.surfaceContainerLow, overview.translucency)
     // the selection frame is drawn by the overview and glides between cells
     border.width: current || dropTarget ? (Theme.outlined ? 1 : 2) : 1
     border.color: dropTarget || current ? Theme.accent : Theme.ledger ? Colours.outlineVariant : Colours.alpha(Colours.outlineVariant, 0.6)
@@ -29,24 +30,14 @@ Rectangle {
         }
     }
 
-    HoverHandler {
-        id: hover
-
-        onHoveredChanged: {
-            if (hovered) {
-                Overview.selX = root.cx;
-                Overview.selY = root.cy;
-            }
-        }
-    }
-
     MouseArea {
         anchors.fill: parent
         onClicked: {
             if (root.overview.dragWin)
                 return;
-            KGrid.switchTo(Overview.activity, root.cx, root.cy);
-            Overview.hide();
+            Overview.selX = root.cx;
+            Overview.selY = root.cy;
+            Overview.go();
         }
     }
 

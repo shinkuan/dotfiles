@@ -5,6 +5,8 @@ import "../../services"
 import "../../components"
 
 // Activity label + cell grid, shown briefly when this monitor changes cell.
+// Silent while the overview is up: walking its grid changes the cell on every
+// key, and it already draws the same thing much bigger.
 Item {
     id: root
 
@@ -20,7 +22,7 @@ Item {
 
     onWsNameChanged: {
         const c = KGrid.parse(wsName);
-        if (!c || !ready || !Config.kgrid.osd)
+        if (!c || !ready || !Config.kgrid.osd || Overview.open)
             return;
         cell = c;
         occupancy = KGrid.occupancy(c.activity);

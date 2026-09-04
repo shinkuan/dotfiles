@@ -2,14 +2,25 @@
 
 Full-screen overlay showing one activity's KGrid cell grid with live window
 previews. `services/Overview.qml` holds the state (open, shown activity,
-keyboard selection) and the `overview` IPC target; `OverviewWindow.qml` is the
-per-monitor window.
+selected cell, the cell it was opened on) and the `overview` IPC target;
+`OverviewWindow.qml` is the per-monitor window.
+
+The selection is not a preview of where you *could* go — it is the current
+workspace. `show()` puts it on the cell the overview was opened from, every
+`moveSelection` / `setActivity` calls `follow()`, which switches the compositor
+to the selected cell unless it is already there, and `OverviewWindow`'s
+`onCurrentCellChanged` syncs the selection back when the workspace changes for
+any other reason. So Enter (`go()`) only has to close, and Esc (`cancel()`)
+returns to `Overview.origin`. A drag preview assigns `Overview.activity`
+directly instead of going through `setActivity`, so hovering an activity chip
+mid-drag shows that activity without moving the desktop.
 
 ## How it is put together
 
-- `WorkspaceCell` is one flat cell of the grid: a click switches to that
-  workspace, its `DropArea` makes it a drop target while a preview is dragged
-  (`overview.dropCell`), hovering moves the keyboard selection.
+- `WorkspaceCell` is one flat cell of the grid: a click selects it and goes
+  there, its `DropArea` makes it a drop target while a preview is dragged
+  (`overview.dropCell`). Nothing reacts to plain hovering — the pointer only
+  clicks and drags.
 - `WindowPreview` is one window, drawn in a layer over the *whole* grid, not
   inside a cell. Its position comes from bindings on the toplevel's
   `lastIpcObject` (`at` / `size`, relative to the window's own monitor,

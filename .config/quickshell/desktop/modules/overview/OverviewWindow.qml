@@ -10,8 +10,10 @@ import "../../components"
 // Full-screen translucent layer on the focused monitor (the compositor blurs
 // the desktop behind it) showing one activity's cell grid with live window
 // previews drawn over it and a selection frame that glides between cells.
-// Keyboard: arrows select, Enter/Space go, Tab / letters change activity
-// (also mid-drag), Esc closes.
+// The selection is the live workspace: arrows walk the grid and the desktop
+// walks with them, Enter/Space keeps the cell and closes, Tab / letters change
+// activity, Esc goes back to where the overview was opened. The pointer only
+// clicks and drags — hovering never moves the selection.
 PanelWindow {
     id: root
 
@@ -155,7 +157,7 @@ PanelWindow {
 
     MouseArea {
         anchors.fill: parent
-        onClicked: Overview.hide()
+        onClicked: Overview.cancel()
     }
 
     Item {
@@ -187,7 +189,7 @@ PanelWindow {
                             checked: Overview.activity === modelData.id
                             accent: root.currentCell?.activity === modelData.id ? Theme.accent : Colours.secondaryContainer
                             accentText: root.currentCell?.activity === modelData.id ? Theme.accentText : Colours.secondaryContainerText
-                            onClicked: Overview.activity = modelData.id
+                            onClicked: Overview.setActivity(modelData.id)
 
                             DropArea {
                                 anchors.fill: parent
@@ -202,7 +204,7 @@ PanelWindow {
                 }
 
                 StyledText {
-                    text: "↑↓←→ select · Enter go · Tab activity · drag windows between cells · Esc"
+                    text: "↑↓←→ switch · Enter keep · Tab activity · drag windows between cells · Esc back"
                     color: Colours.alpha(Colours.surfaceText, 0.7)
                     font.pixelSize: Config.fontSize - 1
                 }
@@ -233,7 +235,8 @@ PanelWindow {
                     }
                 }
 
-                // keyboard / hover selection: one frame that glides between cells
+                // keyboard selection, which is also the live workspace: one
+                // frame that glides between cells
                 Rectangle {
                     x: (Overview.selX - 1) * (root.cellW + root.gap)
                     y: (Overview.selY - 1) * (root.cellH + root.gap)
@@ -243,7 +246,7 @@ PanelWindow {
                     radius: Theme.capsule ? 18 : Theme.outlined ? 0 : Theme.radiusItem
                     color: "transparent"
                     border.width: 2
-                    border.color: Colours.secondary
+                    border.color: Theme.accent
 
                     Behavior on x {
                         enabled: root.active
@@ -287,7 +290,7 @@ PanelWindow {
         Keys.onPressed: event => {
             switch (event.key) {
             case Qt.Key_Escape:
-                Overview.hide();
+                Overview.cancel();
                 break;
             case Qt.Key_Left:
             case Qt.Key_H:
@@ -320,7 +323,7 @@ PanelWindow {
                 const id = KGrid.activities.find(a => a.id.toLowerCase() === event.text.toLowerCase() && event.text !== "");
                 if (!id)
                     return;
-                Overview.activity = id.id;
+                Overview.setActivity(id.id);
             }
             }
             event.accepted = true;

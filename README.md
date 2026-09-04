@@ -68,8 +68,10 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 - **Launcher**(`Super` 單擊 / `Super+Space`):app 搜尋、`>` 動作(色票 / variant / 桌布 /
   明暗 / 電源…,定義在 `config.json`)、`=` 計算(qalc)、`;` 剪貼簿歷史(cliphist,含圖片縮圖)、`:` emoji(複製並輸入)。
   數學式子直接輸入也會算。
-- **Overview**(`Super+Tab`):目前 activity 的 5×5 格子 + 即時視窗預覽;點格子切換、
-  點視窗聚焦、中鍵關閉、拖曳視窗到別的格子;方向鍵 / Enter / Tab / 字母鍵切 activity。
+- **Overview**(`Super+Tab`):目前 activity 的 5×5 格子 + 即時視窗預覽。選取格從目前
+  workspace 開始,方向鍵移動時桌面**跟著真的切過去**,Enter 留在選中的格子並關閉,
+  Esc 回到打開時的格子;Tab / 字母鍵換 activity(同樣會切過去)。滑鼠只負責點與拖:
+  點格子切換、點視窗聚焦、中鍵關閉、拖曳視窗到別的格子,hover 不會改變選取。
 - **Dashboard**(`Super+G`,或滑鼠碰螢幕上緣中央):時鐘 / 日期 / 最新通知 + 勿擾在左,
   月曆、正在播放、CPU/記憶體/GPU 環圈在中間,當天議程與待辦清單在右。
 - **Summon deck**(`Super+D` 在滑鼠位置、`Super+Shift+D` 在螢幕中央):時鐘、KGrid 格子、
