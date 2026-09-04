@@ -18,10 +18,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("wl-paste --type image --watch cliphist store")
 
     -- Shell, idle daemon and controller watcher run as user services so a
-    -- crash only costs a restart. Skipped in nested sessions (WAYLAND_DISPLAY
-    -- is only inherited inside another compositor), where the shell under
-    -- test is started by hand and the session must not lock.
-    if not os.getenv("WAYLAND_DISPLAY") then
+    -- crash only costs a restart. Skipped in nested test sessions, where the
+    -- shell under test is started by hand and the session must not lock.
+    -- Hyprland replaces WAYLAND_DISPLAY with its *own* socket before this
+    -- runs, so nesting can only be told from a marker the launcher sets.
+    if not os.getenv("DOTFILES_NESTED") then
         hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE"
             .. " XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP XDG_CONFIG_HOME"
             .. " && systemctl --user restart desktop-shell.service hypridle.service joystick-idle-watch.service")

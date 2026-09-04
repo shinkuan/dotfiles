@@ -29,6 +29,9 @@ fi
 export XDG_CONFIG_HOME="$REPO_ROOT/.config"
 export XDG_STATE_HOME="/tmp/$USER-$NAME-state"
 export XDG_CACHE_HOME="/tmp/$USER-$NAME-cache"
+# execs.lua skips the session services on this; Hyprland overwrites
+# WAYLAND_DISPLAY with its own socket, so it cannot detect nesting itself.
+export DOTFILES_NESTED=1
 mkdir -p "$XDG_STATE_HOME" "$XDG_CACHE_HOME"
 
 echo "nested session: config=$CONFIG"
