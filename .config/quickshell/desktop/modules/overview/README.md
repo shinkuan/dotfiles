@@ -37,4 +37,11 @@ mid-drag shows that activity without moving the desktop.
 - Captures are plain `ScreencopyView`s with a 1 px `MultiEffect` blur on
   top; no opaque backing, so a translucent window shows the cell colour
   through. The app icon sits centred on every preview.
+- The capture fills its frame rather than fitting inside it: a
+  `ScreencopyView` keeps the window's aspect within its own rect, so the pair
+  sits in a `fit` Item laid out at that aspect (big enough to cover the
+  frame) and a `Scale` transform squeezes it onto the frame — only ever
+  shrinking, so nothing is upscaled. Ratios only differ while a dropped
+  window animates to its new size, and there the image now stretches with
+  the frame instead of floating inside it.
 - Stacking: pinned above floating above tiled, most recently focused on top.

@@ -88,6 +88,8 @@ Item {
     }
 
     Rectangle {
+        id: frame
+
         anchors.fill: parent
         radius: Theme.capsule ? 8 : Theme.outlined ? 0 : 6
         color: input.pressed && !root.dragging ? Colours.alpha(Theme.accent, 0.2) : hover.hovered || root.dragging ? Colours.alpha(Colours.surfaceText, 0.08) : "transparent"
@@ -101,23 +103,51 @@ Item {
             }
         }
 
-        ScreencopyView {
-            id: capture
+        // The capture keeps the window's aspect inside its own rect, so it is
+        // laid out at that aspect — large enough to cover the frame — and
+        // squeezed onto the frame by a scale. It therefore fills the frame at
+        // every ratio: while a dropped window animates to the size Hyprland
+        // gave it, the image stretches with the frame instead of sitting in it
+        // as a mismatched inset.
+        Item {
+            id: fit
 
-            anchors.fill: parent
-            anchors.margins: 1
-            captureSource: root.overview.active ? root.modelData.wayland : null
-            live: root.overview.active
-            paintCursor: false
-        }
+            readonly property real aspect: {
+                const s = capture.sourceSize;
+                if (s.height > 0)
+                    return s.width / s.height;
+                const g = root.ipc?.size;
+                return g && g[1] > 0 ? g[0] / g[1] : 1;
+            }
 
-        // a whisper of blur takes the aliasing out of the shrunk capture
-        MultiEffect {
-            anchors.fill: capture
-            source: capture
-            blurEnabled: true
-            blurMax: 1
-            blur: 1
+            x: 1
+            y: 1
+            width: Math.max(frame.width - 2, (frame.height - 2) * aspect)
+            height: width / aspect
+
+            // only ever shrinks, so the capture is never upscaled
+            transform: Scale {
+                xScale: fit.width > 0 ? (frame.width - 2) / fit.width : 1
+                yScale: fit.height > 0 ? (frame.height - 2) / fit.height : 1
+            }
+
+            ScreencopyView {
+                id: capture
+
+                anchors.fill: parent
+                captureSource: root.overview.active ? root.modelData.wayland : null
+                live: root.overview.active
+                paintCursor: false
+            }
+
+            // a whisper of blur takes the aliasing out of the shrunk capture
+            MultiEffect {
+                anchors.fill: capture
+                source: capture
+                blurEnabled: true
+                blurMax: 1
+                blur: 1
+            }
         }
 
         IconImage {
