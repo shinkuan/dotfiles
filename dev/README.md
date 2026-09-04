@@ -34,9 +34,11 @@ Multi-monitor hotplug can be tested from inside the nested session with
 
 ### Testing the desktop shell inside a nested session
 
-The nested execs skip the systemd-managed shell and the session-start lock
-(they check for an inherited `WAYLAND_DISPLAY`), so start the shell under
-test manually with the nested session's environment. `.local/bin` of the
+The nested execs skip the systemd-managed shell and the session-start lock:
+they check `DOTFILES_NESTED`, which `nested-session.sh` exports. (Hyprland
+replaces `WAYLAND_DISPLAY` with its own socket before the autostart runs, so
+it cannot tell a nested session apart.) Start the shell under test manually
+with the nested session's environment. `.local/bin` of the
 worktree must be on `PATH` for the `scheme` / `wallpaper` tools:
 
 ```sh

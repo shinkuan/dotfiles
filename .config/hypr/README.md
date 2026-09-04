@@ -48,9 +48,11 @@ Hyprland 0.56 dispatchers take Lua tables, e.g.
 ## Autostart
 
 `execs.lua` imports the session environment into the systemd user manager and
-restarts `desktop-shell`, `hypridle` and `joystick-idle-watch`. Inside a nested
-session (inherited `WAYLAND_DISPLAY`) that block is skipped so the shell under
-test can be started by hand and the session does not lock.
+restarts `desktop-shell`, `hypridle` and `joystick-idle-watch`. A nested session
+sets `DOTFILES_NESTED`, which skips that block so the shell under test can be
+started by hand and the session does not lock. It cannot key off
+`WAYLAND_DISPLAY`: Hyprland replaces that with its own socket before the
+autostart runs.
 
 ## Idle
 
