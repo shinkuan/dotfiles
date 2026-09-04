@@ -500,6 +500,7 @@ for script in "$REPO_ROOT"/.local/bin/*; do
     cp "$script" ~/.local/bin/
     chmod +x ~/.local/bin/"$(basename "$script")"
 done
+export PATH="$HOME/.local/bin:$PATH"   # wallpaper calls scheme by name below
 
 if [[ $LINK_ONLY -eq 1 ]]; then
     success "Configs, units and scripts linked."
