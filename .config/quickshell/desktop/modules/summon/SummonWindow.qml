@@ -9,7 +9,8 @@ import "../../components"
 import "../popouts"
 
 // Full-screen overlay on the focused monitor; the deck scales out of the
-// pointer position (flipping to stay on screen) or the screen centre.
+// pointer, which sits at its centre (clamped to the screen), or out of the
+// screen centre.
 PanelWindow {
     id: root
 
@@ -19,8 +20,7 @@ PanelWindow {
 
     readonly property real lx: Summon.x - (monitor?.x ?? 0)
     readonly property real ly: Summon.y - (monitor?.y ?? 0)
-    readonly property bool flipX: !Summon.centered && lx + deck.width + 24 > width
-    readonly property bool flipY: !Summon.centered && ly + deck.height + 24 > height
+    readonly property int margin: 8
     readonly property int gridWidth: KGrid.columns * 52 + (KGrid.columns - 1) * 6   // KGridPopout cell geometry
 
     visible: active || closing
@@ -70,13 +70,13 @@ PanelWindow {
 
         readonly property int pad: 18
 
-        x: Summon.centered ? Math.round((root.width - width) / 2) : Math.round(Math.max(8, Math.min(root.width - width - 8, root.flipX ? root.lx - width - 8 : root.lx + 8)))
-        y: Summon.centered ? Math.round((root.height - height) / 2) : Math.round(Math.max(8, Math.min(root.height - height - 8, root.flipY ? root.ly - height - 8 : root.ly + 8)))
+        x: Math.round(Summon.centered ? (root.width - width) / 2 : Math.max(root.margin, Math.min(root.width - width - root.margin, root.lx - width / 2)))
+        y: Math.round(Summon.centered ? (root.height - height) / 2 : Math.max(root.margin, Math.min(root.height - height - root.margin, root.ly - height / 2)))
         width: root.gridWidth + pad * 2 + 18 + 280
         height: body.implicitHeight + pad * 2
         radius: Theme.radius + 8
 
-        transformOrigin: Summon.centered ? Item.Center : root.flipX ? (root.flipY ? Item.BottomRight : Item.TopRight) : (root.flipY ? Item.BottomLeft : Item.TopLeft)
+        transformOrigin: Item.Center
         scale: root.active ? 1 : 0.55
         opacity: root.active ? 1 : 0
 
