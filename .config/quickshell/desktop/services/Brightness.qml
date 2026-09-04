@@ -17,7 +17,7 @@ Singleton {
     property bool ready: false
     signal changed(string name, real value)
 
-    function monitorFor(name: string) {
+    function monitorFor(name: string): var {
         return monitors.find(m => m.name === name) ?? null;
     }
 

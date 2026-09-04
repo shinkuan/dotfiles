@@ -74,7 +74,7 @@ Singleton {
             queued = true;
             return;
         }
-        dump.command = ["desktop-calendar", "dump", "--from", dayKey(rangeStart), "--to", dayKey(rangeEnd), "--dir", dir, "--dir", stateDir, ...serverArgs()];
+        dump.command = ["desktop-calendar", "dump", "--from", dayKey(rangeStart), "--to", dayKey(rangeEnd), "--dir", dir, ...serverArgs()];
         dump.running = true;
     }
 
