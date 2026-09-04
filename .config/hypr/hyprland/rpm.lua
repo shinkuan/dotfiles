@@ -2,7 +2,7 @@
 -- Plugin loading (hyprpm-managed)
 -- ================================ --
 -- Hypr-DarkWindow is installed and built through hyprpm, not from a local
--- checkout. `darkwindow_hyprpm_sync.sh` (exec-once, see rpm.conf) keeps the
+-- checkout. `darkwindow_hyprpm_sync.sh` (autostarted below) keeps the
 -- compiled .so in step with the running Hyprland and, when the plugin cannot
 -- build for the current Hyprland version, drops a `darkwindow-unavailable`
 -- marker so nothing below runs. hyprpm stores the built plugin under
@@ -17,6 +17,7 @@ local USER   = (HOME and HOME:match("([^/]+)/?$")) or os.getenv("USER") or ""
 local SO     = "/var/cache/hyprpm/" .. USER .. "/Hypr-DarkWindow/Hypr-DarkWindow.so"
 local SHADER = "chromakey_vscode"
 local TOGGLE = HYPR .. "/custom_scripts/toggle_darkwindow_shader.sh"
+local SYNC   = HYPR .. "/custom_scripts/darkwindow_hyprpm_sync.sh"
 local RUNTIME_DIR = os.getenv("XDG_RUNTIME_DIR")
 local INSTANCE    = os.getenv("HYPRLAND_INSTANCE_SIGNATURE")
 local RUNTIME     = RUNTIME_DIR and INSTANCE and (RUNTIME_DIR .. "/hypr/" .. INSTANCE)
@@ -37,6 +38,18 @@ end
 -- hyprctl eval '_G.toggle_darkwindow_shader()'
 _G.toggle_darkwindow_shader = function()
     hl.exec_cmd(TOGGLE)
+end
+
+-- Rebuild the plugin after a Hyprland update (silent no-op when it is already
+-- built for the running commit). Registered here, above the gates: STATE_FILE
+-- never exists on a fresh login, so every `return` below is taken and anything
+-- placed after them would never run. Skipped in nested test sessions -- the
+-- rebuild pops a GUI sudo prompt and writes to the /var/cache/hyprpm tree the
+-- real session shares.
+if not os.getenv("DOTFILES_NESTED") then
+    hl.on("hyprland.start", function()
+        hl.exec_cmd(SYNC)
+    end)
 end
 
 -- ================================ --
