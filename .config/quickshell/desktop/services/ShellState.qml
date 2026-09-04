@@ -11,7 +11,6 @@ Singleton {
 
     readonly property string dir: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/desktop-shell`
     readonly property bool barPinned: adapter.barPinned ?? false
-    readonly property bool trayExpanded: adapter.trayExpanded ?? false
     readonly property bool dnd: adapter.dnd ?? false
     readonly property bool keepAwake: adapter.keepAwake ?? false
     readonly property bool desktopClock: adapter.desktopClock ?? true
@@ -59,7 +58,6 @@ Singleton {
             id: adapter
 
             property bool barPinned: false
-            property bool trayExpanded: false
             property bool dnd: false
             property bool keepAwake: false
             property bool desktopClock: true

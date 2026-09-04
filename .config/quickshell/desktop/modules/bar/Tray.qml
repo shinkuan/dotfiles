@@ -6,18 +6,39 @@ import "../../config"
 import "../../services"
 import "../../components"
 
-// Tray icons fold behind a chevron (bar.trayCompact); the open state persists.
+// Tray icons fold behind a chevron (bar.trayCompact) and unfold while hovered.
 Grid {
     id: root
 
     readonly property bool shown: SystemTray.items.values.length > 0
     readonly property bool compact: Config.bar.trayCompact
-    readonly property bool expanded: !compact || ShellState.trayExpanded
     readonly property bool horizontal: Theme.barTop
+    property bool open: false
+    property bool menuOpen: false   // an open tray menu keeps the icons out
+    readonly property bool expanded: !compact || open || menuOpen
 
     flow: horizontal ? Grid.LeftToRight : Grid.TopToBottom
     columns: horizontal ? 99 : 1
     spacing: 2
+
+    HoverHandler {
+        onHoveredChanged: {
+            if (hovered) {
+                fold.stop();
+                root.open = true;
+            } else {
+                fold.restart();
+            }
+        }
+    }
+
+    // grace period so the pointer can cross the gap between chevron and icons
+    Timer {
+        id: fold
+
+        interval: 250
+        onTriggered: root.open = false
+    }
 
     Rectangle {
         id: toggle
@@ -57,11 +78,6 @@ Grid {
 
         HoverHandler {
             id: toggleHover
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            onClicked: ShellState.toggle("trayExpanded")
         }
     }
 
@@ -184,6 +200,7 @@ Grid {
                         anchor.margins.left: Theme.barTop || Theme.barRight ? 0 : 8
                         anchor.margins.right: Theme.barRight ? 8 : 0
                         anchor.margins.top: Theme.barTop ? 8 : 0
+                        onVisibleChanged: root.menuOpen = visible
                     }
                 }
             }
