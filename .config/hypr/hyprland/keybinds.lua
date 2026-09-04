@@ -207,7 +207,6 @@ bind("SUPER + SHIFT + C",       dsp.exec_cmd("hyprpicker -a"))
 -- Volume
 -- ============================ --
 bind("XF86AudioMute",        dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
-bind("SUPER + SHIFT + M",    dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"), { locked = true })
 bind("XF86AudioRaiseVolume", dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 10%+"), { locked = true, repeating = true })
 bind("XF86AudioLowerVolume", dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume @DEFAULT_AUDIO_SINK@ 10%-"),     { locked = true, repeating = true })
 
