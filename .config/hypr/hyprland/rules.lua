@@ -153,7 +153,7 @@ hl.window_rule({
 -- Desktop shell surfaces (namespaces are set in the shell's QML).
 hl.layer_rule({
     name         = "layerrule-desktop-shell",
-    match        = { namespace = "^(desktop-shell|desktop-launcher|desktop-polkit)$" },
+    match        = { namespace = "^(desktop-shell|desktop-launcher|desktop-polkit|desktop-summon)$" },
     blur         = true,
     ignore_alpha = 0.5,
 })

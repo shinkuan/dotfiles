@@ -236,7 +236,7 @@ PanelWindow {
                         width: parent.width - 16
                         height: Math.round(width * 9 / 16)
                         radius: Math.max(0, Theme.radiusItem - 2)
-                        color: Colours.surfaceContainerHighest
+                        color: Theme.containerHighest
 
                         Image {
                             anchors.fill: parent

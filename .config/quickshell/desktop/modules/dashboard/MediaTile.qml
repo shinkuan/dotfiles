@@ -68,7 +68,7 @@ DashTile {
             implicitWidth: 64
             implicitHeight: 64
             radius: 12
-            color: Colours.surfaceContainerHighest
+            color: Theme.containerHighest
 
             Image {
                 id: art

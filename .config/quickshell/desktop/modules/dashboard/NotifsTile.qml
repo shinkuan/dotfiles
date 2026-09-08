@@ -88,8 +88,8 @@ DashTile {
             Layout.fillWidth: true
             implicitHeight: 38
             radius: 14
-            baseColor: Colours.surfaceContainerHigh
-            hoverColor: Colours.surfaceContainerHighest
+            baseColor: Theme.containerHigh
+            hoverColor: Theme.containerHighest
             pressColor: Colours.mix(Colours.surfaceContainerHighest, Colours.surfaceText, 0.12)
             onClicked: ShellState.toggle("dnd")
 
@@ -136,7 +136,7 @@ DashTile {
             height: 30
             radius: 15
             anchors.verticalCenter: parent.verticalCenter
-            color: Colours.surfaceContainerHigh
+            color: Theme.containerHigh
 
             IconImage {
                 anchors.centerIn: parent

@@ -12,7 +12,7 @@ ShaderEffect {
     property vector4d frame: Qt.vector4d(0, 0, 0, 0)
     property real rounding: Config.borderRounding
     property real smoothing: 20
-    property color color: Colours.surface
+    property color color: Theme.panel
     property color shadowColor: Colours.alpha(Colours.scrim, 0.3)
     property vector4d p0: Qt.vector4d(0, 0, 0, 0)
     property vector4d p1: Qt.vector4d(0, 0, 0, 0)

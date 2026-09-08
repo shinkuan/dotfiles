@@ -116,7 +116,7 @@ DashTile {
                 visible: list.contentHeight > list.height && list.contentY + list.height < list.contentHeight - 1
                 gradient: Gradient {
                     GradientStop { position: 0; color: "transparent" }
-                    GradientStop { position: 1; color: Colours.surfaceContainer }
+                    GradientStop { position: 1; color: Theme.fade(Colours.surfaceContainer) }
                 }
             }
         }
@@ -262,7 +262,7 @@ DashTile {
             implicitWidth: dueText.implicitWidth + 14
             implicitHeight: 22
             radius: 8
-            color: Colours.surfaceContainerHigh
+            color: Theme.containerHigh
 
             StyledText {
                 id: dueText

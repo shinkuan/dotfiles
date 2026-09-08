@@ -62,7 +62,7 @@ ColumnLayout {
             implicitWidth: 96
             implicitHeight: 96
             radius: Config.radius
-            color: Colours.surfaceContainerHighest
+            color: Theme.containerHighest
 
             Image {
                 id: art

@@ -36,7 +36,7 @@ ColumnLayout {
             return Math.round(Math.min(220, width * h / Math.max(1, w)));
         }
         radius: Config.radius
-        color: Colours.surfaceContainerHighest
+        color: Theme.containerHighest
         clip: true
 
         ScreencopyView {

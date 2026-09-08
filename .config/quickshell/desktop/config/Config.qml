@@ -89,6 +89,7 @@ Singleton {
 
             property JsonObject appearance: JsonObject {
                 property string style: "rim"   // rim | ledger | capsule | signal | poster | frame | classic
+                property real opacity: 1       // panel alpha multiplier; below 1 the compositor blur shows through
             }
             property JsonObject animation: JsonObject {
                 property real scale: 0.8

@@ -22,7 +22,7 @@ Rectangle {
     topRightRadius: outerTR ? outerRadius : innerRadius
     bottomLeftRadius: outerBL ? outerRadius : innerRadius
     bottomRightRadius: outerBR ? outerRadius : innerRadius
-    color: Colours.surfaceContainer
+    color: Theme.container
 
     Item {
         id: inner

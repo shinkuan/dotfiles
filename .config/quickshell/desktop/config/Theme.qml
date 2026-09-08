@@ -41,10 +41,20 @@ Singleton {
     readonly property bool activeUnderline: signal
     readonly property bool activePill: capsule
 
-    // surfaces
-    readonly property color panel: frame ? Colours.surface : poster ? Colours.surfaceContainerLow : rim ? Colours.alpha(Colours.surfaceContainerLowest, 0.86) : ledger ? Colours.mix(Colours.surfaceContainerLow, Colours.surfaceContainerLowest, 0.4) : capsule ? Colours.alpha(Colours.surfaceContainerLow, 0.96) : signal ? Colours.alpha(Colours.surfaceContainerLowest, 0.72) : Colours.surfaceContainer
-    readonly property color panelRaised: poster ? Colours.surfaceContainerLowest : ledger ? Colours.surfaceContainer : capsule ? Colours.surfaceContainerHigh : (rim || signal) ? Colours.alpha(Colours.surfaceText, 0.05) : Colours.surfaceContainerHigh
-    readonly property color field: poster ? Colours.surfaceContainerLowest : capsule ? Colours.surfaceContainerHighest : (rim || signal) ? Colours.alpha(Colours.surfaceText, 0.05) : Colours.surfaceContainerHighest
+    // surfaces: `appearance.opacity` scales each skin's own panel alpha
+    readonly property real panelOpacity: Config.appearance.opacity
+    function fade(c: color): color {
+        return Colours.alpha(c, c.a * panelOpacity);
+    }
+    readonly property bool translucent: panelOpacity < 1
+    // surface container roles; inside a translucent panel they are tints so
+    // the blur stays visible through tiles, chips and fields
+    readonly property color container: translucent ? Colours.alpha(Colours.surfaceText, 0.06) : Colours.surfaceContainer
+    readonly property color containerHigh: translucent ? Colours.alpha(Colours.surfaceText, 0.1) : Colours.surfaceContainerHigh
+    readonly property color containerHighest: translucent ? Colours.alpha(Colours.surfaceText, 0.14) : Colours.surfaceContainerHighest
+    readonly property color panel: fade(frame ? Colours.surface : poster ? Colours.surfaceContainerLow : rim ? Colours.alpha(Colours.surfaceContainerLowest, 0.86) : ledger ? Colours.mix(Colours.surfaceContainerLow, Colours.surfaceContainerLowest, 0.4) : capsule ? Colours.alpha(Colours.surfaceContainerLow, 0.96) : signal ? Colours.alpha(Colours.surfaceContainerLowest, 0.72) : Colours.surfaceContainer)
+    readonly property color panelRaised: translucent ? containerHigh : poster ? Colours.surfaceContainerLowest : ledger ? Colours.surfaceContainer : capsule ? Colours.surfaceContainerHigh : (rim || signal) ? Colours.alpha(Colours.surfaceText, 0.05) : Colours.surfaceContainerHigh
+    readonly property color field: translucent ? containerHighest : poster ? Colours.surfaceContainerLowest : capsule ? Colours.surfaceContainerHighest : (rim || signal) ? Colours.alpha(Colours.surfaceText, 0.05) : Colours.surfaceContainerHighest
     readonly property int radius: rim ? 18 : ledger ? 4 : capsule ? 28 : signal ? 2 : poster ? 6 : frame ? 25 : 20
     readonly property int radiusItem: rim ? 10 : ledger ? 0 : capsule ? 14 : signal ? 2 : poster ? 4 : 12
     readonly property int radiusChip: (ledger || signal) ? 2 : poster ? 4 : 999
@@ -82,7 +92,7 @@ Singleton {
     readonly property int barMargin: capsule ? 10 : 0           // detached from the screen edge
     readonly property int barSpan: barWidth + barMargin * 2
     readonly property int barRadius: capsule ? 24 : rim ? 22 : (ledger || signal || poster || frame) ? 0 : 25
-    readonly property color barColor: frame ? Colours.surface : poster ? Colours.surfaceContainerLowest : capsule ? Colours.alpha(Colours.surfaceContainerLow, 0.96) : rim ? Colours.alpha(Colours.surfaceContainerLowest, 0.9) : ledger ? Colours.surfaceContainerLowest : signal ? Colours.alpha(Colours.surfaceContainerLowest, 0.72) : Colours.alpha(Colours.surface, 0.92)
+    readonly property color barColor: fade(frame ? Colours.surface : poster ? Colours.surfaceContainerLowest : capsule ? Colours.alpha(Colours.surfaceContainerLow, 0.96) : rim ? Colours.alpha(Colours.surfaceContainerLowest, 0.9) : ledger ? Colours.surfaceContainerLowest : signal ? Colours.alpha(Colours.surfaceContainerLowest, 0.72) : Colours.alpha(Colours.surface, 0.92))
     readonly property bool barEdgeLine: ledger || signal || rim
     readonly property int barItemRadius: capsule ? 20 : ledger ? 0 : signal ? 2 : poster ? 4 : 10
     readonly property bool barItemFilled: capsule || poster  // active bar entry is a filled block

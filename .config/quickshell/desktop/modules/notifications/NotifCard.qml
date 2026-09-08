@@ -196,7 +196,7 @@ Surface {
                 Layout.fillWidth: true
                 height: 34
                 radius: Config.radius
-                color: Colours.surfaceContainerHighest
+                color: Theme.containerHighest
 
                 TextInput {
 

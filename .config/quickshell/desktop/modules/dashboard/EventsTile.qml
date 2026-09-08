@@ -54,7 +54,7 @@ DashTile {
                 visible: nextList.implicitHeight > nextList.height
                 gradient: Gradient {
                     GradientStop { position: 0; color: "transparent" }
-                    GradientStop { position: 1; color: Colours.surfaceContainer }
+                    GradientStop { position: 1; color: Theme.fade(Colours.surfaceContainer) }
                 }
             }
         }
