@@ -11,9 +11,9 @@ local bind = hl.bind
 -- Shell (desktop): global shortcuts are handled by the shell itself;
 -- IPC calls fall back to a plain tool when the shell is not running.
 -- ============================ --
--- A release bind reaches a global shortcut as a bare "released" event, which
--- the shell ignores, so bare SUPER goes through IPC instead.
-bind("SUPER + Super_L", dsp.exec_cmd(V.menu), { release = true })
+-- A release bind reaches a global shortcut as a bare "released" event, so it
+-- gets its own shortcut name; going through IPC here would cost a `qs` spawn.
+bind("SUPER + Super_L", dsp.global("desktop:launcherRelease"), { release = true })
 bind("SUPER + Space",   dsp.global("desktop:launcher"))
 bind("SUPER + B",       dsp.exec_cmd(V.menu))
 bind("SUPER + V",       dsp.global("desktop:clipboard"))

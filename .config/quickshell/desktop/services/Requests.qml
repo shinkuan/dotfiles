@@ -23,6 +23,15 @@ Singleton {
         onPressed: Launcher.toggle()
     }
 
+    // bare SUPER is bound on release, which arrives as a lone "released"
+    // event; it needs its own shortcut so SUPER+Space does not fire twice
+    GlobalShortcut {
+        appid: "desktop"
+        name: "launcherRelease"
+        description: "Toggle the launcher from a key release"
+        onReleased: Launcher.toggle()
+    }
+
     GlobalShortcut {
         appid: "desktop"
         name: "clipboard"
