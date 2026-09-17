@@ -15,7 +15,8 @@ local HYPR   = util.hypr_dir()
 -- $USER; fall back to $USER only if $HOME is somehow unusable.
 local USER   = (HOME and HOME:match("([^/]+)/?$")) or os.getenv("USER") or ""
 local SO     = "/var/cache/hyprpm/" .. USER .. "/Hypr-DarkWindow/Hypr-DarkWindow.so"
-local SHADER = "chromakey_vscode"
+local SHADER_VSCODE = "chromakey_vscode"
+local SHADER_SPOTIFY = "chromakey_spotify"
 local TOGGLE = HYPR .. "/custom_scripts/toggle_darkwindow_shader.sh"
 local SYNC   = HYPR .. "/custom_scripts/darkwindow_hyprpm_sync.sh"
 local RUNTIME_DIR = os.getenv("XDG_RUNTIME_DIR")
@@ -73,17 +74,32 @@ pcall(hl.plugin.load, SO)
 local dw = hl.plugin.darkwindow
 if type(dw) ~= "table" or type(dw.load_shader) ~= "function" then return end
 
-dw.load_shader(SHADER, {
+dw.load_shader(SHADER_VSCODE, {
     path                    = HYPR .. "/shaders/multi_chromakey.frag",
     introduces_transparency = true,
-    args                    = "count=3"
+    args                    = "count=2"
         .. " bkg[0]=" .. util.hex_rgb("#121314") .. " similarity[0]=0.03 amount[0]=1 targetOpacity[0]=0.70"
-        .. " bkg[1]=" .. util.hex_rgb("#191A1B") .. " similarity[1]=0.03 amount[1]=1 targetOpacity[1]=0.70"
-        .. " bkg[2]=" .. util.hex_rgb("#242526") .. " similarity[2]=0.03 amount[2]=1 targetOpacity[2]=0.70",
+        .. " bkg[1]=" .. util.hex_rgb("#191A1B") .. " similarity[1]=0.03 amount[1]=1 targetOpacity[1]=0.70",
+        -- .. " bkg[2]=" .. util.hex_rgb("#242526") .. " similarity[2]=0.03 amount[2]=1 targetOpacity[2]=0.70",
 })
 
 hl.window_rule({
     name                 = "windowrule-16",
     match                = { class = "^(code)$" },
-    ["darkwindow:shade"] = SHADER,
+    ["darkwindow:shade"] = SHADER_VSCODE,
+})
+
+dw.load_shader(SHADER_SPOTIFY, {
+    path                    = HYPR .. "/shaders/multi_chromakey.frag",
+    introduces_transparency = true,
+    args                    = "count=3"
+        .. " bkg[0]=" .. util.hex_rgb("#121212") .. " similarity[0]=0.03 amount[0]=1 targetOpacity[0]=0.70"
+        .. " bkg[1]=" .. util.hex_rgb("#1F1F1F") .. " similarity[1]=0.03 amount[1]=1 targetOpacity[1]=0.70"
+        .. " bkg[2]=" .. util.hex_rgb("#000000") .. " similarity[2]=0.03 amount[2]=1 targetOpacity[2]=0.70",
+})
+
+hl.window_rule({
+    name                 = "windowrule-spotify-blur",
+    match                = { class = "^(spotify)$" },
+    ["darkwindow:shade"] = SHADER_SPOTIFY,
 })
