@@ -34,7 +34,7 @@ ColumnLayout {
     Clickable {
         visible: root.path.length > 0
         Layout.fillWidth: true
-        implicitHeight: 32
+        implicitHeight: 30
         radius: Theme.radiusItem
         onClicked: root.path = root.path.slice(0, -1)
 
@@ -53,6 +53,7 @@ ColumnLayout {
             StyledText {
                 Layout.fillWidth: true
                 text: "Back"
+                font.weight: Font.Medium
                 color: Colours.surfaceVariantText
             }
         }
@@ -70,7 +71,7 @@ ColumnLayout {
             readonly property bool checked: modelData.checkState === Qt.Checked
 
             Layout.fillWidth: true
-            implicitHeight: separator ? 9 : 34
+            implicitHeight: separator ? 9 : 30
             radius: Theme.radiusItem
             disabled: separator || !modelData.enabled
             opacity: separator || modelData.enabled ? 1 : 0.5
@@ -110,6 +111,7 @@ ColumnLayout {
                 StyledText {
                     Layout.fillWidth: true
                     text: row.modelData.text
+                    font.weight: Font.Medium
                     elide: Text.ElideRight
                 }
 

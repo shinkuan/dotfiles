@@ -44,6 +44,7 @@ BarItem {
         text: Qt.formatDateTime(clock.date, "mm")
         font.family: root.face
         font.pixelSize: Config.fontSize + 2
+        font.weight: Font.Medium
         color: Theme.signal ? root.fgAccent : root.fg
     }
 }

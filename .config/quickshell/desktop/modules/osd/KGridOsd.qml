@@ -47,19 +47,12 @@ Item {
     width: panel.width
     height: panel.height
     opacity: shown ? 1 : 0
-    scale: shown ? 1 : 0.9
     visible: opacity > 0
 
+    // there at once on a cell change, only the fade-out is animated
     Behavior on opacity {
         NumberAnimation {
-            duration: Config.animDurationFast
-        }
-    }
-
-    Behavior on scale {
-        NumberAnimation {
-            duration: Config.animDuration
-            easing.type: Easing.OutCubic
+            duration: root.shown ? 0 : Config.animDurationFast
         }
     }
 
