@@ -141,10 +141,10 @@ Singleton {
             Picker.cancel();
         }
 
-        // global logical coordinates; mode "save" or "copy"
+        // global logical coordinates, read from the live screen; mode "save" or "copy"
         function capture(mode: string, x: int, y: int, w: int, h: int): void {
             Picker.mode = mode === "copy" ? "copy" : "save";
-            Picker.confirm(x, y, w, h);
+            Picker.captureLive(x, y, w, h);
         }
     }
 

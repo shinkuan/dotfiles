@@ -51,9 +51,41 @@ PanelWindow {
     }
 
     function confirm(r: rect): void {
-        const x = Math.round(r.x), y = Math.round(r.y);
-        const w = Math.round(r.width), h = Math.round(r.height);
-        Picker.confirm(root.screen.x + x, root.screen.y + y, w, h);
+        if (Picker.busy)
+            return;
+        const x0 = Math.max(0, r.x), y0 = Math.max(0, r.y);
+        const w = Math.round(Math.min(root.width, r.x + r.width) - x0);
+        const h = Math.round(Math.min(root.height, r.y + r.height) - y0);
+        if (w < 1 || h < 1)
+            return;
+        const sx = capture.sourceSize.width / capture.width, sy = capture.sourceSize.height / capture.height;
+        if (!capture.hasContent || !(sx > 0 && sy > 0)) {
+            Picker.captureLive(root.screen.x + Math.round(x0), root.screen.y + Math.round(y0), w, h);
+            return;
+        }
+        // snap to whole buffer pixels so the crop maps 1:1 onto the frozen frame
+        const px = Math.round(x0 * sx), py = Math.round(y0 * sy);
+        const pw = Math.round(w * sx), ph = Math.round(h * sy);
+        crop.sourceRect = Qt.rect(px / sx, py / sy, pw / sx, ph / sy);
+        crop.textureSize = Qt.size(pw, ph);
+        crop.width = w;
+        crop.height = h;
+        const path = Picker.scratchPath();
+        Picker.busy = true;
+        // grabToImage multiplies the requested size by the window's device pixel
+        // ratio (the output scale), so asking for w x h yields pw x ph pixels
+        const scheduled = crop.grabToImage(result => {
+            if (!Picker.busy)   // cancelled while the frame was being read back
+                return;
+            if (result.saveToFile(path)) {
+                Picker.deliver(path);
+                return;
+            }
+            console.warn("AreaPicker: cannot write", path);
+            Picker.captureLive(root.screen.x + Math.round(x0), root.screen.y + Math.round(y0), w, h);
+        }, Qt.size(w, h));
+        if (!scheduled)
+            Picker.captureLive(root.screen.x + Math.round(x0), root.screen.y + Math.round(y0), w, h);
     }
 
     Process {
@@ -89,6 +121,14 @@ PanelWindow {
         captureSource: root.screen
         live: false
         paintCursor: false
+    }
+
+    // never shown: confirm() points it at the selection and reads it back
+    ShaderEffectSource {
+        id: crop
+
+        visible: false
+        sourceItem: capture
     }
 
     // dim everything except the current rectangle
