@@ -107,7 +107,7 @@ Rectangle {
                 id: decode
 
                 running: root.entry.image === true
-                command: ["sh", "-c", '[ -s "$1" ] || cliphist decode "$2" > "$1"; echo "$1"', "_", `${Launcher.cacheDir}/${root.entry.clipId}.img`, root.entry.clipId]
+                command: Launcher.clipDecodeCommand(root.entry.clipId)
                 stdout: StdioCollector {
                     onStreamFinished: thumb.source = "file://" + text.trim()
                 }

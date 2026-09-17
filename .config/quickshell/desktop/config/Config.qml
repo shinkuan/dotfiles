@@ -154,7 +154,7 @@ Singleton {
             }
             property JsonObject launcher: JsonObject {
                 property int maxResults: 9
-                property string position: "top"   // top | center
+                property string position: "top"   // top (upper third) | center (search field on the screen's centre line)
                 property string actionPrefix: ">"
                 property string calcPrefix: "="
                 property string clipPrefix: ";"

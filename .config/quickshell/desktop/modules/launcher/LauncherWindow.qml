@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Hyprland
@@ -82,8 +83,12 @@ PanelWindow {
     Surface {
         id: panel
 
+        // "center" puts the search field, not the whole panel, on the screen's
+        // centre line; results grow below it and it stays put
+        readonly property int fieldCentre: Math.round(parent.height / 2 - column.y - field.y - field.height / 2)
+
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Config.launcher.position === "center" ? Math.round((parent.height - height) / 2) : Math.round(parent.height * 0.18)
+        y: Config.launcher.position === "center" ? Math.max(16, Math.min(fieldCentre, parent.height - height - 16)) : Math.round(parent.height * 0.18)
         width: 640
         height: column.implicitHeight + 24
 
@@ -99,6 +104,8 @@ PanelWindow {
             spacing: 8
 
             Rectangle {
+                id: field
+
                 Layout.fillWidth: true
                 height: 48
                 radius: Theme.capsule ? 24 : Theme.outlined ? 0 : Theme.radiusItem + 2
@@ -290,6 +297,76 @@ PanelWindow {
                 Layout.bottomMargin: 8
                 text: "No results"
                 color: Colours.surfaceVariantText
+            }
+        }
+    }
+
+    // the selected clipboard image, whole, beside the panel
+    Surface {
+        id: preview
+
+        readonly property var entry: Launcher.results[Launcher.selected] ?? null
+        readonly property string clipId: root.active && entry?.image === true ? entry.clipId : ""
+        readonly property real imgW: entry?.width ?? 0
+        readonly property real imgH: entry?.height ?? 0
+        readonly property real maxW: Math.min(Math.round(root.width * 0.42), root.width - (panel.x + panel.width + 12) - 16) - 24
+        readonly property real maxH: root.height - 32 - 24 - 26
+        readonly property real k: imgW > 0 && imgH > 0 ? Math.min(1, maxW / imgW, maxH / imgH) : 0
+
+        visible: clipId !== "" && k > 0 && maxW >= 160
+        x: panel.x + panel.width + 12
+        // level with the panel, sliding up only as far as a tall image needs
+        y: Math.max(16, Math.min(panel.y, root.height - height - 16))
+        width: Math.round(imgW * k) + 24
+        height: Math.round(imgH * k) + 24 + 26
+
+        onClipIdChanged: {
+            big.source = "";
+            decode.running = false;
+            if (clipId === "")
+                return;
+            decode.id = clipId;
+            decode.command = Launcher.clipDecodeCommand(clipId);
+            decode.running = true;
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: Launcher.activate(Launcher.selected)
+        }
+
+        Image {
+            id: big
+
+            x: 12
+            y: 12
+            width: Math.round(preview.imgW * preview.k)
+            height: Math.round(preview.imgH * preview.k)
+            fillMode: Image.PreserveAspectFit
+            asynchronous: true
+            sourceSize.width: Math.ceil(width * root.screen.devicePixelRatio)
+        }
+
+        StyledText {
+            x: 12
+            y: big.y + big.height + 8
+            width: parent.width - 24
+            text: preview.entry?.title ?? ""
+            color: Colours.surfaceVariantText
+            font.pixelSize: Config.fontSize - 1
+            horizontalAlignment: Text.AlignHCenter
+        }
+
+        Process {
+            id: decode
+
+            property string id: ""
+
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    if (decode.id === preview.clipId)
+                        big.source = "file://" + text.trim();
+                }
             }
         }
     }

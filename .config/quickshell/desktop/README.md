@@ -101,7 +101,7 @@ CalDAV url and username); `config.example.json` is the tracked default and
 | `desktopClock.position`, `desktopClock.margin`, `desktopClock.size` | `top-left` … `bottom-right` / `bottom-center` |
 | `notifications.timeout`, `criticalTimeout`, `maxHistory`, `width`, `position` | popup timeouts (0 = never), history size, popup width, corner (`top-right` … `bottom-left`) |
 | `idle.inhibitWhenAudio`, `idle.joystickHold` | inhibit while audio plays; seconds to hold after controller input |
-| `launcher.position` | `top` (upper third) or `center` |
+| `launcher.position` | `top` (upper third) or `center` (the search field sits on the screen's centre line, results grow below it) |
 | `launcher.maxResults`, `actionPrefix`, `calcPrefix`, `clipPrefix`, `emojiPrefix`, `emojiFile`, `fuzzy`, `showDangerous`, `actions` | launcher behaviour and the action list (`name`, `icon`, `description`, `command`, `dangerous`, `enabled`; `@scheme` / `@variant` / `@wallpaper` / `@config` are built-in commands) |
 | `screenshot.directory` | relative to `$HOME` |
 | `resources.interval` | background poll interval in ms |

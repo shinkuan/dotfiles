@@ -207,18 +207,18 @@ Singleton {
         }));
     }
 
-    function runAction(a): void {
+    function runAction(a): bool {
         const cmd = a.command ?? [];
         if (cmd[0] === "@scheme" || cmd[0] === "@variant" || cmd[0] === "@wallpaper" || cmd[0] === "@style") {
             query = Config.launcher.actionPrefix + cmd[0].slice(1) + " ";
-            return;
+            return true;
         }
         if (cmd[0] === "@config") {
             Quickshell.execDetached(["xdg-open", Quickshell.shellDir + "/config.json"]);
         } else if (cmd.length > 0) {
             Quickshell.execDetached(cmd);
         }
-        hide();
+        return false;
     }
 
     function calcRow(expr: string): var {
@@ -231,9 +231,18 @@ Singleton {
             run: () => {
                 if (calcResult)
                     Quickshell.execDetached(["wl-copy", "--", calcResult]);
-                hide();
             }
         };
+    }
+
+    function clipFile(id: string): string {
+        return `${cacheDir}/${id}.img`;
+    }
+
+    // decode a clip into the cache once; the rename keeps a half-written file
+    // from ever being read while another row decodes the same clip
+    function clipDecodeCommand(id: string): list<string> {
+        return ["sh", "-c", '[ -s "$1" ] || { cliphist decode "$2" > "$1.$$" && mv -f "$1.$$" "$1"; }; echo "$1"', "_", clipFile(id), id];
     }
 
     function clipRows(q: string): list<var> {
@@ -246,10 +255,11 @@ Singleton {
             clipId: c.id,
             clipLine: c.line,
             image: c.image,
+            width: c.width,
+            height: c.height,
             hint: "",
             run: () => {
                 Quickshell.execDetached(["sh", "-c", 'cliphist decode "$1" | wl-copy', "_", c.id]);
-                hide();
             }
         }));
     }
@@ -274,7 +284,6 @@ Singleton {
             hint: "",
             run: () => {
                 Quickshell.execDetached(["scheme", "set", "--name", x.name, "--flavour", x.flavour]);
-                hide();
             }
         }));
     }
@@ -289,7 +298,6 @@ Singleton {
             hint: "",
             run: () => {
                 Quickshell.execDetached(["scheme", "set", "--variant", v]);
-                hide();
             }
         }));
     }
@@ -304,7 +312,6 @@ Singleton {
             hint: "",
             run: () => {
                 Quickshell.execDetached(["wallpaper", "-f", w.path]);
-                hide();
             }
         }));
     }
@@ -318,7 +325,10 @@ Singleton {
             subtitle: names[s] ?? "",
             icon: Config.appearance.style === s ? "check_circle" : "style",
             hint: Config.appearance.style === s ? "current" : "",
-            run: () => Config.setStyle(s)
+            run: () => {
+                Config.setStyle(s);
+                return true;
+            }
         }));
     }
 
@@ -332,7 +342,6 @@ Singleton {
             hint: "copy + type",
             run: () => {
                 Quickshell.execDetached(["wl-copy", "--", e.char]);
-                hide();
                 typeLater.text = e.char;
                 typeLater.restart();
             }
@@ -363,10 +372,12 @@ Singleton {
         }
     }
 
+    // Enter or a click runs the row and the launcher goes away; only a row that
+    // opens a sub-list (scheme, variant, wallpaper, style) stays, by returning true
     function activate(index: int): void {
         const r = results[index];
-        if (r)
-            r.run();
+        if (r && r.run() !== true)
+            hide();
     }
 
     function move(delta: int): void {
@@ -422,8 +433,8 @@ Singleton {
                     if (tab < 0)
                         continue;
                     const preview = line.slice(tab + 1);
-                    const img = preview.match(/^\[\[ binary data .* (png|jpe?g|webp|bmp|gif) (\d+x\d+) \]\]$/);
-                    out.push({ id: line.slice(0, tab), line, preview: img ? `${img[1].toUpperCase()} ${img[2]}` : preview, image: img !== null });
+                    const img = preview.match(/^\[\[ binary data .* (png|jpe?g|webp|bmp|gif) (\d+)x(\d+) \]\]$/);
+                    out.push({ id: line.slice(0, tab), line, preview: img ? `${img[1].toUpperCase()} ${img[2]}x${img[3]}` : preview, image: img !== null, width: img ? +img[2] : 0, height: img ? +img[3] : 0 });
                 }
                 root.clips = out;
                 if (root.mode === "clip")
