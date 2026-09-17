@@ -20,11 +20,15 @@ Surface {
     signal dismissed()
     signal swiped()
 
+    // frame: popups sit on the panel that grows out of the band, so they are
+    // raised tiles on it rather than free-floating cards
+    readonly property bool inset: compact || Theme.frame
+
     implicitHeight: column.implicitHeight + 24
-    radius: compact ? Theme.radiusTile : Math.max(Theme.radius - 4, Theme.radiusItem)
-    shadow: !compact
+    radius: inset ? Theme.radiusTile : Math.max(Theme.radius - 4, Theme.radiusItem)
+    shadow: !inset
     // critical mixes on an opaque base: translucent panels would wash it out
-    color: critical ? Colours.mix(Colours.surfaceContainerHigh, Colours.errorContainer, 0.35) : compact ? Theme.panelRaised : Theme.panel
+    color: critical ? Colours.mix(Colours.surfaceContainerHigh, Colours.errorContainer, 0.35) : inset ? Theme.panelRaised : Theme.panel
     borderColor: critical ? Colours.alpha(Colours.error, 0.6) : Theme.borderColor
     borderWidth: critical ? 1 : Theme.borderWidth
 
@@ -108,6 +112,13 @@ Surface {
                 text: root.timeLabel(root.entry.time)
                 color: Colours.surfaceVariantText
                 font.pixelSize: Config.fontSize - 2
+            }
+
+            IconButton {
+                icon: "content_copy"
+                size: 24
+                iconSize: Config.iconSize - 6
+                onClicked: Notifs.copy(root.entry)
             }
 
             IconButton {

@@ -38,6 +38,16 @@ Singleton {
         save.restart();
     }
 
+    // the body is Qt rich text; the clipboard wants the words only
+    function plainText(entry): string {
+        const body = (entry.body ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+        return [entry.summary ?? "", body].filter(t => t !== "").join("\n");
+    }
+
+    function copy(entry): void {
+        Quickshell.execDetached(["wl-copy", "--", plainText(entry)]);
+    }
+
     function iconSource(entry): string {
         const icon = entry.appIcon ?? "";
         if (icon === "")

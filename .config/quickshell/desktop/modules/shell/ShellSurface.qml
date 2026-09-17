@@ -209,12 +209,13 @@ PanelWindow {
 
     FrameBlob {
         anchors.fill: parent
-        visible: Theme.frame && (root.frameThickness > 0 || bar.exposedWidth > 0)
+        visible: Theme.frame && (root.frameThickness > 0 || bar.exposedWidth > 0 || notifPopups.visible)
         frame: Qt.vector4d(Math.max(bar.exposedWidth, root.frameThickness), root.frameThickness, root.frameThickness, root.frameThickness)
         rounding: Config.borderRounding * (root.frameThickness / Math.max(1, Config.borderThickness))
         p0: popouts.blobRect
         p1: osd.blobRect
         p2: dashboard.blobRect
+        p3: notifPopups.blobRect
         radii: Qt.vector4d(Theme.radius, osd.height / 2, Theme.radius, Theme.radius)
     }
 

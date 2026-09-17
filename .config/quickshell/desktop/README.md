@@ -90,7 +90,7 @@ CalDAV url and username); `config.example.json` is the tracked default and
 
 | Key | Meaning |
 |---|---|
-| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `frame`, `classic` — tokens live in `config/Theme.qml`. `frame` draws a rounded border around the screen; the bar slides out of its left band on hover (or stays when pinned / `bar.autoHide: false`), and popouts and the OSD grow out of the frame (`modules/shell/frame.frag`, rebuilt with `qsb` after edits) |
+| `appearance.style` | visual direction: `rim` (default), `ledger`, `capsule`, `signal`, `poster`, `frame`, `classic` — tokens live in `config/Theme.qml`. `frame` draws a rounded border around the screen; the bar slides out of its left band on hover (or stays when pinned / `bar.autoHide: false`), and popouts, the OSD, the dashboard and the notification stack grow out of the frame (`modules/shell/frame.frag`, four panel slots, rebuilt with `qsb` after edits) |
 | `appearance.opacity` | panel alpha multiplier (default `1`); below 1 the Hyprland blur shows through the frame, bar, popouts, dashboard, launcher and summon deck, and the tiles, chips and fields inside them turn into light tints (`Theme.container*`) so it stays visible through them too. The `desktop-*` layerrules in `hypr/hyprland/rules.lua` only blur pixels above alpha 0.5, so keep it above that |
 | `animation.scale` | multiplier for all animation durations |
 | `border.thickness` / `border.rounding` | hover ring width; corner rounding of the bar |
@@ -99,7 +99,7 @@ CalDAV url and username); `config.example.json` is the tracked default and
 | `popouts.showOnHover`, `popouts.width`, `popouts.listHeight` | hover reveal; popout width; max list height |
 | `osd.hideDelay`, `kgrid.osd`, `kgrid.hideDelay` | OSD timings; KGrid overlay on/off |
 | `desktopClock.position`, `desktopClock.margin`, `desktopClock.size` | `top-left` … `bottom-right` / `bottom-center` |
-| `notifications.timeout`, `criticalTimeout`, `maxHistory`, `width`, `position` | popup timeouts (0 = never), history size, popup width, corner (`top-right` … `bottom-left`) |
+| `notifications.timeout`, `criticalTimeout`, `maxHistory`, `width`, `position` | popup timeouts (0 = never), history size, popup width, corner (`top-right` … `bottom-left`). Every card has a copy button that puts summary and body (markup stripped) on the clipboard. In frame style the stack is a panel welded to the side band and the cards slide out from under it |
 | `idle.inhibitWhenAudio`, `idle.joystickHold` | inhibit while audio plays; seconds to hold after controller input |
 | `launcher.position` | `top` (upper third) or `center` (the search field sits on the screen's centre line, results grow below it) |
 | `launcher.maxResults`, `actionPrefix`, `calcPrefix`, `clipPrefix`, `emojiPrefix`, `emojiFile`, `fuzzy`, `showDangerous`, `actions` | launcher behaviour and the action list (`name`, `icon`, `description`, `command`, `dangerous`, `enabled`; `@scheme` / `@variant` / `@wallpaper` / `@config` are built-in commands) |
