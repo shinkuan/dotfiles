@@ -169,7 +169,7 @@ hl.layer_rule({
 
 hl.layer_rule({
     name    = "layerrule-desktop-instant",
-    match   = { namespace = "^(desktop-areapicker|desktop-edge|desktop-idle|desktop-background)$" },
+    match   = { namespace = "^(desktop-areapicker|desktop-edge|desktop-idle|desktop-background|desktop-launcher)$" },
     no_anim = true,
 })
 
