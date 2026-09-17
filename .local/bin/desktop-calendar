@@ -402,6 +402,13 @@ class DavError(Exception):
     pass
 
 
+# a proxy that compresses the body (Cloudflare) weakens the ETag to W/"..."; the
+# server compares If-Match against its own strong one, so hand that back
+def strong_etag(value):
+    value = (value or "").strip()
+    return value[2:] if value.startswith("W/") else value
+
+
 class Dav:
     """Minimal CalDAV client over urllib with basic auth."""
 
@@ -499,7 +506,7 @@ class Dav:
             raise DavError(f"REPORT {href}: bad XML ({e})")
         for resp in root.iter(f"{{{NS_D}}}response"):
             h = resp.findtext(f"{{{NS_D}}}href") or ""
-            etag = (resp.findtext(f".//{{{NS_D}}}getetag") or "").strip()
+            etag = strong_etag(resp.findtext(f".//{{{NS_D}}}getetag"))
             data = resp.findtext(f".//{{{NS_C}}}calendar-data") or ""
             if data.strip():
                 yield h, etag, data
@@ -508,20 +515,20 @@ class Dav:
         st, headers, text = self.request("GET", href)
         if st != 200:
             raise DavError(f"GET {href}: HTTP {st}")
-        return (headers.get("ETag") or "").strip(), text
+        return strong_etag(headers.get("ETag")), text
 
     def put(self, href, text, etag=None, new=False):
         headers = {"Content-Type": "text/calendar; charset=utf-8"}
         if new:
             headers["If-None-Match"] = "*"
         elif etag:
-            headers["If-Match"] = etag
+            headers["If-Match"] = strong_etag(etag)
         st, headers_out, body = self.request("PUT", href, text, headers)
         if st == 412:
             raise DavError("changed on the server meanwhile, try again")
         if st not in (200, 201, 204):
             raise DavError(f"PUT {href}: HTTP {st} {body[:120].strip()}")
-        return (headers_out.get("ETag") or "").strip()
+        return strong_etag(headers_out.get("ETag"))
 
 
 def resolve_password(command):
