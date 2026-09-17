@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# hdmi-frl-reset — 讓 NVIDIA 重新做 HDMI 2.1 FRL link training,把 4K@240 救回來。
+#
+# 症狀:MSI MPG 322U X24 切去別的輸入源再切回、或 DPMS 關開之後,240Hz 的 modeset
+#       被 kernel 以 EINVAL 拒絕,Hyprland 退到 60Hz(或黑畫面)。
+# 原因:nvkms 只在「EDID 改變」或「真的 hotplug」時才重新評估 FRL link caps
+#       (nvkms-dpy.c ReadAndApplyEdidEvo → nvDpyProbeMaxPixelClock → nvHdmiFrlAssessLink),
+#       而且評估當下 head 必須是關的,才會真的做 link training。
+# 做法:Hyprland 先關掉輸出 → sysfs status 寫 off(nvkms 清掉 EDID)→ 寫 detect
+#       (重讀 EDID 視為「改變」→ 重做 FRL training)→ Hyprland 重新開啟輸出。
+# 需要 sudo(寫 /sys/class/drm/card*-HDMI-A-1/status)。
+#
+# 用法: hdmi-frl-reset [-o OUTPUT] [-m MODE] [-w SECONDS]
+#   -o  輸出名稱(預設 HDMI-A-1)
+#   -m  目標模式(預設讀 local.lua 該輸出的 mode,例如 3840x2160@239.99Hz)
+#   -w  每步之間等待秒數(預設 2)
+set -euo pipefail
+
+OUT=HDMI-A-1 WAIT=2 MODE=""
+LOCAL_LUA=${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprland/local.lua
+# Hyprland 抓不到該輸出時的保底值(同 local.lua)
+DEF_MODE=3840x2160@239.99Hz DEF_POS=-2560x0 DEF_SCALE=1.5 DEF_BITDEPTH=10
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -o) OUT=$2; shift 2 ;;
+        -m) MODE=$2; shift 2 ;;
+        -w) WAIT=$2; shift 2 ;;
+        -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+        *) echo "unknown arg: $1" >&2; exit 2 ;;
+    esac
+done
+
+SYS=$(ls -d /sys/class/drm/card*-"$OUT" 2>/dev/null | head -1)
+[[ -n $SYS ]] || { echo "找不到 /sys/class/drm/card*-$OUT" >&2; exit 1; }
+
+# 目標模式:參數 > local.lua > 保底
+if [[ -z $MODE ]]; then
+    MODE=$(sed -n 's/.*output = "'"$OUT"'".*mode = "\([^"]*\)".*/\1/p' "$LOCAL_LUA" 2>/dev/null | tail -1)
+    MODE=${MODE:-$DEF_MODE}
+fi
+# 位置 / 縮放 / 色深:沿用 Hyprland 目前的值
+info=$(hyprctl monitors all -j | jq -c --arg n "$OUT" '.[] | select(.name==$n)')
+if [[ -n $info && $(jq -r .disabled <<<"$info") == false ]]; then
+    read -r X Y SCALE FMT < <(jq -r '"\(.x) \(.y) \(.scale) \(.currentFormat)"' <<<"$info")
+    POS="${X}x${Y}"; BITDEPTH=8; [[ $FMT == *2101010* ]] && BITDEPTH=10
+else
+    POS=$DEF_POS SCALE=$DEF_SCALE BITDEPTH=$DEF_BITDEPTH
+fi
+# disabled = false 一定要寫:hl.monitor 會把同一輸出的欄位合併,前面設的 disabled = true 不會自動消失
+RULE="{ output = \"$OUT\", disabled = false, mode = \"$MODE\", position = \"$POS\", scale = $SCALE, bitdepth = $BITDEPTH }"
+echo "target: $RULE"
+echo "sysfs : $SYS"
+
+sudo -v   # 先拿到 sudo 憑證,再開始關螢幕
+
+# 1. Hyprland 關掉輸出(head off;失敗或中斷也保證重新打開)
+restore() { hyprctl eval "hl.monitor($RULE)" >/dev/null; }
+trap restore EXIT
+hyprctl eval "hl.monitor({ output = \"$OUT\", disabled = true })" >/dev/null
+sleep "$WAIT"
+
+# 2. 假裝拔線再插回:off → nvkms DpyDisconnectEvo 清 EDID;detect → 重讀 EDID → FRL 重新評估
+sudo sh -c "echo off > '$SYS/status'; sleep $WAIT; echo detect > '$SYS/status'"
+sleep "$WAIT"
+
+# 3. 重新開啟輸出(套回目標模式)
+LOG=${XDG_RUNTIME_DIR:-/run/user/$UID}/hypr/${HYPRLAND_INSTANCE_SIGNATURE:-}/hyprland.log
+LOG_START=$( [[ -f $LOG ]] && wc -l < "$LOG" || echo 0 )
+trap - EXIT; restore
+sleep 3
+
+hyprctl monitors -j | jq -r --arg n "$OUT" '.[] | select(.name==$n) | "now   : \(.width)x\(.height)@\(.refreshRate|.*100|round/100)Hz \(.currentFormat) dpms=\(.dpmsStatus)"'
+if [[ -f $LOG ]] && tail -n +$((LOG_START+1)) "$LOG" | grep -q -E "REJECTED available mode|failed to commit"; then
+    echo "警告:Hyprland log 最近仍有 'REJECTED available mode',FRL 可能還是沒 train 起來;試著實際拔插 HDMI 線。" >&2
+    exit 1
+fi

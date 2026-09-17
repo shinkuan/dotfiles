@@ -70,6 +70,16 @@ polkit allows one authentication agent per session and the desktop shell
 registers its own. If the shell is down, run this to start polkit-gnome
 manually; it refuses to start while the shell is running.
 
+## hdmi-frl-reset
+
+Recovers the HDMI 2.1 FRL link when the 4K@240 monitor (MSI MPG 322U X24 on
+`HDMI-A-1`) drops to 60 Hz after an input-source switch or a DPMS off/on:
+nvidia-open's nvkms only re-assesses FRL link caps on an EDID change or a
+real hotplug, so the script disables the output in Hyprland, fakes a
+replug through `/sys/class/drm/card*-HDMI-A-1/status` (`off`, then
+`detect`; needs sudo) and re-enables the output with the mode from
+`hypr/hyprland/local.lua`. `hdmi-frl-reset -h` for options.
+
 ## Others
 
 - `clone_private` — clone a public repo into a new private one via `gh`.
