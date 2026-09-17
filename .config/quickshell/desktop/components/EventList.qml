@@ -42,6 +42,8 @@ Item {
     }
 
     function timeLabel(ev: var): string {
+        if (ev.task)
+            return ev.allDay ? "Due" : `Due ${Qt.formatTime(ev.s, "HH:mm")}`;
         if (ev.allDay)
             return "All day";
         const s = Qt.formatTime(ev.s, "HH:mm");

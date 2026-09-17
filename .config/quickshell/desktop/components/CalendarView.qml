@@ -166,7 +166,7 @@ ColumnLayout {
                 readonly property bool isToday: root.sameDay(modelData, root.today)
                 readonly property bool isSelected: root.sameDay(modelData, root.selected)
                 readonly property bool weekend: modelData.getDay() === 0 || modelData.getDay() === 6
-                readonly property var evs: Calendar.eventMap[Calendar.dayKey(modelData)] ?? []
+                readonly property var evs: Calendar.eventMap ? Calendar.eventsOn(modelData) : []
 
                 width: root.cell
                 height: root.cellH
@@ -202,13 +202,27 @@ ColumnLayout {
                         Repeater {
                             model: Math.min(3, day.evs.length)
 
-                            Rectangle {
-                                required property int index
+                            // filled for an event, hollow for a task's due date
+                            Item {
+                                id: mark
 
-                                width: 3
-                                height: 3
-                                radius: 1.5
-                                color: day.evs[index].colour || Theme.accent
+                                required property int index
+                                readonly property bool task: day.evs[index].task ?? false
+                                readonly property color tone: day.evs[index].colour || Theme.accent
+
+                                width: 5
+                                height: 5
+
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: mark.task ? 5 : 3
+                                    height: width
+                                    radius: width / 2
+                                    color: mark.task ? "transparent" : mark.tone
+                                    border.width: mark.task ? 1 : 0
+                                    border.color: mark.tone
+                                    antialiasing: true
+                                }
                             }
                         }
                     }

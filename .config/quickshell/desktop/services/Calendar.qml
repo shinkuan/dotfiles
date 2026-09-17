@@ -16,6 +16,21 @@ Singleton {
     property list<var> events: []
     property list<var> todos: []
     property list<var> lists: []
+    // open tasks with a due date, shaped like events so the month grid and the
+    // agenda can draw them; `task` marks them for a different look
+    readonly property list<var> dueTasks: todos.filter(t => !t.done && t.d).map(t => {
+        const due = t.d;
+        return {
+            id: t.id,
+            title: t.title,
+            s: due,
+            e: t.allDay ? new Date(due.getFullYear(), due.getMonth(), due.getDate() + 1) : due,
+            allDay: t.allDay,
+            colour: t.colour,
+            location: "",
+            task: true
+        };
+    })
     property var eventMap: ({})   // "yyyy-MM-dd" -> events touching that day
     property string error: ""     // last server problem; "" when the sync worked
     property bool cached: false
@@ -97,7 +112,7 @@ Singleton {
             }
         }
         for (const k in map)
-            map[k].sort((a, b) => (a.allDay === b.allDay ? a.s - b.s : a.allDay ? -1 : 1));
+            map[k].sort(byStart);
         events = list;
         eventMap = map;
         todos = (data.todos ?? []).map(t => {
@@ -111,19 +126,25 @@ Singleton {
         loaded = true;
     }
 
+    function byStart(a: var, b: var): real {
+        return a.allDay === b.allDay ? a.s - b.s : a.allDay ? -1 : 1;
+    }
+
+    // events of the day plus the tasks due on it, in one list
     function eventsOn(d: date): list<var> {
-        return eventMap[dayKey(d)] ?? [];
+        const k = dayKey(d);
+        return [...(eventMap[k] ?? []), ...dueTasks.filter(t => dayKey(t.s) === k)].sort(byStart);
     }
 
     function hasEvents(d: date): bool {
-        return (eventMap[dayKey(d)]?.length ?? 0) > 0;
+        return eventsOn(d).length > 0;
     }
 
-    // ongoing and future events starting within `days`, in start order
+    // ongoing and future entries starting within `days`, in start order
     function upcoming(days: int): list<var> {
         const now = new Date();
         const limit = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days + 1);
-        return events.filter(ev => ev.e > now && ev.s < limit).sort((a, b) => a.s - b.s);
+        return [...events, ...dueTasks].filter(ev => ev.e > now && ev.s < limit).sort((a, b) => a.s - b.s);
     }
 
     // days from today to a task's due date; NaN without one

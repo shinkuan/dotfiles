@@ -117,7 +117,10 @@ months around today and keeps a per-day index. Sources, all optional:
   (root, principal or calendar-home URL — `https://cal.example.org/alice/`)
   and `calendar.username`. Every calendar collection found there is read:
   events (VEVENT) fill the month grid and agenda, tasks (VTODO) fill the
-  task tile; the collection's `calendar-color` colours both. Ticking a task
+  task tile; an open task with a due date also shows in the grid and the
+  agenda, marked with a hollow dot and a `Due HH:MM` time (task managers such
+  as Planify write VTODO, so this is where their dated entries land). The
+  collection's `calendar-color` colours both. Ticking a task
   writes `STATUS:COMPLETED` back, typing into "Add a task" creates one in
   `calendar.todoList` (or the first collection that accepts tasks).
   `calendar.collections` limits the calendars shown by name. The last good
