@@ -78,15 +78,19 @@ Item {
         }
     }
 
-    // popout entry under the bar-local coordinate along the bar's axis
+    // popout entry under the bar-local coordinate along the bar's axis; the
+    // outermost entries also own the screen corners beyond them
     function popoutAt(pos: real): var {
         const items = [];
         collect(layout, items);
-        for (const it of items) {
+        for (let i = 0; i < items.length; i++) {
+            const it = items[i];
             const p = it.mapToItem(root, 0, 0);
             const start = horizontal ? p.x : p.y;
             const size = horizontal ? it.width : it.height;
-            if (pos >= start && pos < start + size)
+            const from = i === 0 ? -Infinity : start;
+            const to = i === items.length - 1 ? Infinity : start + size;
+            if (pos >= from && pos < to)
                 return { id: it.popout, y: start + size / 2 };
         }
         return null;

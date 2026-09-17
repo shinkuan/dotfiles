@@ -118,9 +118,9 @@ PanelWindow {
 
         Region {
             x: dashboard.x
-            y: Math.max(0, dashboard.y)
+            y: Math.max(0, dashboard.hitTop)
             width: dashboard.visible ? dashboard.width : 0
-            height: dashboard.visible ? dashboard.height + dashboard.y - y : 0
+            height: dashboard.visible ? dashboard.height + dashboard.hitTop - y : 0
             intersection: Intersection.Combine
         }
     }
@@ -150,7 +150,7 @@ PanelWindow {
         if (inHot)
             dashboard.open();
         else if (!dashboard.contains(x, y))
-            dashboard.closeSoon();
+            dashboard.closeHover();
         if (inBar) {
             const hit = bar.popoutAt(root.barTop ? x : y);
             if (hit && Config.popouts.showOnHover && !popouts.shortcutActive)
@@ -180,17 +180,17 @@ PanelWindow {
         }
     }
 
-    // a leave immediately followed by a re-enter (mask edits, 1px gaps) must
-    // not collapse anything
+    // the pointer is gone: collapse on the next frames, long enough only to
+    // swallow a leave immediately followed by a re-enter (mask edits, 1px gaps)
     Timer {
         id: leaveGrace
 
-        interval: 120
+        interval: 30
         onTriggered: {
             root.barHovered = false;
             if (!popouts.shortcutActive)
                 popouts.close();
-            dashboard.closeSoon();
+            dashboard.closeHover();
         }
     }
 

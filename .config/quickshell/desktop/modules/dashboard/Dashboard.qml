@@ -20,6 +20,8 @@ Item {
     readonly property int gap: 14
     readonly property real edge: frame ? Config.borderThickness : 8
     readonly property bool sliding: y > -height + 1
+    // while it slides out, the slot it is heading for already takes the pointer
+    readonly property real hitTop: shown ? edge : y
     // slot for the frame shader, extended into the band so the join is straight
     readonly property vector4d blobRect: frame && (shown || sliding) ? Qt.vector4d(x, y - 40, width, height + 40) : Qt.vector4d(0, 0, 0, 0)
 
@@ -44,7 +46,6 @@ Item {
     }
 
     function open(): void {
-        closeGrace.stop();
         if (!shown) {
             Notifs.markAllRead();
             Calendar.refresh();
@@ -53,7 +54,6 @@ Item {
     }
 
     function close(): void {
-        closeGrace.stop();
         shown = false;
         shortcutActive = false;
         todo.dropFocus();
@@ -68,20 +68,14 @@ Item {
         }
     }
 
-    function closeSoon(): void {
+    // the pointer moved off: a hover-opened panel goes straight back up
+    function closeHover(): void {
         if (shown && !shortcutActive)
-            closeGrace.restart();
+            close();
     }
 
     function contains(px: real, py: real): bool {
-        return shown && px >= x && px < x + width && py >= y && py < y + height;
-    }
-
-    Timer {
-        id: closeGrace
-
-        interval: 250
-        onTriggered: root.close()
+        return shown && px >= x && px < x + width && py >= hitTop && py < hitTop + height;
     }
 
     Surface {

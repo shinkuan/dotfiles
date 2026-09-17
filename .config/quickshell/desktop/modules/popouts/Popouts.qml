@@ -52,7 +52,9 @@ Item {
 
     x: horizontal ? Math.max(margin, Math.min(parent.width - panel.width - margin, anchorY - panel.width / 2)) : mirrored ? parent.width - barEdge - width : barEdge
     y: horizontal ? barEdge : snapTop ? bandT : snapBottom ? parent.height - bandT - targetH : rawY
-    width: frame ? Math.max(0, panel.width + panel.x) : shown ? (horizontal ? panel.width : gap + panel.width) : 0
+    // an opening panel claims its final width at once, so the pointer can
+    // cross onto it while it is still sliding out from under the band
+    width: frame ? (shown ? panel.width : Math.max(0, panel.width + panel.x)) : shown ? (horizontal ? panel.width : gap + panel.width) : 0
     height: frame ? panel.height : shown ? (horizontal ? gap + panel.height : panel.height) : 0
     clip: frame
 
