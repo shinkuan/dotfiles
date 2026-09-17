@@ -40,9 +40,11 @@ PanelWindow {
             sel = Qt.rect(0, 0, 0, 0);
             hoverWin = null;
             dragging = false;
-            capture.captureFrame();
+            capture.captureSource = root.screen;   // binding the screen grabs the frozen frame
             clients.running = true;
             keys.forceActiveFocus();
+        } else {
+            capture.captureSource = null;
         }
     }
 
@@ -114,11 +116,12 @@ PanelWindow {
         }
     }
 
+    // bound to the screen only while picking: an idle capture of an output
+    // that gets unplugged crashes quickshell (QScreen::handle in createContext)
     ScreencopyView {
         id: capture
 
         anchors.fill: parent
-        captureSource: root.screen
         live: false
         paintCursor: false
     }

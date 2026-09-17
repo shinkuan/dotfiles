@@ -84,7 +84,7 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 - **桌面時鐘**:桌布上的時鐘,電源 popout 或 `qs -c desktop ipc call desktopClock toggle` 開關。
 - **Keep awake**:電源 popout 的開關(`ipc call idle toggle`);播放音訊時自動抑制 idle;
   手把有輸入時也會抑制(`joystick-idle-watch`)。
-- **Polkit 代理**在 shell 內;shell 掛掉時手動跑 `polkit-fallback`。
+- **Polkit 代理**在 shell 內;註冊失敗(例如崩潰自重啟時舊行程還沒放掉 agent)會換 path 軟重載重試,最多 3 次;shell 掛掉時手動跑 `polkit-fallback`。
 
 設定檔:`.config/quickshell/desktop/config.json`(不進 git,首次安裝由 `config.example.json` 複製而來),存檔即時生效。`appearance.style` 切換視覺風格:
 `frame`(repo 出貨值:整個螢幕一圈圓角外框,bar 從左側帶滑出,popout / OSD / dashboard 直接
