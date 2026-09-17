@@ -23,3 +23,6 @@
 
 # browser profiles dropped by apps started inside a nested session
 .config/microsoft-edge*/
+
+# Live shell config, seeded from config.example.json (holds the CalDAV url/user)
+.config/quickshell/desktop/config.json

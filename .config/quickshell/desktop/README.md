@@ -84,7 +84,9 @@ map plus a `Component` in `Popouts.qml`. Shortcut access: add a
 
 ## config.json
 
-Hot-loaded; every key is optional.
+Hot-loaded; every key is optional. The file itself is gitignored (it holds the
+CalDAV url and username); `config.example.json` is the tracked default and
+`install.sh` copies it over when `config.json` is missing.
 
 | Key | Meaning |
 |---|---|

@@ -3,7 +3,8 @@
         "scale": 0.8
     },
     "appearance": {
-        "style": "frame"
+        "style": "frame",
+        "opacity": 1
     },
     "bar": {
         "autoHide": true,

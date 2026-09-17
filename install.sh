@@ -524,6 +524,12 @@ if [[ ! -e "$REPO_ROOT/.config/hypr/hyprland/local.lua" ]]; then
     cp "$REPO_ROOT/.config/hypr/hyprland/local.lua.example" "$REPO_ROOT/.config/hypr/hyprland/local.lua"
 fi
 
+# Seed the shell's live config (gitignored; holds the CalDAV url/username).
+if [[ ! -e "$REPO_ROOT/.config/quickshell/desktop/config.json" ]]; then
+    info "Seeding desktop shell config from config.example.json..."
+    cp "$REPO_ROOT/.config/quickshell/desktop/config.example.json" "$REPO_ROOT/.config/quickshell/desktop/config.json"
+fi
+
 # qt6ct cannot expand env vars in its config: seed the real file from the
 # template with the resolved XDG_CONFIG_HOME (gitignored).
 if [[ ! -e "$REPO_ROOT/.config/qt6ct/qt6ct.conf" ]]; then
