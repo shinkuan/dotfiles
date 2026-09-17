@@ -18,8 +18,10 @@ renders every consumer template:
 | `$XDG_CONFIG_HOME/hypr/scheme/current.lua` | hypr Lua config (border colours) |
 | `$XDG_CONFIG_HOME/hypr/scheme/current.conf` | hyprlock |
 | `$XDG_CONFIG_HOME/qt6ct/colors/scheme.colors` | Qt apps via qt6ct |
-| `$XDG_CONFIG_HOME/gtk-{3.0,4.0}/gtk.css` | GTK apps |
+| `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` | GTK4 / libadwaita apps: both modes behind `@media (prefers-color-scheme)`, so running apps flip with the mode; new colours need a relaunch |
+| `$XDG_DATA_HOME/themes/scheme-{light,dark}/gtk-3.0/gtk.css` | GTK3 apps: adw-gtk3 + the colours; `gtk-theme` switches between them so running apps reload on a mode change (`gtk-3.0/gtk.css` is left empty) |
 | `$XDG_CACHE_HOME/scheme/foot.ini`, `sequences.txt` | terminals (see below) |
+| gsettings `org.gnome.desktop.interface` `color-scheme`, `gtk-theme` | desktop portal (`org.freedesktop.appearance color-scheme` → browsers, Electron, GTK4, Qt), GTK3 theme (scheme-dark / scheme-light, or Adwaita when adw-gtk3 is missing); `SCHEME_NO_GSETTINGS=1` skips |
 
 Usage: `scheme set [--name N] [--flavour F] [--mode dark|light]
 [--variant V] [--random]`, `scheme sync`, `scheme get`, `scheme list`.

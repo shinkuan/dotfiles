@@ -17,6 +17,8 @@ trap 'rm -rf "$SANDBOX"' EXIT
 export XDG_CONFIG_HOME="$SANDBOX/config"
 export XDG_STATE_HOME="$SANDBOX/state"
 export XDG_CACHE_HOME="$SANDBOX/cache"
+export XDG_DATA_HOME="$SANDBOX/data"   # generated GTK3 themes land here
+export SCHEME_NO_GSETTINGS=1   # dconf is per user, not per XDG dir
 
 mkdir -p "$XDG_STATE_HOME/wallpaper"
 printf '%s' "$WALL" > "$XDG_STATE_HOME/wallpaper/path.txt"

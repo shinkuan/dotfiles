@@ -116,7 +116,12 @@ systemd user service 拉起 desktop shell、hypridle 與手把 idle watcher。
 Colours come from a single generator, `scheme` (Material You, all 9 variants,
 light/dark, preset schemes), which renders every consumer template — hypr,
 hyprlock, Qt (qt6ct), GTK, the desktop shell's `colours.json`, and the
-terminal palette. `wallpaper -f <image>` (or `-r` for random) sets the
+terminal palette. It also publishes the mode system-wide through gsettings
+(`color-scheme` → the desktop portal's `org.freedesktop.appearance`, which
+browsers, Electron, GTK4 and Qt apps read; `gtk-theme` → generated
+scheme-light / scheme-dark themes on top of adw-gtk3 for GTK3). Running GTK
+apps follow a light/dark switch live; new colours apply on their next launch.
+`wallpaper -f <image>` (or `-r` for random) sets the
 wallpaper and re-runs the whole pipeline, including hellwal for terminal
 colours. See `.local/bin/README.md` for details and how to add preset
 schemes.

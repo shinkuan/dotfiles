@@ -22,9 +22,16 @@ Outputs:
     $XDG_CONFIG_HOME/hypr/scheme/current.lua  lua module for the hypr config
     $XDG_CONFIG_HOME/hypr/scheme/current.conf hyprlang vars for hyprlock
     $XDG_CONFIG_HOME/qt6ct/colors/scheme.colors
-    $XDG_CONFIG_HOME/gtk-3.0/gtk.css, gtk-4.0/gtk.css
+    $XDG_CONFIG_HOME/gtk-4.0/gtk.css          both modes behind @media queries,
+                                              so libadwaita apps flip live
+    $XDG_DATA_HOME/themes/scheme-{light,dark} GTK3 themes: adw-gtk3 + colours
+                                              (gtk-3.0/gtk.css is left empty)
     $XDG_CACHE_HOME/scheme/foot.ini           terminal palette (see below)
     $XDG_CACHE_HOME/scheme/sequences.txt      OSC colour sequences
+    gsettings org.gnome.desktop.interface     color-scheme + gtk-theme, so the
+                                              desktop portal, browsers, GTK and
+                                              Qt apps follow the mode
+                                              (SCHEME_NO_GSETTINGS=1 skips it)
 
 The terminal palette source is a config switch
 ($XDG_CONFIG_HOME/scheme/config.json, {"terminal": {"source": ...}}):
@@ -39,6 +46,8 @@ import hashlib
 import json
 import os
 import random
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -439,8 +448,7 @@ def render_qt6ct(colours: dict[str, str]) -> None:
     _atomic_write(CONFIG_HOME / "qt6ct/colors/scheme.colors", "\n".join(lines))
 
 
-def render_gtk(colours: dict[str, str]) -> None:
-    pairs = [
+GTK_PAIRS = [
         ("accent_color", "primary"), ("accent_bg_color", "primary"),
         ("accent_fg_color", "onPrimary"),
         ("window_bg_color", "surface"), ("window_fg_color", "onSurface"),
@@ -459,11 +467,56 @@ def render_gtk(colours: dict[str, str]) -> None:
         ("error_fg_color", "onError"),
         ("success_color", "success"), ("success_bg_color", "success"),
         ("success_fg_color", "onSuccess"),
-    ]
-    css = "".join(f"@define-color {gtk_name} #{colours[role]};\n"
-                  for gtk_name, role in pairs)
-    for ver in ("gtk-3.0", "gtk-4.0"):
-        _atomic_write(CONFIG_HOME / ver / "gtk.css", css)
+]
+
+
+def _gtk_block(colours: dict[str, str], indent: str = "") -> str:
+    return "".join(f"{indent}@define-color {gtk_name} #{colours[role]};\n"
+                   for gtk_name, role in GTK_PAIRS)
+
+
+def _theme_dirs() -> list[Path]:
+    data_dirs = os.environ.get("XDG_DATA_DIRS") or "/usr/local/share:/usr/share"
+    return [Path.home() / ".themes", _xdg("XDG_DATA_HOME", ".local/share") / "themes",
+            *(Path(d) / "themes" for d in data_dirs.split(":") if d)]
+
+
+def _gtk3_base(mode: str) -> Path | None:
+    """adw-gtk3 is the GTK3 theme that honours the libadwaita colour names."""
+    name = "adw-gtk3-dark" if mode == "dark" else "adw-gtk3"
+    for d in _theme_dirs():
+        if (d / name / "gtk-3.0" / "gtk.css").is_file():
+            return d / name
+    return None
+
+
+def render_gtk(settings: dict, colours: dict[str, str]) -> bool:
+    """GTK4 gets both palettes behind prefers-color-scheme media queries, which
+    libadwaita re-evaluates when the mode changes. GTK3 has no media queries:
+    its overrides ride inside generated themes on top of adw-gtk3, and running
+    apps reload the theme when its name changes. Returns whether the GTK3
+    themes could be written."""
+    other = "light" if settings["mode"] == "dark" else "dark"
+    palettes = {settings["mode"]: colours,
+                other: build_colours({**settings, "mode": other})}
+    css4 = "".join(f"@media (prefers-color-scheme: {mode}) {{\n"
+                   f"{_gtk_block(palettes[mode], '  ')}}}\n"
+                   for mode in ("light", "dark"))
+    _atomic_write(CONFIG_HOME / "gtk-4.0/gtk.css", css4)
+    # a user gtk.css would pin one mode's colours over both themes
+    _atomic_write(CONFIG_HOME / "gtk-3.0/gtk.css",
+                  "/* GTK3 colours live in the scheme-light / scheme-dark themes */\n")
+    themes = _xdg("XDG_DATA_HOME", ".local/share") / "themes"
+    ok = True
+    for mode in ("light", "dark"):
+        base = _gtk3_base(mode)
+        if base is None:
+            ok = False
+            continue
+        _atomic_write(themes / f"scheme-{mode}/gtk-3.0/gtk.css",
+                      f'@import url("{base}/gtk-3.0/gtk.css");\n'
+                      + _gtk_block(palettes[mode]))
+    return ok
 
 
 def render_terminal(settings: dict, colours: dict[str, str]) -> None:
@@ -498,12 +551,31 @@ def render_terminal(settings: dict, colours: dict[str, str]) -> None:
     _atomic_write(CACHE_DIR / "sequences.txt", seq)
 
 
+def render_preference(settings: dict, gtk3_themes: bool) -> None:
+    """Tell the desktop which mode this is. xdg-desktop-portal-gtk serves
+    org.gnome.desktop.interface color-scheme as org.freedesktop.appearance
+    color-scheme, which is what browsers, Electron, GTK4 and Qt apps read;
+    GTK3 on Wayland follows gtk-theme live."""
+    if os.environ.get("SCHEME_NO_GSETTINGS") or not shutil.which("gsettings"):
+        return
+    dark = settings["mode"] == "dark"
+    if gtk3_themes:
+        theme = "scheme-dark" if dark else "scheme-light"
+    else:
+        theme = "Adwaita-dark" if dark else "Adwaita"
+    for key, value in (("color-scheme", "prefer-dark" if dark else "prefer-light"),
+                       ("gtk-theme", theme)):
+        subprocess.run(["gsettings", "set", "org.gnome.desktop.interface", key, value],
+                       check=False, stderr=subprocess.DEVNULL)
+
+
 def render_all(settings: dict, colours: dict[str, str]) -> None:
     render_colours_json(settings, colours)
     render_hypr(colours)
     render_qt6ct(colours)
-    render_gtk(colours)
+    gtk3_themes = render_gtk(settings, colours)
     render_terminal(settings, colours)
+    render_preference(settings, gtk3_themes)
 
 
 # ------------------------------------------------------------------- CLI
