@@ -1,6 +1,12 @@
 //@ pragma UseQApplication
 //@ pragma Env QT_QUICK_CONTROLS_STYLE=Basic
 //@ pragma Env QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+// Qt sizes the texture atlas to the next power of two of the window (64 MiB
+// for a 4K surface) and gives every window depth/stencil buffers it never uses
+//@ pragma Env QSG_ATLAS_WIDTH=1024
+//@ pragma Env QSG_ATLAS_HEIGHT=1024
+//@ pragma Env QSG_NO_DEPTH_BUFFER=1
+//@ pragma Env QSG_NO_STENCIL_BUFFER=1
 
 import QtQuick
 import Quickshell

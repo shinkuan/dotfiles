@@ -35,6 +35,11 @@ PanelWindow {
         opacity: current && status === Image.Ready ? 1 : 0
         z: current ? 1 : 0
 
+        onOpacityChanged: {
+            if (opacity === 0 && !current)
+                source = "";
+        }
+
         Behavior on opacity {
             NumberAnimation {
                 duration: Config.animDurationSlow * 2
