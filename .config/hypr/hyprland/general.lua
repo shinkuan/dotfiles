@@ -84,13 +84,20 @@ hl.config({
     -- Misc
     -- -------------------------------- --
     misc = {
-        -- vrr = 1,
+        vrr                     = 2,    -- adaptive sync only for fullscreen windows
         force_default_wallpaper = 0,    -- set to 0/1 to disable the anime mascot wallpapers
         disable_hyprland_logo   = true, -- disables the random hyprland logo / anime girl background
         middle_click_paste      = false,
         mouse_move_enables_dpms = true,
         key_press_enables_dpms  = true,
         focus_on_activate       = true,
+    },
+
+    -- -------------------------------- --
+    -- Render
+    -- -------------------------------- --
+    render = {
+        direct_scanout = 1,
     },
 
     -- -------------------------------- --
