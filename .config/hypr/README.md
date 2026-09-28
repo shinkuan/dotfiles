@@ -21,6 +21,7 @@ their own daemons.
 | `hyprland/rpm.lua` | plugin (Hypr-DarkWindow) setup |
 | `hyprland/var.lua` | app commands used by binds |
 | `hyprland/local.lua` | **gitignored** per-machine overrides (monitors, machine daemons); seeded from `local.lua.example` |
+| `hyprland/gamemode.lua` | loaded last: while `$XDG_RUNTIME_DIR/hypr/<instance>/gamemode` exists (set by the shell's Game mode toggle), animations, blur, shadows, rounding and gaps are off |
 | `scheme/` | generated colour files (`current.lua`, `current.conf`; gitignored) |
 | `custom_scripts/` | helpers called from binds |
 

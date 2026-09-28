@@ -25,7 +25,9 @@ agent and idle inhibitor. Run with `qs -c desktop` (normally via
   (Pipewire), `Net` (Quickshell.Networking), `Vpn` (nmcli), `Brightness`
   (brightnessctl + ddcutil), `Resources`, `Session`, `KGrid` (reads the
   per-instance `kgrid.json` written by `kgrid.lua`), `Idle` (inhibitor on
-  its own invisible surface), `Notifs`, `Launcher`, `Picker`, `Overview`,
+  its own invisible surface), `GameMode` (flag file read by
+  `hypr/hyprland/gamemode.lua`; also holds back notification popups),
+  `Notifs`, `Launcher`, `Picker`, `Overview`,
   `Players` (Mpris), `Polkit`, `Requests` (global shortcuts + IPC).
 - `modules/background/` — wallpaper layer + `DesktopClock`.
 - `modules/frame/` — four 1×1 edge windows whose exclusive zones reserve
@@ -180,7 +182,8 @@ TZID/UTC times to local time.
 ## IPC targets
 
 `bar` (toggle/pin/unpin/isPinned), `desktopClock`, `audio`, `brightness`,
-`idle` (toggle/enable/disable/isEnabled/isInhibited/activity), `notifs`
+`idle` (toggle/enable/disable/isEnabled/isInhibited/activity), `gameMode`
+(toggle/enable/disable/isEnabled), `notifs`
 (clear/toggleDnd/dnd), `launcher` (toggle/open/close/search/clipboard),
 `overview` (toggle/open/close), `popout` (open <id>/close), `screenshot`
 (region/regionCopy/cancel/capture), `session` (lock/suspend/logout),

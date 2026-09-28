@@ -177,6 +177,15 @@ ColumnLayout {
                 PowerProfiles.profile = order[i];
             }
         }
+
+        ToggleTile {
+            Layout.columnSpan: 2
+            icon: "sports_esports"
+            label: "Game mode"
+            detail: GameMode.enabled ? "No animations, blur, gaps or popups" : "Normal"
+            checked: GameMode.enabled
+            onClicked: GameMode.toggle()
+        }
     }
 
     ListItem {

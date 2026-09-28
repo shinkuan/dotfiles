@@ -18,6 +18,7 @@ Singleton {
     property list<var> popups: []    // keys shown as popups, newest first
     readonly property int unread: list.filter(e => !e.read).length
     readonly property bool dnd: ShellState.dnd
+    readonly property bool quiet: dnd || GameMode.enabled
     readonly property string dir: `${Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"}/desktop-shell`
     property bool loaded: false
 
@@ -84,7 +85,7 @@ Singleton {
         list = existing >= 0 ? list.map((e, i) => i === existing ? entry : e) : [entry, ...list].slice(0, Config.notifications.maxHistory);
         if (existing < 0)
             n.closed.connect(() => root.onClosed(key));
-        if (!dnd) {
+        if (!quiet) {
             popups = [key, ...popups.filter(k => k !== key)];
             const t = timeout(entry);
             if (t > 0)
