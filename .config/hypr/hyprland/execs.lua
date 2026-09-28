@@ -22,9 +22,14 @@ hl.on("hyprland.start", function()
     -- shell under test is started by hand and the session must not lock.
     -- Hyprland replaces WAYLAND_DISPLAY with its *own* socket before this
     -- runs, so nesting can only be told from a marker the launcher sets.
+    -- The shell launches apps as user services, so they get this environment
+    -- rather than Hyprland's: import every hl.env (env.lua, cursor.lua).
     if not os.getenv("DOTFILES_NESTED") then
         hl.exec_cmd("systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE"
             .. " XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_SESSION_DESKTOP XDG_CONFIG_HOME"
+            .. " GDK_SCALE LIBVA_DRIVER_NAME __GLX_VENDOR_LIBRARY_NAME ELECTRON_OZONE_PLATFORM_HINT NVD_BACKEND"
+            .. " QT_QPA_PLATFORMTHEME QSG_RENDER_LOOP QT_IM_MODULE XMODIFIERS"
+            .. " XCURSOR_SIZE HYPRCURSOR_SIZE XCURSOR_THEME"
             .. " && systemctl --user restart desktop-shell.service hypridle.service joystick-idle-watch.service")
         hl.exec_cmd("hyprlock")
     end

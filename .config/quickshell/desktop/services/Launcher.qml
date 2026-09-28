@@ -194,6 +194,12 @@ Singleton {
             entry.execute();
     }
 
+    // In its own unit the command neither inherits the shell's process state
+    // nor dies when the shell restarts.
+    function run(command: list<string>): void {
+        Quickshell.execDetached(hasApp2unit ? ["app2unit", "--", ...command] : command);
+    }
+
     function actionRows(q: string): list<var> {
         const list = q === "" ? actions : ranked(actions, a => Math.max(score(q, a.name), score(q, a.description) * 0.6));
         return list.map(a => ({
@@ -214,7 +220,7 @@ Singleton {
             return true;
         }
         if (cmd[0] === "@config") {
-            Quickshell.execDetached(["xdg-open", Quickshell.shellDir + "/config.json"]);
+            run(["xdg-open", Quickshell.shellDir + "/config.json"]);
         } else if (cmd.length > 0) {
             Quickshell.execDetached(cmd);
         }

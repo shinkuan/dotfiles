@@ -94,7 +94,7 @@ ColumnLayout {
                     else if (modelData.known || !Net.secured(modelData))
                         modelData.connect();
                     else {
-                        Quickshell.execDetached(["nm-connection-editor"]);
+                        Launcher.run(["nm-connection-editor"]);
                         Requests.closePopouts();
                     }
                 }

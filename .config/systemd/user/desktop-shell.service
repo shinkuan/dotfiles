@@ -13,6 +13,10 @@ Environment=QSG_RENDER_LOOP=threaded
 Environment=QT_QPA_PLATFORM=wayland
 Environment=QT_IM_MODULE=fcitx
 Environment=XMODIFIERS=@im=fcitx
+# Launched apps must not inherit this process: the environment above, and the
+# RLIMIT_RTTIME of 0 PipeWire's module-rt sets without rtkit, which SIGKILLs any
+# realtime thread (SteamVR's compositor). As services, systemd --user forks them.
+Environment=APP2UNIT_TYPE=service
 # Qt reads its frame pacing from the primary screen once, at startup: started
 # before the compositor has advertised an output it falls back to a 16 ms timer
 # (62 fps) and never picks the real refresh rate up again. Wait for a monitor.

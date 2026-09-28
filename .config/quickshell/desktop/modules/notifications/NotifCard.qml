@@ -176,7 +176,7 @@ Surface {
                     wrapMode: Text.Wrap
                     maximumLineCount: root.compact ? 3 : 6
                     linkColor: Theme.accent
-                    onLinkActivated: link => Quickshell.execDetached(["xdg-open", link])
+                    onLinkActivated: link => Launcher.run(["xdg-open", link])
                 }
             }
         }

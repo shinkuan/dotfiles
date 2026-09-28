@@ -2,6 +2,7 @@
 -- Environment Variables
 -- ================================ --
 -- See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
+-- Apps the shell launches only see names listed in execs.lua's import: add new ones there.
 
 hl.env("XDG_CURRENT_DESKTOP", "Hyprland")
 hl.env("XDG_SESSION_TYPE",    "wayland")
