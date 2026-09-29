@@ -16,8 +16,14 @@ DashTile {
             Resources.watchers--;
     }
 
+    // Layouts round to whole logical px; at 1.5x an odd one is a half device
+    // pixel, where NativeRendering drops a glyph column (a broken "/"). Even
+    // gauge widths and no leftover space keep every gauge on an even x.
     RowLayout {
-        anchors.fill: parent
+        readonly property int gaugeWidth: 2 * Math.floor((parent.width - spacing * 2) / 6)
+
+        width: gaugeWidth * 3 + spacing * 2
+        height: parent.height
         spacing: 4
 
         Gauge {
@@ -38,7 +44,7 @@ DashTile {
             icon: "videogame_asset"
             value: Resources.gpu ? Resources.gpu.util : 0
             label: Resources.gpu ? `${Math.round(Resources.gpu.util * 100)}%` : "–"
-            sub: Resources.gpu && Resources.gpu.temp > 0 ? `GPU ${Math.round(Resources.gpu.temp)}°` : "GPU"
+            sub: Resources.gpu && Resources.gpu.memTotal > 0 ? `${(Resources.gpu.memUsed / 1073741824).toFixed(Resources.gpu.memUsed < 10 * 1073741824 ? 1 : 0)}/${(Resources.gpu.memTotal / 1073741824).toFixed(0)} G` : "GPU"
         }
     }
 
@@ -50,7 +56,7 @@ DashTile {
         property string label
         property string sub
 
-        Layout.fillWidth: true
+        Layout.preferredWidth: parent?.gaugeWidth ?? 0
         Layout.alignment: Qt.AlignVCenter
         spacing: 10
 
