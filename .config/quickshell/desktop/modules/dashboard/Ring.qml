@@ -16,13 +16,18 @@ Item {
     implicitWidth: 84
     implicitHeight: 84
 
+    // a hidden ring still costs its window a frame per repaint: jump to the
+    // value instead of animating, and paint once it is shown again
     onValueChanged: shown = Math.max(0, Math.min(1, value))
-    onShownChanged: canvas.requestPaint()
+    onShownChanged: if (visible) canvas.requestPaint()
+    onVisibleChanged: if (visible) canvas.requestPaint()
     onTrackChanged: canvas.requestPaint()
     onFillChanged: canvas.requestPaint()
     Component.onCompleted: shown = Math.max(0, Math.min(1, value))
 
     Behavior on shown {
+        enabled: root.visible
+
         NumberAnimation {
             duration: Theme.spatialDuration
             easing.type: Theme.spatialType
