@@ -1,0 +1,30 @@
+#!/bin/bash
+# Caps the NVIDIA GPU's clocks while power-profiles-daemon is in power-saver
+# and lifts the cap on any other profile. Installed by install.sh to
+# /usr/local/bin and run as root by power-saver-gpu.service.
+set -u
+
+CORE_MAX=1500
+MEM_MAX=5001
+
+for _ in {1..30}; do
+    nvidia-smi -L >/dev/null 2>&1 && break
+    sleep 2
+done
+
+current=
+apply() {
+    local profile
+    profile=$(powerprofilesctl get) || return
+    [[ $profile == "$current" ]] && return
+    if [[ $profile == power-saver ]]; then
+        nvidia-smi -lgc 210,$CORE_MAX && nvidia-smi -lmc 405,$MEM_MAX
+    else
+        nvidia-smi -rgc && nvidia-smi -rmc
+    fi >/dev/null && current=$profile && echo "$profile"
+}
+
+apply
+gdbus monitor --system --dest org.freedesktop.UPower.PowerProfiles \
+    --object-path /org/freedesktop/UPower/PowerProfiles |
+    while read -r _; do apply; done

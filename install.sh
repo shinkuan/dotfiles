@@ -361,6 +361,16 @@ sudo systemctl enable --now bluetooth.service
 sudo systemctl enable --now sshd.service
 sudo systemctl enable --now power-profiles-daemon.service || warn "power-profiles-daemon could not be enabled"
 
+# ppd only touches the CPU; on NVIDIA machines power-saver also caps the GPU.
+if grep -qsx 0x10de /sys/bus/pci/devices/*/vendor; then
+    info "Installing power-saver-gpu (caps GPU clocks in the power-saver profile)..."
+    sudo install -Dm755 "$REPO_ROOT/system/power-saver-gpu" /usr/local/bin/power-saver-gpu
+    sudo install -Dm644 "$REPO_ROOT/system/power-saver-gpu.service" /etc/systemd/system/power-saver-gpu.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable power-saver-gpu.service && sudo systemctl restart power-saver-gpu.service \
+        || warn "power-saver-gpu could not be started"
+fi
+
 groups_to_add=(wheel)
 if [[ -n ${SELECTED[containers]:-} ]]; then
     sudo systemctl enable --now docker.service

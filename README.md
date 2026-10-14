@@ -38,7 +38,9 @@ cd ~/Documents/dotfiles
 
 腳本會:裝 yay → 裝全部套件(官方 + AUR)→ 詢問選配群組(音樂 / 遊戲 / 容器 / 虛擬化,
 服務與群組只在有選時才啟用),以及要不要設定 GRUB 雙開機(os-prober 抓 Windows、記住上次選的項目;
-記住選項需要 `/boot` 在 ESP 上)→ 啟用服務(NetworkManager、bluetooth、sshd、power-profiles-daemon)
+記住選項需要 `/boot` 在 ESP 上)→ 啟用服務(NetworkManager、bluetooth、sshd、power-profiles-daemon;有 NVIDIA 顯卡時再裝
+`power-saver-gpu`,Power saver profile 下鎖 GPU 核心 / 顯示記憶體時脈上限,原始檔在 `system/`,
+改完要重跑 install.sh 才會複製到 `/usr/local/bin`)
 → 佈建裝置權限並驗證(手把 udev uaccess 規則、ddcutil 的 i2c-dev)→ 把 `.config` symlink 進
 `~/.config`(systemd user 單元逐檔連結)、複製 `.local/bin`、桌布、`.bashrc` → 種出 `local.lua`
 與 `qt6ct.conf` → 跑 `wallpaper -f` 產生整套色票。

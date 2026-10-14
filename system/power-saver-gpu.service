@@ -1,0 +1,12 @@
+[Unit]
+Description=Cap NVIDIA GPU clocks in the power-saver profile
+After=power-profiles-daemon.service
+
+[Service]
+ExecStart=/usr/local/bin/power-saver-gpu
+ExecStopPost=/usr/bin/nvidia-smi -rgc
+ExecStopPost=/usr/bin/nvidia-smi -rmc
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
