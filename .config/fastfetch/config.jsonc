@@ -28,9 +28,14 @@
         "swap",
         {
             "type": "disk",
-            "folders": "/:/home:/boot:/efi"
+            "folders": "/:/home:/boot:/efi",
+            "format": "{size-used} / {size-total} ({size-percentage})"
         },
-        "wifi",
+        {
+            "type": "wifi",
+            // Fall back to the interface status when it has no connection.
+            "format": "{?ssid}{ssid}{?}{/ssid}{inf-status}{/}"
+        },
         "uptime",
         "datetime"
         // "battery",
