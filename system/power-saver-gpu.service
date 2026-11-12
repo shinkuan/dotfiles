@@ -9,4 +9,6 @@ ExecStopPost=/usr/bin/nvidia-smi -rmc
 Restart=on-failure
 
 [Install]
-WantedBy=multi-user.target
+# Not multi-user.target: ppd's own unit is After=multi-user.target, so with the
+# After= above that would be an ordering cycle and systemd drops this job at boot.
+WantedBy=graphical.target

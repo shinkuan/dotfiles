@@ -367,7 +367,8 @@ if grep -qsx 0x10de /sys/bus/pci/devices/*/vendor; then
     sudo install -Dm755 "$REPO_ROOT/system/power-saver-gpu" /usr/local/bin/power-saver-gpu
     sudo install -Dm644 "$REPO_ROOT/system/power-saver-gpu.service" /etc/systemd/system/power-saver-gpu.service
     sudo systemctl daemon-reload
-    sudo systemctl enable power-saver-gpu.service && sudo systemctl restart power-saver-gpu.service \
+    # reenable, not enable: drops the stale multi-user.target.wants link left by older versions.
+    sudo systemctl reenable power-saver-gpu.service && sudo systemctl restart power-saver-gpu.service \
         || warn "power-saver-gpu could not be started"
 fi
 
