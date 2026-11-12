@@ -19,6 +19,7 @@ end
 # Custom Aliases and Functions
 alias ll='ls -alh --color=auto'
 alias vi=vim
+alias c=claude
 
 set -gx QT_QPA_PLATFORMTHEME qt6ct
 
